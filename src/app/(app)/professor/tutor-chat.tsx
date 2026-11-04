@@ -73,6 +73,8 @@ export function TutorChat({
         { id: String(data.assistantMessageId ?? `a-${++seq.current}`), role: "assistant", content: data.reply, correction: null, tip: data.tip },
       ]);
       if (autoSpeak) speak(data.reply);
+      // Atualiza XP e sequência no topo (a conversa rende XP).
+      if (!isNew) router.refresh();
     } catch {
       setMessages((m) => m.map((x) => (x.id === tempId ? { ...x, failed: true } : x)));
       setError("Sem conexão. Verifique sua internet e tente de novo.");
