@@ -5,6 +5,7 @@ import { ProfileForm } from "@/components/profile-form";
 import { signOut } from "@/app/actions/account";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { AchievementIcon } from "@/components/achievement-icon";
+import { ResetProgress } from "@/components/reset-progress";
 
 export const metadata = { title: "Perfil" };
 
@@ -73,6 +74,8 @@ export default async function ProfilePage() {
           <ProfileForm profile={profile} />
         </section>
       )}
+
+      <ResetProgress />
 
       <form action={signOut}>
         <button type="submit" className="btn-ghost">
