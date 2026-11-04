@@ -3,6 +3,7 @@
  * Diálogos são lidos com vozes diferentes por personagem; a velocidade aumenta com o nível.
  */
 import type { CefrLevel } from "./types";
+import { LISTENING_EXTRA } from "./listening-extra";
 
 export interface ListeningQuestion {
   prompt: string;
@@ -26,7 +27,7 @@ export const LISTENING_RATE: Record<CefrLevel, number> = { A1: 0.8, A2: 0.88, B1
 
 const Q = (prompt: string, options: string[], answer: number): ListeningQuestion => ({ prompt, options, answer });
 
-export const LISTENING: ListeningItem[] = [
+const BASE: ListeningItem[] = [
   // ---------------------------------------------------------------- A1
   {
     id: "l-a1-cafe", level: "A1", title: "No café", topic: "Pedidos", kind: "dialogue",
@@ -279,5 +280,9 @@ export const LISTENING: ListeningItem[] = [
     dictation: "I'd rather be accused of over-reaching than of playing it safe.",
   },
 ];
+
+const ORDER: CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
+/** Todos os áudios, em ordem de nível. */
+export const LISTENING: ListeningItem[] = [...BASE, ...LISTENING_EXTRA].sort((a, b) => ORDER.indexOf(a.level) - ORDER.indexOf(b.level));
 
 export const getListening = (id: string) => LISTENING.find((l) => l.id === id);
