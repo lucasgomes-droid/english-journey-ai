@@ -144,7 +144,7 @@ export async function submitLesson(input: z.infer<typeof submitSchema>): Promise
 // ---------------------------------------------------------------------------
 
 const reviewSchema = z.object({
-  itemType: z.enum(["vocab", "exercise", "grammar"]),
+  itemType: z.enum(["vocab", "exercise", "grammar", "phrase"]),
   itemId: z.string(),
   answer: answerSchema,
 });
@@ -172,6 +172,13 @@ export async function submitReview(input: z.infer<typeof reviewSchema>) {
     const corrected = (msg?.correction as { corrected?: string } | null)?.corrected;
     if (!corrected) return { ok: false as const, error: "Item não encontrado." };
     const r = gradeExercise({ id: itemId, type: "translate", skill: "speaking", prompt: "", accepted: [corrected] }, answer);
+    ({ correct, expected } = r);
+    typo = Boolean(r.typo);
+  } else if (itemType === "phrase") {
+    // Frase pessoal: do português para o inglês, falando ou escrevendo.
+    const { data: ph } = await supabase.from("personal_phrases").select("en, pt").eq("id", Number(itemId.replace("ph-", ""))).eq("user_id", user.id).maybeSingle();
+    if (!ph) return { ok: false as const, error: "Item não encontrado." };
+    const r = gradeExercise({ id: itemId, type: "translate", skill: "speaking", prompt: ph.pt, accepted: [ph.en] }, answer);
     ({ correct, expected } = r);
     typo = Boolean(r.typo);
   } else {

@@ -21,11 +21,21 @@ export default async function ReviewPage() {
     : { data: [] as { id: number; correction: unknown }[] };
   const corrById = new Map((corrMsgs ?? []).map((m) => [`msg-${m.id}`, m.correction as { original: string; corrected: string; explanation_pt: string }]));
 
+  // Frases pessoais (itens "phrase").
+  const phIds = (data ?? []).filter((r) => r.item_type === "phrase").map((r) => Number(r.item_id.replace("ph-", "")));
+  const { data: phRows } = phIds.length ? await supabase.from("personal_phrases").select("id, en, pt").in("id", phIds).eq("user_id", user.id) : { data: [] as { id: number; en: string; pt: string }[] };
+  const phById = new Map((phRows ?? []).map((p) => [`ph-${p.id}`, p]));
+
   const cards: ReviewCard[] = [];
   for (const r of data ?? []) {
     if (r.item_type === "grammar") {
       const c = corrById.get(r.item_id);
       if (c?.corrected) cards.push({ kind: "grammar", id: r.item_id, original: c.original, corrected: c.corrected, explanation: c.explanation_pt, struggling: r.lapses >= 2 });
+      continue;
+    }
+    if (r.item_type === "phrase") {
+      const p = phById.get(r.item_id);
+      if (p) cards.push({ kind: "phrase", id: r.item_id, pt: p.pt, en: p.en, struggling: r.lapses >= 2 });
       continue;
     }
     if (r.item_type === "vocab") {

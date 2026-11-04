@@ -5,7 +5,7 @@ import { localDate, nextStreak } from "@/lib/streak";
 import type { Profile } from "@/lib/data";
 
 export interface ActivityInput {
-  kind: "lesson" | "test" | "review" | "chat" | "pronunciation" | "scenario" | "listening" | "mini";
+  kind: "lesson" | "test" | "review" | "chat" | "pronunciation" | "scenario" | "listening" | "mini" | "speaking";
   ref?: string;
   title: string;
   xp: number;

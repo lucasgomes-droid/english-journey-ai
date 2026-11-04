@@ -76,3 +76,32 @@ describe("conquistas", () => {
     expect(got).toEqual(["first_lesson", "five_lessons", "module_done", "streak_3"]);
   });
 });
+
+import { analyzeAudio, readWav, textStats, wordsPerMinute } from "../src/lib/fluency";
+import { encodeWav } from "../src/lib/voice-recorder";
+import { normalizeFeedback, parseJsonObject } from "../src/lib/speaking-parse";
+describe("fluência", () => {
+  it("conta pausas longas e tempo de fala", async () => {
+    const rate = 16000;
+    const tone = (s: number) => Array.from({ length: rate * s }, (_, i) => Math.sin(i / 4) * 0.4);
+    const silence = (s: number) => Array.from({ length: rate * s }, () => 0);
+    const pcm = new Float32Array([...silence(0.5), ...tone(1), ...silence(1), ...tone(1), ...silence(0.3), ...tone(1), ...silence(0.5)]);
+    const wav = readWav(await encodeWav(pcm, rate).arrayBuffer())!;
+    expect(wav.rate).toBe(rate);
+    const st = analyzeAudio(wav.samples, wav.rate);
+    expect(st.pauses).toBe(1);
+    expect(st.speechSeconds).toBeGreaterThan(4);
+    expect(st.speechSeconds).toBeLessThan(4.6);
+  });
+  it("conta palavras, diferentes e hesitações", () => {
+    expect(textStats("Um, I work, uh, I work in logistics.")).toEqual({ words: 6, uniqueWords: 4, fillers: 2 });
+    expect(wordsPerMinute(50, 30)).toBe(100);
+    expect(wordsPerMinute(5, 2)).toBe(0);
+  });
+  it("lê o retorno da IA de forma tolerante", () => {
+    const fb = normalizeFeedback(parseJsonObject('ok {"summary_pt":"Bom","mistakes":[{"original":"a","corrected":"a"},{"original":"I have 30 years","corrected":"I am 30","pt":"Tenho 30"}],"phrases":[{"en":"Hi","pt":"Oi"},{"en":""}]}'));
+    expect(fb?.mistakes).toHaveLength(1);
+    expect(fb?.phrases).toHaveLength(1);
+    expect(normalizeFeedback(parseJsonObject("nada"))).toBeNull();
+  });
+});

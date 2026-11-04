@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { BookOpen, Clock, Flame, Headphones, Languages, MessagesSquare, RotateCcw, CheckCircle2, Target } from "lucide-react";
+import { AudioLines, BookOpen, CalendarCheck, Clock, Flame, Headphones, Languages, MessagesSquare, Phone, RotateCcw, CheckCircle2, Target, Timer } from "lucide-react";
+import { PAIR_SETS } from "@/content/minimal-pairs";
+import { topicsFor } from "@/content/speaking-topics";
 import { SCENARIOS } from "@/content/scenarios";
 import { LISTENING } from "@/content/listening";
 import { Avatar } from "@/components/avatar";
@@ -12,7 +14,7 @@ import { AchievementIcon } from "@/components/achievement-icon";
 export const metadata = { title: "Início" };
 
 const WEEKDAY = new Intl.DateTimeFormat("pt-BR", { weekday: "short", timeZone: "UTC" });
-const KIND_LABEL: Record<string, string> = { lesson: "Aula", test: "Avaliação", review: "Revisão", chat: "Conversa", pronunciation: "Pronúncia", scenario: "Situação real" };
+const KIND_LABEL: Record<string, string> = { lesson: "Aula", test: "Avaliação", review: "Revisão", chat: "Conversa", pronunciation: "Pronúncia", scenario: "Situação real", listening: "Listening", mini: "Mini-aula", speaking: "Fala livre" };
 
 function formatHours(min: number) {
   if (min < 60) return `${min} min`;
@@ -32,13 +34,34 @@ export default async function Dashboard() {
   const levelListening = LISTENING.filter((l) => l.level === profile.current_level);
   const listeningToday = levelListening[dayIndex % Math.max(1, levelListening.length)] ?? LISTENING[0];
 
-  // Rotina diária: distribui o tempo disponível entre revisão, aula e conversa.
+  // Rotina diária: o mínimo para falar todo dia — revisão, aula, fala, escuta e conversa.
+  const done = new Set(d.todayKinds);
+  const levelTopics = topicsFor(profile.current_level);
+  const speakTask = [
+    { href: `/pronuncia/pares/${PAIR_SETS[dayIndex % PAIR_SETS.length].id}`, icon: AudioLines, title: "Fala do dia: pares mínimos", detail: PAIR_SETS[dayIndex % PAIR_SETS.length].title },
+    levelTopics.length
+      ? { href: `/falar/desafio/${levelTopics[dayIndex % levelTopics.length].id}`, icon: Timer, title: "Fala do dia: desafio de 1 minuto", detail: levelTopics[dayIndex % levelTopics.length].pt }
+      : null,
+    { href: `/pronuncia/shadowing/${listeningToday.id}`, icon: AudioLines, title: "Fala do dia: shadowing", detail: listeningToday.title },
+  ].filter(Boolean)[dayIndex % 3] ?? { href: "/pronuncia", icon: AudioLines, title: "Fala do dia", detail: "Pronúncia" };
+  const weeklyDue = !d.lastWeeklyAt || Date.parse(`${d.weekXp[6].date}T12:00:00Z`) - Date.parse(d.lastWeeklyAt) > 6 * 86_400_000;
+  type PlanItem = { href: string; icon: typeof BookOpen; title: string; detail: string; minutes: number; done: boolean };
   const plan = [
-    d.dueReviews > 0 && { href: "/revisao", icon: RotateCcw, title: "Revisão", detail: `${d.dueReviews} ${d.dueReviews === 1 ? "item pendente" : "itens pendentes"}`, minutes: Math.min(10, Math.ceil(d.dueReviews / 3)) },
-    nextLesson && { href: `/aula/${nextLesson.id}`, icon: BookOpen, title: nextLesson.kind === "test" ? "Avaliação" : "Aula nova", detail: nextLesson.title, minutes: 10 },
-    profile.daily_minutes >= 15 && { href: `/listening/${listeningToday.id}`, icon: Headphones, title: "Listening", detail: listeningToday.title, minutes: 5 },
-    profile.daily_minutes >= 20 && { href: `/professor?cenario=${sceneToday.id}`, icon: MessagesSquare, title: "Conversa do dia", detail: sceneToday.title, minutes: Math.max(5, profile.daily_minutes - 25) },
-  ].filter(Boolean) as { href: string; icon: typeof BookOpen; title: string; detail: string; minutes: number }[];
+    d.dueReviews > 0 && { href: "/revisao", icon: RotateCcw, title: "Revisão", detail: `${d.dueReviews} ${d.dueReviews === 1 ? "item pendente" : "itens pendentes"}`, minutes: Math.min(10, Math.ceil(d.dueReviews / 3)), done: done.has("review") },
+    nextLesson && { href: `/aula/${nextLesson.id}`, icon: BookOpen, title: nextLesson.kind === "test" ? "Avaliação" : "Aula nova", detail: nextLesson.title, minutes: 10, done: done.has("lesson") || done.has("test") },
+    { ...speakTask, minutes: 3, done: done.has("speaking") || done.has("pronunciation") },
+    profile.daily_minutes >= 15 && { href: `/listening/${listeningToday.id}`, icon: Headphones, title: "Listening", detail: listeningToday.title, minutes: 5, done: done.has("listening") },
+    profile.daily_minutes >= 20 && {
+      href: dayIndex % 2 ? `/professor?cenario=${sceneToday.id}` : "/professor?ligar=1",
+      icon: dayIndex % 2 ? MessagesSquare : Phone,
+      title: dayIndex % 2 ? "Conversa do dia" : "Ligação com o professor",
+      detail: dayIndex % 2 ? sceneToday.title : "Só por voz, como uma ligação",
+      minutes: Math.max(5, profile.daily_minutes - 25),
+      done: done.has("chat") || done.has("scenario"),
+    },
+    weeklyDue && { href: "/falar/semanal", icon: CalendarCheck, title: "Gravação da semana", detail: "2 minutos para medir sua evolução", minutes: 3, done: false },
+  ].filter(Boolean) as PlanItem[];
+  const planDone = plan.filter((p) => p.done).length;
 
   return (
     <main className="space-y-6">
@@ -84,7 +107,9 @@ export default async function Dashboard() {
             <h2 id="hoje" className="font-display text-2xl font-bold">
               Rotina de hoje
             </h2>
-            <span className="text-sm text-muted">{profile.daily_minutes} min/dia</span>
+            <span className="text-sm text-muted">
+              {planDone} de {plan.length} feitos · {profile.daily_minutes} min/dia
+            </span>
           </div>
           <div className="mt-4">
             <div className="flex justify-between text-sm">
@@ -101,11 +126,11 @@ export default async function Dashboard() {
             {plan.map((p) => (
               <li key={p.href}>
                 <Link href={p.href} className="flex items-center gap-4 py-3 hover:text-atlantic">
-                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-surface-2 text-atlantic">
-                    <p.icon size={20} aria-hidden />
+                  <span className={`grid size-11 shrink-0 place-items-center rounded-xl ${p.done ? "bg-correct-bg text-correct" : "bg-surface-2 text-atlantic"}`}>
+                    {p.done ? <CheckCircle2 size={20} aria-label="Feito hoje" /> : <p.icon size={20} aria-hidden />}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block font-bold">{p.title}</span>
+                    <span className={`block font-bold ${p.done ? "text-muted line-through" : ""}`}>{p.title}</span>
                     <span className="block truncate text-sm text-muted">{p.detail}</span>
                   </span>
                   <span className="text-sm text-muted">~{p.minutes} min</span>

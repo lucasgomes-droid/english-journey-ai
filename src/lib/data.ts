@@ -52,6 +52,9 @@ export interface DashboardData {
   skills: { skill: Skill; label: string; accuracy: number | null; answers: number }[];
   activity: { id: number; kind: string; title: string; xp: number; score: number | null; created_at: string }[];
   achievements: string[];
+  /** Tipos de atividade feitos hoje (para marcar a rotina). */
+  todayKinds: string[];
+  lastWeeklyAt: string | null;
 }
 
 const SKILL_LABELS: Record<Skill, string> = {
@@ -71,7 +74,7 @@ export async function getDashboard(): Promise<DashboardData> {
   const weekAgo = new Date(Date.now() - 6 * 86_400_000);
   const days = Array.from({ length: 7 }, (_, i) => localDate(new Date(weekAgo.getTime() + i * 86_400_000), tz));
 
-  const [{ completed }, activityRes, recentRes, answersRes, vocabRes, dueRes, achRes] = await Promise.all([
+  const [{ completed }, activityRes, recentRes, answersRes, vocabRes, dueRes, achRes, weeklyRes] = await Promise.all([
     getCompletedLessons(supabase, user.id),
     supabase.from("activity_log").select("kind, xp, duration_seconds, local_date").eq("user_id", user.id),
     supabase.from("activity_log").select("id, kind, title, xp, score, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(8),
@@ -79,6 +82,7 @@ export async function getDashboard(): Promise<DashboardData> {
     supabase.from("review_items").select("item_id", { count: "exact", head: true }).eq("user_id", user.id).eq("item_type", "vocab").gte("repetitions", 1),
     supabase.from("review_items").select("item_id", { count: "exact", head: true }).eq("user_id", user.id).lte("due_at", new Date().toISOString()),
     supabase.from("achievements").select("code").eq("user_id", user.id),
+    supabase.from("speaking_sessions").select("created_at").eq("user_id", user.id).eq("kind", "weekly").order("created_at", { ascending: false }).limit(1),
   ]);
 
   const activity = activityRes.data ?? [];
@@ -114,6 +118,8 @@ export async function getDashboard(): Promise<DashboardData> {
     skills,
     activity: recentRes.data ?? [],
     achievements: (achRes.data ?? []).map((a) => a.code as string),
+    todayKinds: Array.from(new Set(activity.filter((a) => a.local_date === today).map((a) => a.kind as string))),
+    lastWeeklyAt: weeklyRes.data?.[0]?.created_at ?? null,
   };
 }
 

@@ -14,7 +14,8 @@ import { MicInput } from "@/components/mic-input";
 export type ReviewCard =
   | { kind: "vocab"; id: string; pt: string; en: string; say: string; struggling: boolean }
   | { kind: "exercise"; id: string; exercise: Exercise; struggling: boolean }
-  | { kind: "grammar"; id: string; original: string; corrected: string; explanation: string; struggling: boolean };
+  | { kind: "grammar"; id: string; original: string; corrected: string; explanation: string; struggling: boolean }
+  | { kind: "phrase"; id: string; pt: string; en: string; struggling: boolean };
 
 interface Feedback {
   correct: boolean;
@@ -58,6 +59,7 @@ export function ReviewSession({ cards: initialCards, empty }: { cards: ReviewCar
       setStats((s) => ({ reviewed: s.reviewed + 1, correct: s.correct + (r.correct ? 1 : 0) }));
       if (card.kind === "vocab") speak(card.en);
       if (card.kind === "grammar") speak(card.corrected);
+      if (card.kind === "phrase") speak(card.en);
     });
   }
 
@@ -130,6 +132,32 @@ export function ReviewSession({ cards: initialCards, empty }: { cards: ReviewCar
                 <span>
                   <strong lang="en">{card.en}</strong> <span className="text-sm text-atlantic">/{card.say}/</span>
                 </span>
+              </div>
+            )}
+          </div>
+        ) : card.kind === "phrase" ? (
+          <div key={card.id}>
+            <p className="text-sm font-bold text-muted">Sua frase: diga em inglês</p>
+            <p className="mt-2 font-display text-2xl font-bold">{card.pt}</p>
+            <div className="mt-6 flex items-start gap-3">
+              <MicInput onText={setText} disabled={!!feedback} label="Falar a frase" />
+              <input
+                value={text}
+                disabled={!!feedback}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !feedback && check()}
+                className="field text-lg"
+                placeholder="Fale ou escreva em inglês"
+                lang="en"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+            </div>
+            {feedback && (
+              <div className="mt-4 flex items-center gap-3">
+                <SpeakButton text={card.en} withSlow />
+                <strong lang="en">{card.en}</strong>
               </div>
             )}
           </div>
