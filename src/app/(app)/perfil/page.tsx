@@ -45,12 +45,15 @@ export default async function ProfilePage() {
           {ACHIEVEMENTS.map((a) => {
             const got = earned.get(a.code);
             return (
-              <li key={a.code} className={`flex items-center gap-3 rounded-2xl border p-3 ${got ? "border-boarding bg-boarding/15" : "border-line opacity-60"}`}>
+              <li key={a.code} className={`flex items-center gap-3 rounded-2xl border p-3 ${got ? "border-boarding bg-boarding/15" : "border-dashed border-line"}`}>
                 <span className={`grid size-11 shrink-0 place-items-center rounded-full ${got ? "bg-boarding text-boarding-ink" : "bg-surface-2 text-muted"}`}>
                   <AchievementIcon name={a.icon} size={20} />
                 </span>
                 <span>
-                  <span className="block font-bold">{a.title}</span>
+                  <span className={`block font-bold ${got ? "" : "text-muted"}`}>
+                    {a.title}
+                    {!got && <span className="sr-only"> (bloqueada)</span>}
+                  </span>
                   <span className="block text-sm text-muted">
                     {a.description}
                     {got && ` · ${new Date(got).toLocaleDateString("pt-BR")}`}

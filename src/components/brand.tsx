@@ -34,7 +34,7 @@ export function LevelLine({ current = "A1", inverted = false }: { current?: stri
               i < ci
                 ? "border-boarding bg-boarding text-boarding-ink"
                 : i === ci
-                  ? `border-boarding ${inverted ? "bg-atlantic text-white" : "bg-surface text-ink"}`
+                  ? `border-boarding ${inverted ? "bg-[#0e4d57] text-white" : "bg-surface text-ink"}`
                   : inverted
                     ? "border-white/30 bg-transparent text-white/70"
                     : "border-line bg-surface text-muted"

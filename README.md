@@ -3,25 +3,28 @@
 Professor particular de inglês com inteligência artificial, do A1 ao C2, para falantes de português.
 Aplicativo web responsivo e instalável no celular (PWA).
 
-**O que já funciona (versão 0.1):**
+**O que o app faz:**
 
-- Cadastro e login (Supabase), com perfil criado automaticamente
-- Boas-vindas com tempo diário e objetivo de estudo
-- Dashboard: próxima aula, rotina do dia, meta de XP, gráfico de 7 dias, sequência, tempo de estudo,
-  palavras aprendidas, desempenho por habilidade, histórico e medalhas
-- Trilha A1 completa: 3 módulos, 12 aulas, 3 avaliações de módulo e o teste de nível A1 (142 exercícios, 116 palavras)
-- Aulas com objetivo, explicação em português, vocabulário com áudio e pronúncia aproximada, exemplos,
-  exercícios corrigidos (múltipla escolha, tradução, lacunas, montar frase, escuta, ditado e pares), revisão e nota
-- Desbloqueio progressivo: uma aula só abre depois da anterior; passar no teste A1 muda o nível para A2
-- Repetição espaçada (SM-2): vocabulário e exercícios errados voltam automaticamente
-- Professor de IA “Alex”: conversa livre ou ligada à aula, por texto ou voz, mantém o contexto,
-  corrige frases e explica os erros em português, adapta-se ao nível e às dificuldades recentes
-- XP, sequência de dias, 10 conquistas, histórico — tudo salvo no banco
-- PWA instalável
+- **Trilha A1 → C2** completa (6 níveis × 8 módulos, 246 aulas e avaliações). Aulas pedem 70% e começam pela
+  missão e pela prática; a explicação em português aparece quando o aluno precisa (no erro, em "Não entendi").
+- **Prova de nível** em três partes: escrita (Reading, Writing, Listening), Speaking (respostas gravadas) e
+  Conversation (conversa com examinador de IA). Só sobe de nível com as três. Reprovou: plano de recuperação
+  com tarefas medidas por atividade real e nova tentativa só depois de cumprir.
+- **Conversação** com 25 cenários do dia a dia (cafés, rua, compras, viagens, trabalho, cotidiano, saúde), ambiente
+  ilustrado, missão por nível (do B1 em diante o personagem cria problemas reais), voz ou texto, ligação, e
+  **relatório** no fim: o que disse e versão melhor, erros, expressões novas, nota por critério e sugestão.
+- **Tradução 🇧🇷/🇬🇧** liga/desliga (salva no perfil), "Traduzir" nas falas e botão **"Não entendi"**.
+- **Meu Professor IA** (painel de desenvolvimento) e **Minhas Dificuldades** (padrões de erro com plano de
+  recuperação em etapas e verificação antes × depois). Tudo calculado só com dados reais do aluno.
+- **Pronúncia** (pares mínimos, frases, shadowing, ouvir a própria voz), **listening** em 36 áudios,
+  **fala livre** (desafio de 1 minuto, gravação semanal, frases da sua vida).
+- **Aprendizagem adaptativa**: revisão espaçada (SM-2) priorizando os temas fracos, treino adaptativo e
+  relatório semanal de evolução.
+- Menu com 10 áreas, responsivo (celular, tablet e computador), tema claro/escuro, PWA instalável.
 
-**Ainda não implementado** (próximas etapas, ver `docs/ARQUITETURA.md`): avaliação fonética de pronúncia
-(Etapa 4), simulador de situações reais (Etapa 5) e conteúdo A2–C2 (Etapa 7). Essas áreas não aparecem no app
-até estarem prontas.
+**Limitações conhecidas:** sem serviço pago, a pronúncia é avaliada pelo que o reconhecedor de fala entende
+(palavras e pares mínimos), não por nota fonética de cada som. A avaliação de fala e conversa por IA ajuda,
+mas não substitui uma banca humana. O plano gratuito da Groq tem limite de uso por minuto/dia.
 
 ---
 
@@ -47,7 +50,7 @@ as regras de segurança (RLS) e todo o conteúdo das aulas. O app já aponta par
 Pendente no Supabase depois do primeiro deploy: em **Authentication → URL Configuration**, coloque o endereço
 da Vercel como **Site URL** e adicione `https://SEU-APP.vercel.app/auth/callback` em **Redirect URLs**.
 
-Para usar outro projeto Supabase: rode os dois arquivos de `supabase/migrations` no **SQL Editor** (nessa ordem) e
+Para usar outro projeto Supabase: rode todos os arquivos de `supabase/migrations` no **SQL Editor**, em ordem de nome, e
 defina `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` (chave *publishable*).
 
 > O plano gratuito do Supabase pausa projetos sem uso por 7 dias; basta reativar no painel.
@@ -107,7 +110,7 @@ instaladas em Ajustes → Acessibilidade → Conteúdo Falado → Vozes.
 | `npm test` | Testes unitários (correção, SRS, sequência, conquistas e integridade de todo o conteúdo) |
 | `npm run typecheck` / `npm run lint` | Verificações de tipo e estilo |
 | `npm run content:sql` | Regenera `20261104120100_seed_content.sql` depois de editar aulas em `src/content` |
-| `npx tsx tests/e2e/flow.e2e.ts` | Teste ponta a ponta no navegador (app rodando + Supabase) |
+| `npm run test:e2e` | Todos os testes ponta a ponta no navegador (app rodando + Supabase local + IA simulada): fluxo, provas, fases 2–6, responsividade e acessibilidade |
 
 ## Adicionar ou editar aulas
 
