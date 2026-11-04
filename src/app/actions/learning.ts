@@ -20,7 +20,7 @@ const answerSchema: z.ZodType<ExerciseAnswer> = z.union([
 
 const submitSchema = z.object({
   lessonId: z.string(),
-  answers: z.array(z.object({ exerciseId: z.string(), answer: answerSchema })).max(60),
+  answers: z.array(z.object({ exerciseId: z.string(), answer: answerSchema, ms: z.number().int().min(0).max(600_000).optional() })).max(60),
   durationSeconds: z.number().int().min(0).max(4 * 3600),
 });
 
@@ -69,6 +69,7 @@ export async function submitLesson(input: z.infer<typeof submitSchema>): Promise
 
   // Corrige cada exercício da aula. Exercício sem resposta conta como erro.
   const byId = new Map(answers.map((a) => [a.exerciseId, a.answer]));
+  const msById = new Map(answers.map((a) => [a.exerciseId, a.ms]));
   const graded = lesson.exercises.map((ex) => {
     const ans = byId.get(ex.id);
     const correct = ans ? gradeExercise(ex, ans).correct : false;
@@ -87,6 +88,7 @@ export async function submitLesson(input: z.infer<typeof submitSchema>): Promise
       skill: g.ex.skill,
       answer: g.ans ?? null,
       correct: g.correct,
+      response_ms: msById.get(g.ex.id) ?? null,
     })),
   );
   if (ansErr) return fail(`Não foi possível salvar as respostas: ${ansErr.message}`);

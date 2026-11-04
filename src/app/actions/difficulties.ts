@@ -1,0 +1,77 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { getSession } from "@/lib/data";
+import { getCategory } from "@/content/error-patterns";
+import { errorRate, verifyPlan } from "@/lib/difficulty-rules";
+import { conversationTurnsSince, loadErrorEvents, type PracticePlanRow } from "@/lib/difficulties";
+
+const cat = z.string().refine((c) => !!getCategory(c), "Categoria inválida.");
+
+/** Etapa 1: começa um plano de recuperação para a dificuldade (guarda a taxa de erro atual). */
+export async function startPracticePlan(category: string) {
+  if (!cat.safeParse(category).success) return { ok: false as const, error: "Categoria inválida." };
+  const { supabase, user } = await getSession();
+  const { data: open } = await supabase.from("practice_plans").select("id").eq("user_id", user.id).eq("category", category).eq("status", "active").maybeSingle();
+  if (open) return { ok: true as const, id: open.id as number };
+  const events = await loadErrorEvents(supabase, user.id);
+  const baseline = errorRate(events, getCategory(category)!.id, Date.now() - 60 * 86_400_000).rate;
+  const { data, error } = await supabase.from("practice_plans").insert({ user_id: user.id, category, baseline_rate: baseline }).select("id").single();
+  if (error || !data) return { ok: false as const, error: "Não foi possível criar o plano." };
+  revalidatePath("/dificuldades");
+  return { ok: true as const, id: data.id as number };
+}
+
+async function ownPlan(id: number) {
+  const { supabase, user } = await getSession();
+  const { data } = await supabase.from("practice_plans").select("id, category, status, baseline_rate, steps, result, created_at, completed_at").eq("id", id).eq("user_id", user.id).maybeSingle();
+  return { supabase, user, plan: data as PracticePlanRow | null };
+}
+
+/** Etapas 2–3: o aluno leu a explicação e os exemplos. */
+export async function markStudied(id: number) {
+  const { supabase, plan } = await ownPlan(id);
+  if (!plan || plan.status !== "active") return { ok: false as const };
+  await supabase.from("practice_plans").update({ steps: { ...plan.steps, studied: true } }).eq("id", id);
+  revalidatePath(`/dificuldades/${plan.category}`);
+  return { ok: true as const };
+}
+
+/** Etapa 4: resultado dos exercícios específicos. */
+export async function saveDrillScore(id: number, score: number) {
+  const s = z.number().int().min(0).max(100).safeParse(score);
+  if (!s.success) return { ok: false as const };
+  const { supabase, plan } = await ownPlan(id);
+  if (!plan || plan.status !== "active") return { ok: false as const };
+  await supabase.from("practice_plans").update({ steps: { ...plan.steps, drillScore: s.data } }).eq("id", id);
+  revalidatePath(`/dificuldades/${plan.category}`);
+  return { ok: true as const };
+}
+
+/** Etapas 6–7: verifica a evolução e registra o resultado no histórico. */
+export async function verifyPracticePlan(id: number) {
+  const { supabase, user, plan } = await ownPlan(id);
+  if (!plan || plan.status !== "active") return { ok: false as const, error: "Plano não encontrado." };
+  const turns = await conversationTurnsSince(supabase, user.id, plan.created_at);
+  const steps = { ...plan.steps, conversationTurns: turns };
+  const events = await loadErrorEvents(supabase, user.id);
+  const after = errorRate(events, plan.category, new Date(plan.created_at).getTime()).rate;
+  const v = verifyPlan(steps, plan.baseline_rate, after);
+  if (!v.ready) {
+    await supabase.from("practice_plans").update({ steps }).eq("id", id);
+    return { ok: false as const, error: v.summary };
+  }
+  await supabase
+    .from("practice_plans")
+    .update({
+      steps,
+      status: v.improved ? "improved" : "not_yet",
+      result: { summary: v.summary, drillScore: steps.drillScore, baseline: plan.baseline_rate, after },
+      completed_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  revalidatePath("/dificuldades");
+  revalidatePath(`/dificuldades/${plan.category}`);
+  return { ok: true as const, improved: v.improved, summary: v.summary };
+}

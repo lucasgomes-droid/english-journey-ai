@@ -8,6 +8,7 @@ import { getLesson } from "@/content/curriculum";
 import { getScenario } from "@/content/scenarios";
 import type { CefrLevel } from "@/content/types";
 import { recordActivity, syncAchievements } from "@/lib/progress";
+import { classifyCorrection } from "@/content/error-patterns";
 
 export const maxDuration = 60;
 
@@ -137,7 +138,8 @@ export async function POST(req: Request) {
   const [, aMsgRes, , updated] = await Promise.all([
     reply.correction
       ? Promise.all([
-          supabase.from("messages").update({ correction: reply.correction }).eq("id", userMsg.id),
+          // Guarda a categoria do erro (base de "Minhas Dificuldades").
+          supabase.from("messages").update({ correction: { ...reply.correction, category: classifyCorrection(reply.correction.original, reply.correction.corrected) } }).eq("id", userMsg.id),
           // O erro vira cartão de revisão: você pratica a forma certa até ela sair sozinha.
           supabase.from("review_items").upsert(
             { user_id: user.id, item_type: "grammar", item_id: `msg-${userMsg.id}`, due_at: new Date(Date.now() + 6 * 3600_000).toISOString() },

@@ -50,7 +50,9 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
   const [pos, setPos] = useState(0);
   const [answer, setAnswer] = useState<ExerciseAnswer | null>(null);
   const [grade, setGrade] = useState<GradeResult | null>(null);
-  const [answers, setAnswers] = useState<{ exerciseId: string; answer: ExerciseAnswer }[]>([]);
+  const [answers, setAnswers] = useState<{ exerciseId: string; answer: ExerciseAnswer; ms?: number }[]>([]);
+  // Tempo para formular a resposta (do exercício aparecer até "Verificar").
+  const shownAt = useRef<number>(0);
   const [results, setResults] = useState<boolean[]>([]);
   const [server, setServer] = useState<LessonResult | null>(null);
   const [showTheory, setShowTheory] = useState(false);
@@ -63,6 +65,7 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
   }, []);
   useEffect(() => {
     topRef.current?.scrollIntoView({ block: "start" });
+    shownAt.current = Date.now();
   }, [phase, pos]);
 
   const exercise = lesson.exercises[queue[pos]];
@@ -79,13 +82,13 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
     const g = gradeExercise(exercise, answer);
     setGrade(g);
     if (isRetry) return;
-    setAnswers((a) => [...a, { exerciseId: exercise.id, answer }]);
+    setAnswers((a) => [...a, { exerciseId: exercise.id, answer, ms: Math.min(600_000, Date.now() - shownAt.current) }]);
     setResults((r) => [...r, g.correct]);
     // Em aulas (não em avaliações), o exercício errado volta no fim para fixar.
     if (!g.correct && !isTest) setQueue((q) => [...q, queue[pos]]);
   }
 
-  function finish(all: { exerciseId: string; answer: ExerciseAnswer }[]) {
+  function finish(all: { exerciseId: string; answer: ExerciseAnswer; ms?: number }[]) {
     setPhase("result");
     startTransition(async () => {
       const durationSeconds = Math.round((Date.now() - startedAt.current) / 1000);
