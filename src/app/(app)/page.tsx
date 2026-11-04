@@ -1,20 +1,18 @@
 import Link from "next/link";
-import { AudioLines, BookOpen, CalendarCheck, Clock, Flame, Headphones, Languages, MessagesSquare, Phone, RotateCcw, CheckCircle2, Target, Timer } from "lucide-react";
+import { Sparkles, TriangleAlert, AudioLines, BookOpen, CalendarCheck, Clock, Flame, Headphones, Languages, MessagesSquare, Phone, RotateCcw, CheckCircle2, Target, Timer } from "lucide-react";
 import { PAIR_SETS } from "@/content/minimal-pairs";
 import { topicsFor } from "@/content/speaking-topics";
 import { SCENARIOS } from "@/content/scenarios";
 import { LISTENING } from "@/content/listening";
-import { Avatar } from "@/components/avatar";
-import { getDashboard } from "@/lib/data";
+import { getDashboard, getSession } from "@/lib/data";
+import { loadHomeCoach } from "@/lib/teacher";
+import { getCategory } from "@/content/error-patterns";
 import { getModule } from "@/content/curriculum";
 import { LevelLine } from "@/components/brand";
-import { ACHIEVEMENTS } from "@/lib/achievements";
-import { AchievementIcon } from "@/components/achievement-icon";
 
 export const metadata = { title: "Início" };
 
 const WEEKDAY = new Intl.DateTimeFormat("pt-BR", { weekday: "short", timeZone: "UTC" });
-const KIND_LABEL: Record<string, string> = { lesson: "Aula", test: "Avaliação", review: "Revisão", chat: "Conversa", pronunciation: "Pronúncia", scenario: "Situação real", listening: "Listening", mini: "Mini-aula", speaking: "Fala livre" };
 
 function formatHours(min: number) {
   if (min < 60) return `${min} min`;
@@ -23,6 +21,8 @@ function formatHours(min: number) {
 
 export default async function Dashboard() {
   const d = await getDashboard();
+  const { supabase, user } = await getSession();
+  const coach = await loadHomeCoach(supabase, user.id, d.skills, d.dueReviews);
   const { profile, nextLesson } = d;
   const mod = nextLesson ? getModule(nextLesson.moduleId) : null;
   const courseDone = !nextLesson && profile.current_level === "C2" && d.examPartsPassed.length === 3;
@@ -73,7 +73,7 @@ export default async function Dashboard() {
       <section className="overflow-hidden rounded-3xl bg-[#0e4d57] text-white">
         <div className="grid gap-6 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <p className="text-white/70">Olá, {profile.display_name.split(" ")[0]}. Sua próxima parada:</p>
+            <p className="text-white/70">Olá, {profile.display_name.split(" ")[0]}. {nextLesson ? "Continuar de onde parei:" : "Sua próxima etapa:"}</p>
             {nextLesson ? (
               <>
                 <h2 className="mt-2 font-display text-4xl font-bold sm:text-5xl">{nextLesson.title}</h2>
@@ -115,7 +115,47 @@ export default async function Dashboard() {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+      {/* Professor IA: prática recomendada e dificuldades */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <section className="panel flex flex-col p-5" aria-labelledby="recomendado">
+          <p className="flex items-center gap-2 text-sm font-bold text-muted">
+            <Sparkles size={16} aria-hidden /> Prática recomendada pelo professor IA
+          </p>
+          <h2 id="recomendado" className="mt-1 font-display text-xl font-bold">
+            {coach.recommendation.title}
+          </h2>
+          <p className="text-sm text-muted">{coach.recommendation.why}</p>
+          <Link href={coach.recommendation.href} className="btn-primary mt-4 self-start">
+            {coach.recommendation.cta}
+          </Link>
+        </section>
+        <section className="panel p-5" aria-labelledby="dificuldades">
+          <div className="flex items-center justify-between gap-2">
+            <h2 id="dificuldades" className="flex items-center gap-2 text-sm font-bold text-muted">
+              <TriangleAlert size={16} aria-hidden /> Minhas dificuldades
+            </h2>
+            <Link href="/dificuldades" className="text-sm font-bold underline">
+              Ver todas
+            </Link>
+          </div>
+          {coach.patterns.length ? (
+            <ul className="mt-2 space-y-2">
+              {coach.patterns.map((p) => (
+                <li key={p.category}>
+                  <Link href={`/dificuldades/${p.category}`} className="flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-2 hover:bg-line">
+                    <span className="font-bold">{getCategory(p.category)!.label}</span>
+                    <span className="shrink-0 text-sm text-muted">{p.recent} recentes</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-sm text-muted">Nenhum padrão de erro ainda. Eles aparecem aqui conforme você pratica.</p>
+          )}
+        </section>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr] [&>*]:min-w-0">
         {/* Rotina de hoje */}
         <section className="panel p-6" aria-labelledby="hoje">
           <div className="flex items-baseline justify-between gap-4">
@@ -198,19 +238,7 @@ export default async function Dashboard() {
         ))}
       </section>
 
-      {/* Situação do dia */}
-      <Link href={`/professor?cenario=${sceneToday.id}`} className="group flex items-center gap-5 overflow-hidden rounded-3xl border border-line bg-surface pr-6 transition-colors hover:border-atlantic">
-        <Avatar look={sceneToday.character.look} className="h-32 w-28 shrink-0 transition-transform duration-300 group-hover:scale-105 sm:w-32" />
-        <span className="min-w-0 py-4">
-          <span className="text-sm font-bold text-muted">Conversa do dia</span>
-          <span className="block font-display text-2xl font-bold leading-tight">{sceneToday.title}</span>
-          <span className="block text-muted">
-            Converse com {sceneToday.character.name}, {sceneToday.character.role}, no nível {profile.current_level}.
-          </span>
-        </span>
-      </Link>
-
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         {/* Desempenho por habilidade */}
         <section className="panel p-6" aria-labelledby="hab">
           <h2 id="hab" className="font-display text-2xl font-bold">
@@ -240,50 +268,13 @@ export default async function Dashboard() {
           </ul>
         </section>
 
-        {/* Histórico */}
-        <section className="panel p-6" aria-labelledby="hist">
-          <h2 id="hist" className="font-display text-2xl font-bold">
-            Histórico de atividades
-          </h2>
-          {d.activity.length === 0 ? (
-            <p className="mt-4 text-muted">Nada por aqui ainda. Sua primeira aula aparece nesta lista assim que você terminar.</p>
-          ) : (
-            <ul className="mt-4 divide-y divide-line">
-              {d.activity.map((a) => (
-                <li key={a.id} className="flex items-center justify-between gap-3 py-2.5">
-                  <span className="min-w-0">
-                    <span className="block truncate font-bold">{a.title}</span>
-                    <span className="text-sm text-muted">
-                      {KIND_LABEL[a.kind] ?? a.kind}
-                      {a.score !== null && (a.kind === "lesson" || a.kind === "test") ? ` · ${a.score}%` : ""} ·{" "}
-                      {new Date(a.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
-                    </span>
-                  </span>
-                  <span className="shrink-0 font-bold text-atlantic">+{a.xp} XP</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <Link href="/meu-professor" className="panel flex flex-col justify-center gap-2 p-6 hover:border-atlantic">
+          <span className="font-display text-2xl font-bold">Meu Professor IA</span>
+          <span className="text-muted">Evolução da pronúncia e da conversação, histórico de erros, tempo de resposta e próximos objetivos.</span>
+          <span className="font-bold text-atlantic">Abrir meu painel →</span>
+        </Link>
       </div>
 
-      {d.achievements.length > 0 && (
-        <section className="panel p-6" aria-labelledby="medalhas">
-          <h2 id="medalhas" className="font-display text-2xl font-bold">
-            Medalhas
-          </h2>
-          <ul className="mt-4 flex flex-wrap gap-3">
-            {ACHIEVEMENTS.filter((a) => d.achievements.includes(a.code)).map((a) => (
-              <li key={a.code} className="flex items-center gap-2 rounded-full bg-boarding/25 py-1.5 pl-1.5 pr-4" title={a.description}>
-                <span className="grid size-8 place-items-center rounded-full bg-boarding text-boarding-ink">
-                  <AchievementIcon name={a.icon} />
-                </span>
-                <span className="font-bold">{a.title}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </main>
   );
 }

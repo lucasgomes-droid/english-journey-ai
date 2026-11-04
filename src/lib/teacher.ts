@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { computeDiagnostics, type Diagnostics } from "@/lib/diagnostics";
+import { computeDiagnostics } from "@/lib/diagnostics";
 import { loadPatterns, loadPlans, type PracticePlanRow } from "@/lib/difficulties";
 import { getCategory } from "@/content/error-patterns";
 import type { Pattern } from "@/lib/difficulty-rules";
@@ -32,7 +32,14 @@ export interface Recommendation {
 }
 
 /** Prática recomendada: sempre baseada nos dados reais (dificuldade principal, revisão, área mais fraca). */
-export function recommend(patterns: Pattern[], diag: Diagnostics, dueReviews: number, plans: PracticePlanRow[]): Recommendation {
+export interface WeakArea {
+  label: string;
+  score: number | null;
+  href: string;
+  action: string;
+}
+
+export function recommend(patterns: Pattern[], weakest: WeakArea | null, dueReviews: number, plans: PracticePlanRow[]): Recommendation {
   const active = plans.find((p) => p.status === "active");
   if (active) {
     const c = getCategory(active.category)!;
@@ -51,8 +58,8 @@ export function recommend(patterns: Pattern[], diag: Diagnostics, dueReviews: nu
     };
   }
   if (dueReviews >= 10) return { title: `Revisar ${dueReviews} itens`, why: "Eles estão no ponto certo para você não esquecer.", href: "/revisao", cta: "Revisar agora" };
-  if (diag.weakest && diag.weakest.score !== null && diag.weakest.score < 70)
-    return { title: `Treinar ${diag.weakest.label.toLowerCase()}`, why: `É a sua área com menos acertos (${diag.weakest.score}%).`, href: diag.weakest.href, cta: diag.weakest.action };
+  if (weakest && weakest.score !== null && weakest.score < 70)
+    return { title: `Treinar ${weakest.label.toLowerCase()}`, why: `É a sua área com menos acertos (${weakest.score}%).`, href: weakest.href, cta: weakest.action };
   return { title: "Conversar numa situação real", why: "Seus resultados estão bons: use o inglês numa conversa para ganhar confiança.", href: "/conversar", cta: "Conversar" };
 }
 
@@ -109,6 +116,24 @@ export async function loadTeacherPanel(supabase: SupabaseClient, uid: string, pr
     pronunciationWeeks,
     recentErrors,
     dueReviews: dueRes.count ?? 0,
-    recommendation: recommend(patterns, diag, dueRes.count ?? 0, plans),
+    recommendation: recommend(patterns, diag.weakest, dueRes.count ?? 0, plans),
   };
+}
+
+const SKILL_HREF: Record<string, { href: string; action: string }> = {
+  listening: { href: "/listening", action: "Praticar listening" },
+  vocabulary: { href: "/revisao", action: "Revisar palavras" },
+  grammar: { href: "/dificuldades", action: "Ver dificuldades" },
+  reading: { href: "/trilha", action: "Rever aulas" },
+  writing: { href: "/mini-aulas", action: "Fazer mini-aulas" },
+  speaking: { href: "/pronuncia", action: "Treinar pronúncia" },
+};
+
+/** Versão leve para a tela inicial: dificuldades e recomendação sem o diagnóstico completo. */
+export async function loadHomeCoach(supabase: SupabaseClient, uid: string, skills: { skill: string; label: string; accuracy: number | null; answers: number }[], dueReviews: number) {
+  const [{ patterns }, plans] = await Promise.all([loadPatterns(supabase, uid), loadPlans(supabase, uid)]);
+  const measured = skills.filter((s) => s.accuracy !== null && s.answers >= 5);
+  const w = measured.length ? measured.reduce((m, s) => (s.accuracy! < m.accuracy! ? s : m)) : null;
+  const weakest = w ? { label: w.label, score: w.accuracy, ...(SKILL_HREF[w.skill] ?? { href: "/praticar", action: "Praticar" }) } : null;
+  return { patterns: patterns.slice(0, 3), recommendation: recommend(patterns, weakest, dueReviews, plans) };
 }
