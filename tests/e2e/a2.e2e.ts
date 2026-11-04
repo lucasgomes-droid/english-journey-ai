@@ -75,6 +75,34 @@ async function answer(page: Page, ex: Exercise) {
     await page.screenshot({ path: `${SHOTS}/a2-${lesson.id}.png`, fullPage: true });
     console.log(`✓ ${lesson.title} concluída`);
   }
+  // Outros níveis: muda o nível inicial e faz a primeira aula de cada um.
+  if (process.env.LEVEL_CMD) {
+    for (const lv of ["B1", "B2", "C1", "C2"]) {
+      execSync(process.env.LEVEL_CMD.replace("{email}", email).replace("{level}", lv));
+      const first = ALL_LESSONS.find((l) => l.id === `${lv.toLowerCase()}-m1-l1`)!;
+      await page.goto(`${BASE}/aula/${first.id}`);
+      await page.getByRole("heading", { level: 1, name: first.title, exact: true }).waitFor();
+      for (let i = 0; i < 5; i++) {
+        const btn = page.getByRole("button", { name: /^(Continuar|Praticar|Começar avaliação|Falar em voz alta)$/ });
+        if (!(await btn.isVisible())) break;
+        const label = await btn.textContent();
+        await btn.click();
+        if (label === "Praticar") break;
+      }
+      for (let i = 0; i < first.exercises.length; i++) {
+        await page.getByText(`Exercício ${i + 1} de ${first.exercises.length}`).waitFor();
+        await answer(page, first.exercises[i]);
+        await page.getByRole("button", { name: "Verificar" }).click();
+        const st = (await page.getByRole("status").first().textContent()) ?? "";
+        if (!/Correto/.test(st)) throw new Error(`${first.exercises[i].id}: ${st}`);
+        await page.getByRole("button", { name: "Continuar" }).click();
+      }
+      await page.getByText(/\+\d+ XP/).first().waitFor({ timeout: 15000 });
+      await page.screenshot({ path: `${SHOTS}/lv-${lv}.png`, fullPage: true });
+      console.log(`✓ ${lv}: ${first.title} concluída`);
+    }
+    execSync(process.env.LEVEL_CMD.replace("{email}", email).replace("{level}", "A2"));
+  }
   await page.goto(`${BASE}/trilha`);
   await page.getByText("Planos e futuro").first().waitFor();
   await page.screenshot({ path: `${SHOTS}/a2-trilha.png`, fullPage: true });

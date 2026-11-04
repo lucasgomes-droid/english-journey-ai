@@ -111,9 +111,14 @@ instaladas em Ajustes → Acessibilidade → Conteúdo Falado → Vozes.
 
 ## Adicionar ou editar aulas
 
+O curso completo (A1 a C2: 6 níveis, 48 módulos, 246 aulas e avaliações, mais 11 mini-aulas) está em `src/content/<nível>/`.
+
 1. Edite ou crie arquivos em `src/content/` (ex.: `src/content/a2/module1.ts`) e registre em `src/content/curriculum.ts`.
 2. `npm test` — garante que toda resposta oficial é aceita pela correção e que os IDs são únicos.
 3. `npm run content:sql` e execute o `20261104120100_seed_content.sql` gerado no SQL Editor do Supabase.
+   O arquivo passa de 1 MB (limite do SQL Editor): execute em partes, por exemplo só as linhas do nível alterado
+   (todas as linhas são `insert ... on conflict do update`, então a ordem e a repetição não causam problema),
+   ou rode tudo de uma vez com `psql "$DATABASE_URL" -f supabase/migrations/20261104120100_seed_content.sql`.
 4. `git commit` + `git push` — a Vercel publica.
 
 ## Segurança
