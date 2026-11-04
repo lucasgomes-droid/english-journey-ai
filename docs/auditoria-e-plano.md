@@ -63,3 +63,19 @@ _4 de novembro de 2026 · base: commit b5c3e32 (produção em english-journey-ai
 | **5. Visual e responsividade** | Menu com as 10 áreas; painel novo; ambientes visuais por cenário; ajuste celular/desktop | Capturas em 360 px, 768 px e 1280 px; checagem de acessibilidade |
 | **6. Avaliações, revisões e relatórios** | Testes de módulo com fala; relatório semanal; frequência adaptativa de exercícios | e2e + conferência dos relatórios |
 | **7. Testes e correções** | Rodada completa em celular e computador, áudio, microfone, permissões, desempenho | Lista de verificação final |
+
+## 7. Status (4 de novembro de 2026)
+
+As 7 fases foram implementadas, testadas e publicadas (commits 12f9c0f → 3e99ec7):
+
+| Fase | Status | Testes |
+|---|---|---|
+| 1. Progressão A1–C2 | Prova de nível (escrita + Speaking + Conversation), aulas a 70%, plano de recuperação | `exam.e2e.ts`, `exams.test.ts` |
+| 2. Prática + cenários | Aula começa pela missão; 25 cenários com ambiente e missão por nível; relatório da conversa | `fase2.e2e.ts` |
+| 3. Traduções | 🇧🇷/🇬🇧 salvo no perfil, Traduzir, Não entendi | `fase3.e2e.ts` |
+| 4. Professor IA + Dificuldades | 14 padrões de erro, plano em 7 etapas, painel de desenvolvimento, tempo de resposta | `fase4.e2e.ts`, `difficulties.test.ts` |
+| 5. Visual e responsividade | Menu com 10 áreas, início reorganizado, Avaliações | `responsive.e2e.ts` (14 páginas × 3 tamanhos × 2 temas) |
+| 6. Avaliações, revisão, relatórios | Revisão adaptativa, treino adaptativo, relatório semanal | `fase6.e2e.ts`, `adaptive.test.ts` |
+| 7. Testes gerais | Acessibilidade WCAG 2 A/AA sem violações sérias; `npm run test:e2e` | `a11y.e2e.ts` |
+
+Pendências que dependem do uso real: revisão pedagógica humana do conteúdo e calibragem das notas da IA com alunos reais.
