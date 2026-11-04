@@ -12,6 +12,8 @@ import { ExerciseView } from "@/components/exercise-view";
 import { SpeakButton } from "@/components/speak-button";
 import { RichText } from "@/components/rich-text";
 import { ACHIEVEMENTS } from "@/lib/achievements";
+import { Pt } from "@/components/pt";
+import { NotUnderstood } from "@/components/help";
 
 type Phase = "explain" | "vocab" | "examples" | "speak" | "practice" | "result";
 
@@ -165,6 +167,9 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
             <div className="mt-5 rounded-2xl bg-boarding/25 p-4">
               <p className="font-bold">{isTest ? "Objetivo" : "Sua missão nesta aula"}</p>
               <p>{lesson.objective}</p>
+              {!isTest && lesson.examples[0] && (
+                <NotUnderstood className="mt-3" text={lesson.examples.slice(0, 2).map((e) => e.en).join(" / ")} context={`Lesson "${lesson.title}": ${lesson.objective}`} />
+              )}
             </div>
             {isTest ? (
               <div className="mt-8">
@@ -183,7 +188,7 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
                             <span className="block font-bold" lang="en">
                               {e.en}
                             </span>
-                            <span className="text-sm text-muted">{e.pt}</span>
+                            <span className="block text-sm"><Pt>{e.pt}</Pt></span>
                           </span>
                         </li>
                       ))}
@@ -214,7 +219,7 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
                     <p className="text-xl font-bold" lang="en">
                       {v.en}
                     </p>
-                    <p className="text-muted">{v.pt}</p>
+                    <p><Pt>{v.pt}</Pt></p>
                   </div>
                   <p className="max-w-[40%] text-right text-sm text-atlantic">/{v.say}/</p>
                 </li>
@@ -234,7 +239,7 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
                     <p className="text-lg font-bold" lang="en">
                       {e.en}
                     </p>
-                    <p className="text-muted">{e.pt}</p>
+                    <p><Pt>{e.pt}</Pt></p>
                   </div>
                 </li>
               ))}
@@ -260,11 +265,20 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
           <section aria-live="polite">
             <div className="mb-4 flex items-center justify-between gap-3">
               <p className="text-sm text-muted">{isRetry ? "Vamos fixar: tente de novo o que você errou" : `Exercício ${pos + 1} de ${total}`}</p>
-              {!isTest && lesson.explanation.length > 0 && (
-                <button type="button" onClick={() => setShowTheory(true)} className="rounded-full bg-surface-2 px-3 py-1 text-sm font-bold">
-                  Ver explicação
-                </button>
-              )}
+              <div className="flex flex-wrap justify-end gap-2">
+                {!isTest && lesson.explanation.length > 0 && (
+                  <button type="button" onClick={() => setShowTheory(true)} className="rounded-full bg-surface-2 px-3 py-1 text-sm font-bold">
+                    Ver explicação
+                  </button>
+                )}
+                {!isTest && (
+                  <NotUnderstood
+                    key={exercise.id}
+                    text={"prompt" in exercise && exercise.prompt ? exercise.prompt : "sentence" in exercise ? exercise.sentence : lesson.objective}
+                    context={`Lesson "${lesson.title}" (${lesson.objective}). This is an exercise the student must answer: explain what is being asked and the idea behind it, but DO NOT give the answer.`}
+                  />
+                )}
+              </div>
             </div>
             <ExerciseView key={`${exercise.id}-${pos}-${speakMode ? "v" : "t"}`} exercise={exercise} locked={!!grade} result={grade} onChange={setAnswer} speakMode={speakMode} />
           </section>

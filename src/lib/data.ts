@@ -20,6 +20,8 @@ export interface Profile {
   streak_best: number;
   last_study_date: string | null;
   onboarded: boolean;
+  /** Fase 3: mostrar tradução em português (padrão: sim). */
+  show_translation?: boolean;
 }
 
 export const getSession = cache(async () => {

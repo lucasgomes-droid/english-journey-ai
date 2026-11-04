@@ -6,6 +6,7 @@ import { CheckCircle2, Loader2, Mic, RotateCcw, Square, User, Volume2 } from "lu
 import { unlockAudio, useVoice, useVoiceCaps } from "@/lib/voice";
 import { useVoiceRecorder } from "@/lib/voice-recorder";
 import { wpmComment } from "@/lib/fluency";
+import { Pt } from "@/components/pt";
 
 interface Result {
   transcript: string;
@@ -207,7 +208,7 @@ export function FreeSpeaking({ kind, topicId, maxSeconds, minSeconds = 20 }: { k
                           <Volume2 size={16} aria-hidden />
                         </button>
                         <span>
-                          <strong lang="en">{p.en}</strong> <span className="text-muted">· {p.pt}</span>
+                          <strong lang="en">{p.en}</strong> · <Pt>{p.pt}</Pt>
                         </span>
                       </li>
                     ))}

@@ -5,6 +5,7 @@ import { Mic, Square, RotateCcw, Snail, Volume2, Loader2, User, Repeat } from "l
 import { useVoiceRecorder } from "@/lib/voice-recorder";
 import { unlockAudio, useVoice, useVoiceCaps } from "@/lib/voice";
 import { PHONEME_TIPS } from "@/lib/word-check";
+import { Pt } from "@/components/pt";
 
 export interface PronResult {
   method: "azure" | "words";
@@ -106,7 +107,7 @@ export function PronounceCard({
                 : text
               : text}
           </p>
-          {translation && <p className="mt-1 text-muted">{translation}</p>}
+          {translation && <p className="mt-1"><Pt>{translation}</Pt></p>}
           {say && <p className="text-sm text-atlantic">/{say}/</p>}
         </div>
         {score !== null && (

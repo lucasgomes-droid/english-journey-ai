@@ -7,6 +7,8 @@ import { getSession } from "@/lib/data";
 import { displayStreak, localDate } from "@/lib/streak";
 import { VoiceCapsProvider } from "@/lib/voice";
 import { AudioIssueBanner } from "@/components/audio-issue-banner";
+import { TranslationProvider } from "@/lib/translation";
+import { TranslationToggle } from "@/components/translation-toggle";
 import { isSttConfigured } from "@/lib/ai";
 import { isAzureConfigured, ttsProvider } from "@/lib/speech-server";
 
@@ -26,6 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <VoiceCapsProvider caps={caps}>
+    <TranslationProvider initial={profile.show_translation ?? true}>
       <AudioIssueBanner />
     <div className="mx-auto flex min-h-dvh max-w-6xl gap-8 px-4 lg:px-6">
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-8 py-6 lg:flex">
@@ -40,6 +43,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Wordmark compact />
           </Link>
           <div className="flex items-center gap-2 whitespace-nowrap">
+            <TranslationToggle />
             <span className="chip" title="Sequência de dias estudando">
               <Flame size={16} className={streak > 0 ? "text-[#e8590c]" : "text-muted"} aria-hidden />
               {streak}
@@ -58,6 +62,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
       <AppNav variant="bottom" dueReviews={count ?? 0} />
     </div>
+    </TranslationProvider>
     </VoiceCapsProvider>
   );
 }

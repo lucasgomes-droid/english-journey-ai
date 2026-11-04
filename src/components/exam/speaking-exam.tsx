@@ -8,6 +8,7 @@ import { unlockAudio, useVoice, useVoiceCaps } from "@/lib/voice";
 import { useVoiceRecorder } from "@/lib/voice-recorder";
 import { SpeakButton } from "@/components/speak-button";
 import { ExamResult, RubricBars, type ExamFeedbackView } from "./exam-result";
+import { Pt } from "@/components/pt";
 
 interface Result {
   score: number;
@@ -136,7 +137,7 @@ export function SpeakingExam({ blocked, level, prompts, maxSeconds, passScore }:
         <h2 className="flex items-start gap-3 font-display text-2xl font-bold" lang="en">
           {p.en} <SpeakButton text={p.en} size="sm" />
         </h2>
-        <p className="mt-1 text-muted">{p.pt}</p>
+        <p className="mt-1"><Pt>{p.pt}</Pt></p>
       </section>
 
       <div className="panel flex flex-col items-center gap-4 p-6 text-center">

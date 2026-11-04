@@ -3,6 +3,7 @@
 import { CheckCircle2, CircleDashed, Volume2, X } from "lucide-react";
 import { unlockAudio, useVoice } from "@/lib/voice";
 import { RubricBars } from "@/components/exam/exam-result";
+import { Pt } from "@/components/pt";
 
 export interface ReportView {
   summary_pt: string;
@@ -113,7 +114,7 @@ export function ConversationReportSheet({ report, savedPhrases, onClose }: { rep
                     {e.en}
                   </span>
                   <Say text={e.en} />
-                  <span className="block text-muted">{e.pt}</span>
+                  <span className="block"><Pt>{e.pt}</Pt></span>
                 </li>
               ))}
             </ul>

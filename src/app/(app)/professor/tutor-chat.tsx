@@ -6,6 +6,8 @@ import { Avatar } from "@/components/avatar";
 import type { AvatarLook, Place } from "@/content/scenarios";
 import { SceneBackdrop } from "@/components/scene-backdrop";
 import { ConversationReportSheet, type ReportView } from "@/components/conversation-report";
+import { NotUnderstood, TranslateInline } from "@/components/help";
+import { useTranslationPref } from "@/lib/translation";
 import { unlockAudio, useVoice, type VoiceName } from "@/lib/voice";
 import { transcribeWav, useVoiceRecorder } from "@/lib/voice-recorder";
 
@@ -68,6 +70,7 @@ export function TutorChat({
   const [lastReply, setLastReply] = useState("");
   const [report, setReport] = useState<{ report: ReportView; savedPhrases: number } | null>(null);
   const [reporting, setReporting] = useState(false);
+  const translation = useTranslationPref();
   const endRef = useRef<HTMLDivElement>(null);
   const seq = useRef(0);
   const convRef = useRef(initialId);
@@ -241,6 +244,7 @@ export function TutorChat({
 
   const busy = sending || transcribing;
   const userTurns = messages.filter((m) => m.role === "user" && !m.failed).length;
+  const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant")?.content ?? "";
 
   async function openReport() {
     if (!convRef.current) return;
@@ -260,7 +264,7 @@ export function TutorChat({
   }
 
   return (
-    <div className="panel mt-6 flex h-[calc(100dvh-16rem)] min-h-[28rem] flex-col lg:h-[calc(100dvh-14rem)]">
+    <div className="panel mt-6 flex h-[calc(100dvh-16rem)] min-h-[34rem] flex-col lg:h-[calc(100dvh-14rem)]">
       <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
           {persona ? (
@@ -301,22 +305,22 @@ export function TutorChat({
             <Target size={14} className="mr-1 inline align-[-2px]" aria-hidden /> Sua missão nesta cena
           </summary>
           {scene && (
-            <div className="relative mx-4 mb-2 h-24 overflow-hidden rounded-2xl sm:h-28">
+            <div className="relative mx-4 mb-2 h-16 overflow-hidden rounded-2xl sm:h-28">
               <SceneBackdrop place={scene.place} className="absolute inset-0 size-full" />
-              {persona && <Avatar look={persona.look} className="absolute bottom-0 left-4 size-20 overflow-hidden rounded-t-full border-4 border-surface sm:size-24" />}
+              {persona && <Avatar look={persona.look} className="absolute bottom-0 left-4 size-14 overflow-hidden rounded-t-full border-4 border-surface sm:size-24" />}
             </div>
           )}
           <div className="px-4 pb-3">
             {scene && <p>{scene.mission}</p>}
             {scene?.challenge && <p className="mt-1 text-muted">Neste nível: {scene.challenge}</p>}
             {goals.length > 0 && (
-              <ul className="mt-2 list-disc pl-5 text-muted">
+              <ul className="mt-2 hidden list-disc pl-5 text-muted sm:block">
                 {goals.map((g) => (
                   <li key={g}>{g}</li>
                 ))}
               </ul>
             )}
-            <p className="mt-2 text-xs text-muted">Quando terminar, toque em “Relatório” para ver sua nota, seus erros e expressões novas.</p>
+            <p className="mt-2 hidden text-xs text-muted sm:block">Quando terminar, toque em “Relatório” para ver sua nota, seus erros e expressões novas.</p>
           </div>
         </details>
       )}
@@ -366,6 +370,7 @@ export function TutorChat({
                 </button>
               )}
             </div>
+            {m.role === "assistant" && translation.on && <TranslateInline text={m.content} />}
             {m.correction && (
               <div className="mt-1.5 max-w-[85%] rounded-xl border border-boarding bg-boarding/15 px-3 py-2 text-sm">
                 <p className="flex items-center gap-1.5 font-bold">
@@ -397,6 +402,11 @@ export function TutorChat({
         <div ref={endRef} />
       </div>
 
+      {lastAssistant && call === "off" && (
+        <div className="flex justify-end px-3 pb-1">
+          <NotUnderstood key={lastAssistant} text={lastAssistant} context={persona ? `Conversation with ${name}, ${persona.role}` : "Conversation with the English teacher"} />
+        </div>
+      )}
       {(error || rec.error) && call === "off" && <p className="mx-4 mb-2 rounded-xl bg-wrong-bg px-3 py-2 text-sm text-wrong">{error ?? rec.error}</p>}
 
       <form
