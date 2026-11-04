@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReminderCard } from "@/components/reminder-card";
 import { getSession } from "@/lib/data";
 import { ProfileForm } from "@/components/profile-form";
 import { signOut } from "@/app/actions/account";
@@ -18,6 +19,8 @@ export default async function ProfilePage() {
         <h1 className="font-display text-4xl font-bold">Perfil</h1>
         <p className="mt-1 text-muted">{user.email}</p>
       </header>
+
+      <ReminderCard minutes={Math.min(30, profile?.daily_minutes ?? 15)} />
 
       <section className="panel flex flex-wrap items-center justify-between gap-4 p-6" aria-labelledby="nivel">
         <div>

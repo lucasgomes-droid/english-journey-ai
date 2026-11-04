@@ -108,7 +108,10 @@ export default async function Dashboard() {
               Rotina de hoje
             </h2>
             <span className="text-sm text-muted">
-              {planDone} de {plan.length} feitos · {profile.daily_minutes} min/dia
+              {planDone} de {plan.length} feitos · {profile.daily_minutes} min/dia ·{" "}
+              <Link href="/perfil#lembrete" className="font-bold text-atlantic hover:underline">
+                lembrete
+              </Link>
             </span>
           </div>
           <div className="mt-4">

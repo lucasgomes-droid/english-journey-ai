@@ -124,3 +124,14 @@ describe("nivelamento", () => {
     expect(PLACEMENT.length).toBe(24);
   });
 });
+
+import { buildIcs } from "../src/components/reminder-card";
+describe("lembrete no calendário", () => {
+  it("gera evento diário com alarme no fuso de São Paulo", () => {
+    const ics = buildIcs("07:45", 20, "https://exemplo.app");
+    expect(ics).toContain("RRULE:FREQ=DAILY");
+    expect(ics).toMatch(/DTSTART;TZID=America\/Sao_Paulo:\d{8}T074500/);
+    expect(ics).toMatch(/DTEND;TZID=America\/Sao_Paulo:\d{8}T080500/);
+    expect(ics).toContain("BEGIN:VALARM");
+  });
+});
