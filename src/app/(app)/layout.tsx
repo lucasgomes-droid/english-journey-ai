@@ -6,6 +6,7 @@ import { Wordmark } from "@/components/brand";
 import { getSession } from "@/lib/data";
 import { displayStreak, localDate } from "@/lib/streak";
 import { VoiceCapsProvider } from "@/lib/voice";
+import { AudioIssueBanner } from "@/components/audio-issue-banner";
 import { isSttConfigured } from "@/lib/ai";
 import { isAzureConfigured, ttsProvider } from "@/lib/speech-server";
 
@@ -25,6 +26,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <VoiceCapsProvider caps={caps}>
+      <AudioIssueBanner />
     <div className="mx-auto flex min-h-dvh max-w-6xl gap-8 px-4 lg:px-6">
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-8 py-6 lg:flex">
         <Link href="/">

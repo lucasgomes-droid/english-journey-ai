@@ -61,6 +61,7 @@ export function TutorChat({
   const [callNotes, setCallNotes] = useState<NonNullable<ChatMsg["correction"]>[]>([]);
   const [summary, setSummary] = useState<NonNullable<ChatMsg["correction"]>[] | null>(null);
   const [lastHeard, setLastHeard] = useState("");
+  const [lastReply, setLastReply] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
   const seq = useRef(0);
   const convRef = useRef(initialId);
@@ -182,6 +183,7 @@ export function TutorChat({
         return;
       }
       if (r.correction) setCallNotes((n) => [...n, r.correction!]);
+      setLastReply(r.reply);
       setCallState("speaking");
       await voice.speak(r.reply, { voice: charVoice });
     }
@@ -195,6 +197,8 @@ export function TutorChat({
     setCallState("speaking");
     // Se a conversa está começando, o personagem fala primeiro.
     const opener = messages.length === 1 && messages[0].role === "assistant" ? messages[0].content : null;
+    const hello = opener ?? (messages.length === 0 ? `Hi${studentName ? ` ${studentName}` : ""}! I'm ${name}. What would you like to talk about?` : "");
+    setLastReply(hello);
     if (opener) await voice.speak(opener, { voice: charVoice });
     else if (messages.length === 0) await voice.speak(`Hi${studentName ? ` ${studentName}` : ""}! I'm ${name}. What would you like to talk about?`, { voice: charVoice });
     if (callNow() === "off") return;
@@ -417,7 +421,12 @@ export function TutorChat({
               {call === "speaking" && `${name} está falando…`}
               {call === "paused" && "Pausado. Toque em continuar quando quiser."}
             </p>
-            {lastHeard && <p className="mt-4 max-w-md text-center text-sm text-white/60">Você disse: “{lastHeard}”</p>}
+            {lastReply && (
+              <p className="mt-5 max-w-md rounded-2xl bg-white/10 px-4 py-3 text-center text-lg leading-snug" lang="en">
+                {lastReply}
+              </p>
+            )}
+            {lastHeard && <p className="mt-3 max-w-md text-center text-sm text-white/60">Você disse: “{lastHeard}”</p>}
             {callNotes.length > 0 && <p className="mt-2 text-sm text-boarding">{callNotes.length} {callNotes.length === 1 ? "ponto para melhorar" : "pontos para melhorar"} no resumo</p>}
             {(error || rec.error) && <p className="mt-3 max-w-md text-center text-sm text-[#ffb4ab]">{error ?? rec.error}</p>}
           </div>

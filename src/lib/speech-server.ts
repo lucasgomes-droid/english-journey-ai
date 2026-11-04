@@ -24,6 +24,9 @@ const AZURE_VOICES: Record<VoiceId, string> = {
 };
 const GROQ_VOICES: Record<VoiceId, string> = { f1: "autumn", f2: "diana", f3: "hannah", m1: "austin", m2: "daniel", m3: "troy" };
 
+// Se o Groq recusar a voz (ex.: termos não aceitos), não tenta de novo por 5 min.
+let groqBlockedUntil = 0;
+
 export function ttsProvider(): "azure" | "groq" | "none" {
   const pref = process.env.TTS_PROVIDER;
   if (pref === "none" || pref === "browser") return "none";
@@ -64,6 +67,7 @@ export async function synthesize(text: string, voice: VoiceId): Promise<{ body: 
     return { body: await res.arrayBuffer(), type: "audio/mpeg" };
   }
   if (provider === "groq") {
+    if (Date.now() < groqBlockedUntil) throw new SpeechError("Voz natural indisponível no momento.", 503);
     const res = await fetch(`${aiConfig.baseUrl}/audio/speech`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${aiConfig.apiKey}` },
@@ -72,6 +76,7 @@ export async function synthesize(text: string, voice: VoiceId): Promise<{ body: 
     });
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
+      if (res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) groqBlockedUntil = Date.now() + 5 * 60_000;
       throw new SpeechError(`Groq TTS ${res.status}: ${detail.slice(0, 160)}`, res.status === 429 ? 429 : 502);
     }
     return { body: await res.arrayBuffer(), type: "audio/wav" };

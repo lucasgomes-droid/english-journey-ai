@@ -1,7 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { useSpeech } from "./speech";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /** O que o servidor tem configurado (vem do layout). */
 export interface VoiceCaps {
@@ -24,8 +23,46 @@ export type VoiceName = "f1" | "f2" | "f3" | "m1" | "m2" | "m3";
 
 // Um único <audio> compartilhado: desbloqueado no primeiro toque (exigência do iPhone).
 let sharedAudio: HTMLAudioElement | null = null;
-let neuralBroken = false; // se a voz natural falhar, usa a do navegador pelo resto da sessão
 const audioCache = new Map<string, string>(); // texto+voz → object URL
+
+// Voz natural com problema (ex.: serviço fora do ar): evita tentar de novo por 10 min.
+const BROKEN_KEY = "ej-tts-broken";
+let neuralBroken = (() => {
+  try {
+    return typeof window !== "undefined" && Number(sessionStorage.getItem(BROKEN_KEY) ?? 0) > Date.now();
+  } catch {
+    return false;
+  }
+})();
+function markNeuralBroken() {
+  neuralBroken = true;
+  try {
+    sessionStorage.setItem(BROKEN_KEY, String(Date.now() + 10 * 60_000));
+  } catch {
+    /* sem armazenamento: vale só para esta página */
+  }
+}
+
+// Aviso global quando nenhum áudio consegue tocar (para mostrar ajuda na tela).
+type AudioIssue = null | "no-voice" | "blocked";
+let audioIssue: AudioIssue = null;
+const issueListeners = new Set<() => void>();
+function setAudioIssue(v: AudioIssue) {
+  if (audioIssue === v) return;
+  audioIssue = v;
+  issueListeners.forEach((l) => l());
+}
+export function useAudioIssue() {
+  return useSyncExternalStore(
+    (cb) => {
+      issueListeners.add(cb);
+      return () => issueListeners.delete(cb);
+    },
+    () => audioIssue,
+    () => null,
+  );
+}
+export const clearAudioIssue = () => setAudioIssue(null);
 
 function getAudio() {
   if (typeof window === "undefined") return null;
@@ -36,13 +73,26 @@ function getAudio() {
   return sharedAudio;
 }
 
-/** Chame dentro de um clique para liberar áudio automático depois (iOS/Safari). */
+let synthPrimed = false;
+/** Chame dentro de um toque: libera o áudio e a voz do aparelho para tocarem depois (iPhone e Android). */
 export function unlockAudio() {
   const a = getAudio();
-  if (!a || a.dataset.unlocked) return;
-  a.dataset.unlocked = "1";
-  a.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
-  a.play().catch(() => {});
+  if (a && !a.dataset.unlocked) {
+    a.dataset.unlocked = "1";
+    a.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+    a.play().catch(() => {});
+  }
+  // O Chrome no Android só deixa a voz do aparelho falar depois de uma fala iniciada por um toque.
+  if (!synthPrimed && typeof window !== "undefined" && "speechSynthesis" in window) {
+    synthPrimed = true;
+    try {
+      const u = new SpeechSynthesisUtterance(" ");
+      u.volume = 0;
+      window.speechSynthesis.speak(u);
+    } catch {
+      /* ignora */
+    }
+  }
 }
 
 /** Divide em trechos de até ~190 caracteres, respeitando o fim das frases. */
@@ -89,7 +139,6 @@ async function fetchTts(text: string, voice: VoiceName): Promise<string> {
  */
 export function useVoice() {
   const caps = useVoiceCaps();
-  const browser = useSpeech();
   const [speaking, setSpeaking] = useState(false);
   const token = useRef(0);
   const lineRun = useRef(0);
@@ -102,9 +151,13 @@ export function useVoice() {
       a.pause();
       a.onended = null;
     }
-    browser.stop();
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      const synth = window.speechSynthesis;
+      // Cancelar sem nada tocando faz o Android descartar a próxima fala.
+      if (synth.speaking || synth.pending) synth.cancel();
+    }
     setSpeaking(false);
-  }, [browser]);
+  }, []);
 
   /** Para tudo, inclusive a leitura de um diálogo em andamento. */
   const stop = useCallback(() => {
@@ -114,20 +167,50 @@ export function useVoice() {
 
   useEffect(() => () => stop(), [stop]);
 
+  /** Voz do próprio aparelho, em trechos curtos (o Android corta falas longas). */
   const browserSpeak = useCallback(
-    (text: string, rate: number) =>
-      new Promise<void>((resolve) => {
-        if (typeof window === "undefined" || !("speechSynthesis" in window)) return resolve();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "en-US";
-        const v = window.speechSynthesis.getVoices().find((x) => x.lang?.toLowerCase().startsWith("en-us")) ?? null;
-        if (v) u.voice = v;
-        u.rate = rate;
-        u.onend = () => resolve();
-        u.onerror = () => resolve();
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(u);
-      }),
+    async (text: string, rate: number) => {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+        setAudioIssue("no-voice");
+        return;
+      }
+      const synth = window.speechSynthesis;
+      const voices = synth.getVoices();
+      const en = voices.filter((x) => x.lang?.toLowerCase().replace("_", "-").startsWith("en"));
+      if (voices.length > 0 && en.length === 0) setAudioIssue("no-voice");
+      const v = en.find((x) => x.lang.toLowerCase().replace("_", "-") === "en-us") ?? en[0] ?? null;
+      const my = token.current;
+      for (const part of chunkText(text, 160)) {
+        if (my !== token.current) return;
+        const ok = await new Promise<boolean>((resolve) => {
+          const u = new SpeechSynthesisUtterance(part);
+          u.lang = v?.lang ?? "en-US";
+          if (v) u.voice = v;
+          u.rate = rate;
+          let started = false;
+          // Se a fala nem começar em 4 s, o aparelho bloqueou ou não tem voz.
+          const guard = setTimeout(() => resolve(started), 4000);
+          u.onstart = () => {
+            started = true;
+          };
+          u.onend = () => {
+            clearTimeout(guard);
+            resolve(true);
+          };
+          u.onerror = (e) => {
+            clearTimeout(guard);
+            resolve(e.error === "interrupted" || e.error === "canceled");
+          };
+          synth.speak(u);
+        });
+        if (!ok) {
+          setAudioIssue(en.length === 0 ? "no-voice" : "blocked");
+          synth.cancel();
+          return;
+        }
+      }
+      setAudioIssue(null);
+    },
     [],
   );
 
@@ -153,7 +236,13 @@ export function useVoice() {
             await new Promise<void>((resolve, reject) => {
               a.onended = () => resolve();
               a.onerror = () => reject(new Error("audio"));
-              a.play().catch(reject);
+              a.play().catch((e: DOMException) => {
+                // Bloqueio de autoplay não é defeito da voz: só precisa de um toque.
+                if (e?.name === "NotAllowedError") {
+                  setAudioIssue("blocked");
+                  resolve();
+                } else reject(e);
+              });
             });
             if (my !== token.current) return;
           }
@@ -162,7 +251,7 @@ export function useVoice() {
         await browserSpeak(text, rate * 0.95);
       } catch {
         if (my !== token.current) return;
-        neuralBroken = true; // falhou: usa a voz do navegador daqui em diante
+        markNeuralBroken(); // falhou: usa a voz do aparelho daqui em diante
         await browserSpeak(text, rate * 0.95);
       } finally {
         if (my === token.current) setSpeaking(false);
