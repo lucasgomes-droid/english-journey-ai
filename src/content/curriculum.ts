@@ -11,6 +11,7 @@ import { A2_MODULES } from "./a2";
 import { B1_MODULES } from "./b1";
 import { B2_MODULES } from "./b2";
 import { C1_MODULES } from "./c1";
+import { C2_MODULES } from "./c2";
 import { MINI_LESSONS, MINI_MODULES } from "./mini";
 import type { CefrLevel, Lesson, Level, Module, VocabItem } from "./types";
 
@@ -20,7 +21,7 @@ export const LEVELS: Level[] = [
   { code: "B1", name: "Intermediário", description: "Viagens, experiências, opiniões e conversas mais longas.", modules: B1_MODULES },
   { code: "B2", name: "Intermediário avançado", description: "Discussões, argumentação e inglês profissional.", modules: B2_MODULES },
   { code: "C1", name: "Avançado", description: "Linguagem flexível e precisa em contextos acadêmicos e profissionais.", modules: C1_MODULES },
-  { code: "C2", name: "Proficiência", description: "Domínio próximo ao de um nativo culto.", modules: [] },
+  { code: "C2", name: "Proficiência", description: "Domínio próximo ao de um nativo culto.", modules: C2_MODULES },
 ];
 
 export const LEVEL_ORDER: CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];

@@ -81,8 +81,8 @@ export default async function Dashboard() {
               </>
             ) : (
               <>
-                <h2 className="mt-2 font-display text-4xl font-bold">Você concluiu todo o conteúdo disponível.</h2>
-                <p className="mt-2 max-w-xl text-white/80">Os próximos níveis estão em produção. Continue revisando e conversando com o professor.</p>
+                <h2 className="mt-2 font-display text-4xl font-bold">Você concluiu a trilha do A1 ao C2.</h2>
+                <p className="mt-2 max-w-xl text-white/80">Para manter o nível: revisão diária, conversas com o professor, a gravação semanal e um exame oficial (CPE ou IELTS) para comprovar.</p>
               </>
             )}
           </div>
