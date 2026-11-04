@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Wordmark } from "@/components/brand";
 import { getSession } from "@/lib/data";
@@ -19,6 +20,13 @@ export default async function WelcomePage() {
       <div className="mt-8">
         <ProfileForm profile={profile} onboarding />
       </div>
+      <p className="mt-6 rounded-2xl bg-boarding/20 p-4">
+        Já sabe um pouco de inglês?{" "}
+        <Link href="/nivelamento" className="font-bold text-atlantic underline">
+          Faça o teste de nivelamento
+        </Link>{" "}
+        (8 minutos) e comece no nível certo.
+      </p>
     </main>
   );
 }

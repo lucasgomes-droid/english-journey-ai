@@ -12,9 +12,9 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
   const { id } = await params;
   const lesson = getLesson(id);
   if (!lesson) notFound();
-  const { supabase, user } = await getSession();
+  const { supabase, user, profile } = await getSession();
   const { completed } = await getCompletedLessons(supabase, user.id);
-  if (!completed.has(id) && !isLessonUnlocked(id, completed)) redirect("/trilha");
+  if (!completed.has(id) && !isLessonUnlocked(id, completed, profile?.current_level)) redirect("/trilha");
 
   const idx = ALL_LESSONS.findIndex((l) => l.id === id);
   const next = idx >= 0 ? ALL_LESSONS[idx + 1] : undefined; // mini-aulas não têm "próxima"

@@ -114,7 +114,7 @@ export async function getDashboard(): Promise<DashboardData> {
     dueReviews: dueRes.count ?? 0,
     levelProgress: levelLessons.length ? Math.round((levelDone / levelLessons.length) * 100) : 0,
     overallLessonsDone: ALL_LESSONS.filter((l) => completed.has(l.id)).length,
-    nextLesson: nextLessonFor(completed),
+    nextLesson: nextLessonFor(completed, profile.current_level),
     skills,
     activity: recentRes.data ?? [],
     achievements: (achRes.data ?? []).map((a) => a.code as string),

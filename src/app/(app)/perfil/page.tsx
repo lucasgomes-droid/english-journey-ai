@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSession } from "@/lib/data";
 import { ProfileForm } from "@/components/profile-form";
 import { signOut } from "@/app/actions/account";
@@ -17,6 +18,18 @@ export default async function ProfilePage() {
         <h1 className="font-display text-4xl font-bold">Perfil</h1>
         <p className="mt-1 text-muted">{user.email}</p>
       </header>
+
+      <section className="panel flex flex-wrap items-center justify-between gap-4 p-6" aria-labelledby="nivel">
+        <div>
+          <h2 id="nivel" className="font-display text-2xl font-bold">
+            Seu nível: {profile?.current_level}
+          </h2>
+          <p className="text-sm text-muted">Acha que está no nível errado? O teste de nivelamento ajusta o ponto de partida da trilha.</p>
+        </div>
+        <Link href="/nivelamento" className="btn bg-boarding text-boarding-ink">
+          Fazer nivelamento
+        </Link>
+      </section>
 
       <section className="panel p-6" aria-labelledby="conquistas">
         <h2 id="conquistas" className="font-display text-2xl font-bold">

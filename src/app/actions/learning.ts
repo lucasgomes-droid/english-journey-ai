@@ -50,7 +50,7 @@ export async function submitLesson(input: z.infer<typeof submitSchema>): Promise
   if (!profile) return fail("Perfil não encontrado.");
 
   const { completed, rows } = await getCompletedLessons(supabase, user.id);
-  if (!isLessonUnlocked(lessonId, completed) && !completed.has(lessonId)) return fail("Esta aula ainda está bloqueada.");
+  if (!isLessonUnlocked(lessonId, completed, profile.current_level) && !completed.has(lessonId)) return fail("Esta aula ainda está bloqueada.");
 
   // Corrige cada exercício da aula. Exercício sem resposta conta como erro.
   const byId = new Map(answers.map((a) => [a.exerciseId, a.answer]));

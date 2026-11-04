@@ -49,21 +49,37 @@ export const getVocab = (id: string) => vocabMap.get(id);
 export const getExercise = (id: string) => exerciseMap.get(id);
 export const getLevel = (code: string) => LEVELS.find((l) => l.code === code);
 
+const levelOfLesson = (l: Lesson) => moduleMap.get(l.moduleId)?.level ?? "A1";
+const levelIdx = (lv: CefrLevel) => LEVEL_ORDER.indexOf(lv);
+
 /**
  * Regra de desbloqueio: uma aula só abre quando a anterior (na ordem global
- * da trilha) foi concluída. Assim o aluno não vê conteúdo avançado antes
- * de dominar os fundamentos.
+ * da trilha) foi concluída. Quem começou num nível acima (pelo nivelamento ou
+ * por ter passado no teste de nível) tem as aulas dos níveis anteriores abertas,
+ * para revisar quando quiser, e a trilha começa no primeiro módulo do seu nível.
  */
-export function isLessonUnlocked(lessonId: string, completed: Set<string>): boolean {
+export function isLessonUnlocked(lessonId: string, completed: Set<string>, startLevel: CefrLevel = "A1"): boolean {
   if (lessonId.startsWith("mini-")) return true; // mini-aulas ficam sempre abertas
   const idx = ALL_LESSONS.findIndex((l) => l.id === lessonId);
-  if (idx <= 0) return idx === 0;
-  return completed.has(ALL_LESSONS[idx - 1].id);
+  if (idx < 0) return false;
+  if (idx === 0) return true;
+  const lesson = ALL_LESSONS[idx];
+  const lv = levelIdx(levelOfLesson(lesson));
+  const start = levelIdx(startLevel);
+  if (lv < start) return true;
+  const prev = ALL_LESSONS[idx - 1];
+  if (lv === start && levelIdx(levelOfLesson(prev)) < start) return true; // primeira aula do nível inicial
+  return completed.has(prev.id);
 }
 
-export function nextLessonFor(completed: Set<string>): Lesson | null {
-  return ALL_LESSONS.find((l) => !completed.has(l.id)) ?? null;
+/** Próxima aula da trilha, a partir do nível em que o aluno está. */
+export function nextLessonFor(completed: Set<string>, startLevel: CefrLevel = "A1"): Lesson | null {
+  const start = levelIdx(startLevel);
+  return ALL_LESSONS.find((l) => levelIdx(levelOfLesson(l)) >= start && !completed.has(l.id)) ?? null;
 }
+
+/** Nível mais alto que já tem aulas escritas. */
+export const MAX_AUTHORED_LEVEL: CefrLevel = [...LEVELS].reverse().find((l) => l.modules.length > 0)?.code ?? "A1";
 
 export function lessonsOfLevel(level: CefrLevel): Lesson[] {
   return getLevel(level)?.modules.flatMap((m) => m.lessons) ?? [];

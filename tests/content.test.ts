@@ -70,6 +70,12 @@ describe("integridade do conteúdo A1", () => {
     expect(isLessonUnlocked(second, new Set())).toBe(false);
     expect(isLessonUnlocked(second, new Set([first]))).toBe(true);
     expect(nextLessonFor(new Set([first]))?.id).toBe(second);
+    // Quem começa no A2 (nivelamento) tem o A1 aberto e a trilha começa no A2.
+    expect(isLessonUnlocked("a2-m1-l1", new Set(), "A2")).toBe(true);
+    expect(isLessonUnlocked("a2-m1-l2", new Set(), "A2")).toBe(false);
+    expect(isLessonUnlocked("a1-m3-l2", new Set(), "A2")).toBe(true);
+    expect(nextLessonFor(new Set(), "A2")?.id).toBe("a2-m1-l1");
+    expect(isLessonUnlocked("a2-m1-l1", new Set(), "A1")).toBe(false);
   });
 });
 

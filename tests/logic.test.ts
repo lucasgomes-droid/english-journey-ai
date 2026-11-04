@@ -105,3 +105,22 @@ describe("fluência", () => {
     expect(normalizeFeedback(parseJsonObject("nada"))).toBeNull();
   });
 });
+
+import { PLACEMENT, scorePlacement } from "../src/content/placement";
+describe("nivelamento", () => {
+  const perfect = PLACEMENT.map((q) => q.answer);
+  const upTo = (lv: string[]) => PLACEMENT.map((q) => (lv.includes(q.level) ? q.answer : -1));
+  it("estima o nível pelo último nível dominado", () => {
+    expect(scorePlacement(PLACEMENT.map(() => -1)).estimated).toBe("A1");
+    expect(scorePlacement(upTo(["A1"])).estimated).toBe("A2");
+    expect(scorePlacement(upTo(["A1", "A2"])).estimated).toBe("B1");
+    expect(scorePlacement(perfect).estimated).toBe("C1");
+  });
+  it("não pula níveis: errar o A2 mantém no A2 mesmo acertando B1", () => {
+    expect(scorePlacement(upTo(["A1", "B1"])).estimated).toBe("A2");
+  });
+  it("respostas certas estão dentro das opções", () => {
+    for (const q of PLACEMENT) expect(q.answer).toBeLessThan(q.options.length);
+    expect(PLACEMENT.length).toBe(24);
+  });
+});

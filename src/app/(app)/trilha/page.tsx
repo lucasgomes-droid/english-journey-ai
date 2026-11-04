@@ -7,9 +7,10 @@ import { getCompletedLessons, getSession } from "@/lib/data";
 export const metadata = { title: "Trilha" };
 
 export default async function TrailPage() {
-  const { supabase, user } = await getSession();
+  const { supabase, user, profile } = await getSession();
+  const startLevel = profile?.current_level ?? "A1";
   const { completed, rows } = await getCompletedLessons(supabase, user.id);
-  const next = nextLessonFor(completed);
+  const next = nextLessonFor(completed, startLevel);
   const best = new Map(rows.map((r) => [r.lesson_id as string, r.best_score as number]));
 
   return (
@@ -51,7 +52,7 @@ export default async function TrailPage() {
                     <ol className="relative mt-5">
                       {m.lessons.map((l, i) => {
                         const isDone = completed.has(l.id);
-                        const unlocked = isDone || isLessonUnlocked(l.id, completed);
+                        const unlocked = isDone || isLessonUnlocked(l.id, completed, startLevel);
                         const isNext = next?.id === l.id;
                         const last = i === m.lessons.length - 1;
                         return (
