@@ -43,8 +43,8 @@ Sem as variáveis do Supabase o app abre uma tela explicando o que falta.
 
 1. Crie uma conta em <https://supabase.com> e clique em **New project** (região: São Paulo).
 2. No projeto, abra **SQL Editor → New query**, cole todo o conteúdo de
-   `supabase/migrations/0001_schema.sql` e clique em **Run**.
-3. Faça o mesmo com `supabase/migrations/0002_seed_content.sql` (conteúdo das aulas).
+   `supabase/migrations/20261104120000_schema.sql` e clique em **Run**.
+3. Faça o mesmo com `supabase/migrations/20261104120100_seed_content.sql` (conteúdo das aulas).
 4. Em **Project Settings → API** (ou botão **Connect**), copie:
    - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
    - **anon public** ou **publishable key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -97,14 +97,14 @@ instaladas em Ajustes → Acessibilidade → Conteúdo Falado → Vozes.
 | `npm run build` / `npm start` | Build e servidor de produção |
 | `npm test` | Testes unitários (correção, SRS, sequência, conquistas e integridade de todo o conteúdo) |
 | `npm run typecheck` / `npm run lint` | Verificações de tipo e estilo |
-| `npm run content:sql` | Regenera `0002_seed_content.sql` depois de editar aulas em `src/content` |
+| `npm run content:sql` | Regenera `20261104120100_seed_content.sql` depois de editar aulas em `src/content` |
 | `npx tsx tests/e2e/flow.e2e.ts` | Teste ponta a ponta no navegador (app rodando + Supabase) |
 
 ## Adicionar ou editar aulas
 
 1. Edite ou crie arquivos em `src/content/` (ex.: `src/content/a2/module1.ts`) e registre em `src/content/curriculum.ts`.
 2. `npm test` — garante que toda resposta oficial é aceita pela correção e que os IDs são únicos.
-3. `npm run content:sql` e execute o `0002_seed_content.sql` gerado no SQL Editor do Supabase.
+3. `npm run content:sql` e execute o `20261104120100_seed_content.sql` gerado no SQL Editor do Supabase.
 4. `git commit` + `git push` — a Vercel publica.
 
 ## Segurança

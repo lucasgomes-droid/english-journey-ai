@@ -1,7 +1,7 @@
 -- =====================================================================
 -- English Journey AI — esquema do banco (Supabase / PostgreSQL)
 -- Execute no Supabase: SQL Editor → cole este arquivo → Run.
--- Depois execute 0002_seed_content.sql (conteúdo das aulas).
+-- Depois execute 20261104120100_seed_content.sql (conteúdo das aulas).
 -- =====================================================================
 
 create extension if not exists "pgcrypto";

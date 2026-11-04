@@ -1,5 +1,5 @@
 /**
- * Gera supabase/migrations/0002_seed_content.sql a partir do conteúdo em src/content.
+ * Gera supabase/migrations/20261104120100_seed_content.sql a partir do conteúdo em src/content.
  * Uso: npm run content:sql
  * Sempre que adicionar ou alterar aulas, rode este script e execute o SQL gerado
  * no Supabase (ele é idempotente: usa upsert).
@@ -11,7 +11,7 @@ import { LEVELS } from "../src/content/curriculum";
 const q = (v: string) => `'${v.replace(/'/g, "''")}'`;
 const lines: string[] = [
   "-- ARQUIVO GERADO AUTOMATICAMENTE por `npm run content:sql`. Não edite à mão.",
-  "begin;",
+  "-- Idempotente (upsert): pode ser executado quantas vezes for preciso.",
 ];
 
 LEVELS.forEach((lv, i) => {
@@ -43,8 +43,8 @@ for (const lv of LEVELS) {
     }
   }
 }
-lines.push("commit;", "");
+lines.push("");
 
-const out = path.join(__dirname, "..", "supabase", "migrations", "0002_seed_content.sql");
+const out = path.join(__dirname, "..", "supabase", "migrations", "20261104120100_seed_content.sql");
 writeFileSync(out, lines.join("\n"));
 console.log(`Gerado: ${out} (${lines.length} linhas)`);

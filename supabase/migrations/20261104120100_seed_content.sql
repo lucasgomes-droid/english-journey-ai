@@ -1,5 +1,5 @@
 -- ARQUIVO GERADO AUTOMATICAMENTE por `npm run content:sql`. Não edite à mão.
-begin;
+-- Idempotente (upsert): pode ser executado quantas vezes for preciso.
 insert into public.levels (code,name,description,sort) values ('A1','Iniciante','Frases simples do dia a dia, apresentações e informações pessoais.',1) on conflict (code) do update set name=excluded.name, description=excluded.description, sort=excluded.sort;
 insert into public.levels (code,name,description,sort) values ('A2','Básico','Passado, planos, compras, direções e situações rotineiras.',2) on conflict (code) do update set name=excluded.name, description=excluded.description, sort=excluded.sort;
 insert into public.levels (code,name,description,sort) values ('B1','Intermediário','Viagens, experiências, opiniões e conversas mais longas.',3) on conflict (code) do update set name=excluded.name, description=excluded.description, sort=excluded.sort;
@@ -284,4 +284,3 @@ insert into public.exercises (id,lesson_id,sort,type,skill,payload) values ('a1-
 insert into public.exercises (id,lesson_id,sort,type,skill,payload) values ('a1-final-test-e13','a1-final-test',13,'translate','writing','{"prompt":"Ela não gosta de café.","accepted":["She doesn''t like coffee.","She does not like coffee."]}'::jsonb) on conflict (id) do update set sort=excluded.sort, type=excluded.type, skill=excluded.skill, payload=excluded.payload;
 insert into public.exercises (id,lesson_id,sort,type,skill,payload) values ('a1-final-test-e14','a1-final-test',14,'listening','listening','{"prompt":"Escreva o que você ouviu.","audio":"What do you do?","accepted":["what do you do"]}'::jsonb) on conflict (id) do update set sort=excluded.sort, type=excluded.type, skill=excluded.skill, payload=excluded.payload;
 insert into public.exercises (id,lesson_id,sort,type,skill,payload) values ('a1-final-test-e15','a1-final-test',15,'multiple_choice','grammar','{"prompt":"\"Are they from Canada?\" — resposta curta positiva:","options":["Yes, they do.","Yes, they are.","Yes, they is."],"answer":1}'::jsonb) on conflict (id) do update set sort=excluded.sort, type=excluded.type, skill=excluded.skill, payload=excluded.payload;
-commit;

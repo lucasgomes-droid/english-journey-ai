@@ -65,7 +65,7 @@ const SKILL_LABELS: Record<Skill, string> = {
 
 export async function getDashboard(): Promise<DashboardData> {
   const { supabase, user, profile } = await getSession();
-  if (!profile) throw new Error("Perfil não encontrado. Verifique se o SQL 0001_schema.sql foi executado.");
+  if (!profile) throw new Error("Perfil não encontrado. Verifique se o SQL 20261104120000_schema.sql foi executado.");
   const tz = profile.timezone || "America/Sao_Paulo";
   const today = localDate(new Date(), tz);
   const weekAgo = new Date(Date.now() - 6 * 86_400_000);
