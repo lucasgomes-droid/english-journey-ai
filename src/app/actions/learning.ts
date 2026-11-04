@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getLesson, getExercise, getVocab, isLessonUnlocked, nextLevel } from "@/content/curriculum";
+import { getLesson, getExercise, getModule, getVocab, isLessonUnlocked, LEVEL_ORDER, nextLevel } from "@/content/curriculum";
 import { getCompletedLessons, getSession } from "@/lib/data";
 import { gradeExercise, scorePercent, type ExerciseAnswer } from "@/lib/grading";
 import { recordActivity, syncAchievements } from "@/lib/progress";
@@ -112,8 +112,10 @@ export async function submitLesson(input: z.infer<typeof submitSchema>): Promise
     const mod = lesson.moduleId;
     await supabase.from("assessments").insert({ user_id: user.id, lesson_id: lessonId, level_code: profile.current_level, score, passed });
     if (passed && mod.endsWith("-final")) {
-      const nl = nextLevel(profile.current_level);
-      if (nl) {
+      // Sobe para o nível seguinte ao do teste (nunca rebaixa quem já está acima).
+      const testLevel = getModule(mod)?.level ?? profile.current_level;
+      const nl = nextLevel(testLevel);
+      if (nl && LEVEL_ORDER.indexOf(nl) > LEVEL_ORDER.indexOf(profile.current_level)) {
         leveledUpTo = nl;
         await supabase.from("profiles").update({ current_level: nl }).eq("id", user.id);
       }

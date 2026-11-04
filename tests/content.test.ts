@@ -105,3 +105,25 @@ describe("listening", () => {
     }
   });
 });
+
+describe("qualidade do conteúdo", () => {
+  it("palavras de distração não fazem parte da resposta e ditados batem com o áudio", async () => {
+    const { normalize } = await import("@/lib/grading");
+    for (const ex of ALL_LESSONS.flatMap((l) => l.exercises)) {
+      if (ex.type === "word_order" && ex.distractors) {
+        const toks = orderTokens(ex.answer).map((t) => t.toLowerCase().replace(/[.,!?]/g, ""));
+        for (const d of ex.distractors) expect(toks, ex.id).not.toContain(d.toLowerCase());
+      }
+      if (ex.type === "listening" && !ex.options) {
+        expect(ex.accepted!.map(normalize), ex.id).toContain(normalize(ex.audio));
+      }
+    }
+  });
+  it("títulos dos módulos escritos batem com o mapa do curso", async () => {
+    const { syllabusLevel } = await import("@/content/syllabus");
+    for (const m of ALL_MODULES.filter((x) => x.level !== "A1" && !x.id.endsWith("final"))) {
+      const syl = syllabusLevel(m.level).modules.map((x) => x.title);
+      expect(syl, m.id).toContain(m.title);
+    }
+  });
+});
