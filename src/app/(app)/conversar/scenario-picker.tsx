@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MessagesSquare, Plus, X } from "lucide-react";
 import { Avatar } from "@/components/avatar";
-import type { AvatarLook } from "@/content/scenarios";
+import type { AvatarLook, Place } from "@/content/scenarios";
+import { SceneBackdrop } from "@/components/scene-backdrop";
 
 interface Card {
   id: string;
@@ -14,6 +15,8 @@ interface Card {
   name: string;
   role: string;
   look: AvatarLook;
+  place: Place;
+  mission: string;
 }
 
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
@@ -26,13 +29,13 @@ const LEVEL_HINT: Record<string, string> = {
   C2: "como um nativo",
 };
 
-export function ScenarioPicker({ scenarios, defaultLevel }: { scenarios: Card[]; defaultLevel: string }) {
+export function ScenarioPicker({ scenarios, defaultLevel, categoryOrder }: { scenarios: Card[]; defaultLevel: string; categoryOrder: readonly string[] }) {
   const [level, setLevel] = useState(defaultLevel);
   const [category, setCategory] = useState("Todas");
   const [creating, setCreating] = useState(false);
   const [scene, setScene] = useState("");
   const router = useRouter();
-  const categories = ["Todas", ...Array.from(new Set(scenarios.map((s) => s.category)))];
+  const categories = ["Todas", ...categoryOrder.filter((c) => scenarios.some((s) => s.category === c))];
   const list = category === "Todas" ? scenarios : scenarios.filter((s) => s.category === category);
 
   return (
@@ -96,9 +99,11 @@ export function ScenarioPicker({ scenarios, defaultLevel }: { scenarios: Card[];
             <Link
               href={`/professor?cenario=${s.id}&nivel=${level}`}
               className="group relative block aspect-[4/5] overflow-hidden rounded-3xl ring-line transition-transform hover:-translate-y-0.5 focus-visible:-translate-y-0.5"
+              title={s.mission}
             >
-              <Avatar look={s.look} className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-105" />
-              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent p-4 pt-12 text-white">
+              <SceneBackdrop place={s.place} className="absolute inset-0 size-full transition-transform duration-300 group-hover:scale-105" />
+              <Avatar look={s.look} className="absolute left-1/2 top-[14%] size-[58%] -translate-x-1/2 overflow-hidden rounded-full border-4 border-white/70" />
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 pt-10 text-white">
                 <span className="block font-display text-lg font-bold leading-tight">{s.title}</span>
                 <span className="block text-sm text-white/80">
                   {s.name}, {s.role}

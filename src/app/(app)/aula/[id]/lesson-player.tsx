@@ -51,6 +51,7 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
   const [answers, setAnswers] = useState<{ exerciseId: string; answer: ExerciseAnswer }[]>([]);
   const [results, setResults] = useState<boolean[]>([]);
   const [server, setServer] = useState<LessonResult | null>(null);
+  const [showTheory, setShowTheory] = useState(false);
   const [pending, startTransition] = useTransition();
   const startedAt = useRef<number>(0);
   const topRef = useRef<HTMLDivElement>(null);
@@ -162,45 +163,42 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
             </p>
             <h1 className="mt-1 font-display text-4xl font-bold">{lesson.title}</h1>
             <div className="mt-5 rounded-2xl bg-boarding/25 p-4">
-              <p className="font-bold">Objetivo</p>
+              <p className="font-bold">{isTest ? "Objetivo" : "Sua missão nesta aula"}</p>
               <p>{lesson.objective}</p>
             </div>
-            <div className="mt-8 space-y-8">
-              {lesson.explanation.map((b) => (
-                <article key={b.title}>
-                  <h2 className="font-display text-2xl font-bold">{b.title}</h2>
-                  <p className="mt-2 max-w-prose">
-                    <RichText text={b.body} />
-                  </p>
-                  {b.table && (
-                    <div className="mt-4 overflow-x-auto">
-                      <table className="w-full min-w-[20rem] border-collapse overflow-hidden rounded-xl text-left">
-                        <thead>
-                          <tr className="bg-atlantic text-surface">
-                            {b.table.head.map((h) => (
-                              <th key={h} className="px-4 py-2.5 font-bold">
-                                {h}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {b.table.rows.map((r, i) => (
-                            <tr key={i} className="border-b border-line bg-surface">
-                              {r.map((c, j) => (
-                                <td key={j} className="px-4 py-2.5" lang={j === 0 ? "en" : undefined}>
-                                  {c}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </article>
-              ))}
-            </div>
+            {isTest ? (
+              <div className="mt-8">
+                <Theory blocks={lesson.explanation} />
+              </div>
+            ) : (
+              <>
+                {lesson.examples.length > 0 && (
+                  <div className="mt-6">
+                    <p className="text-sm font-bold text-muted">Na prática, você vai ouvir e dizer coisas como:</p>
+                    <ul className="mt-2 space-y-2">
+                      {lesson.examples.slice(0, 2).map((e) => (
+                        <li key={e.en} className="flex items-center gap-3 rounded-2xl bg-surface-2 p-3">
+                          <SpeakButton text={e.en} size="sm" />
+                          <span>
+                            <span className="block font-bold" lang="en">
+                              {e.en}
+                            </span>
+                            <span className="text-sm text-muted">{e.pt}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <details className="mt-6 rounded-2xl border border-line p-4">
+                  <summary className="cursor-pointer font-bold">Explicação rápida (opcional)</summary>
+                  <p className="mt-1 text-sm text-muted">Você pode começar praticando. A explicação também aparece quando você errar.</p>
+                  <div className="mt-4">
+                    <Theory blocks={lesson.explanation} />
+                  </div>
+                </details>
+              </>
+            )}
           </section>
         )}
 
@@ -260,9 +258,14 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
 
         {phase === "practice" && exercise && (
           <section aria-live="polite">
-            <p className="mb-4 text-sm text-muted">
-              {isRetry ? "Vamos fixar: tente de novo o que você errou" : `Exercício ${pos + 1} de ${total}`}
-            </p>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <p className="text-sm text-muted">{isRetry ? "Vamos fixar: tente de novo o que você errou" : `Exercício ${pos + 1} de ${total}`}</p>
+              {!isTest && lesson.explanation.length > 0 && (
+                <button type="button" onClick={() => setShowTheory(true)} className="rounded-full bg-surface-2 px-3 py-1 text-sm font-bold">
+                  Ver explicação
+                </button>
+              )}
+            </div>
             <ExerciseView key={`${exercise.id}-${pos}-${speakMode ? "v" : "t"}`} exercise={exercise} locked={!!grade} result={grade} onChange={setAnswer} speakMode={speakMode} />
           </section>
         )}
@@ -293,6 +296,11 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
                     </p>
                   )}
                   {!grade.correct && exercise?.explain && <p className="text-sm">{exercise.explain}</p>}
+                  {!grade.correct && !isTest && lesson.explanation.length > 0 && (
+                    <button type="button" onClick={() => setShowTheory(true)} className="mt-1 text-sm font-bold underline">
+                      Entender o erro
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
@@ -313,6 +321,19 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
                 {phases[phaseIdx + 1] === "practice" ? (isTest ? "Começar avaliação" : "Praticar") : phases[phaseIdx + 1] === "speak" ? "Falar em voz alta" : "Continuar"}
               </button>
             )}
+          </div>
+        </div>
+      )}
+      {showTheory && (
+        <div className="fixed inset-0 z-50 grid place-items-end bg-black/50 sm:place-items-center" role="dialog" aria-modal="true" aria-label="Explicação da aula" onClick={() => setShowTheory(false)}>
+          <div className="animate-pop max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-surface p-6 sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="font-display text-2xl font-bold">Explicação</h2>
+              <button type="button" onClick={() => setShowTheory(false)} className="grid size-9 place-items-center rounded-full hover:bg-surface-2" aria-label="Fechar">
+                <X size={20} aria-hidden />
+              </button>
+            </div>
+            <Theory blocks={lesson.explanation} />
           </div>
         </div>
       )}
@@ -358,6 +379,14 @@ function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }:
           ))}
         </ul>
         {!passed && <p className="mt-3 text-sm text-muted">Os exercícios que você errou foram para a sua fila de revisão.</p>}
+        {results.some((r) => !r) && lesson.kind !== "test" && lesson.explanation.length > 0 && (
+          <details className="mt-4 rounded-2xl border border-line p-4" open={!passed}>
+            <summary className="cursor-pointer font-bold">O que revisar: a explicação em português</summary>
+            <div className="mt-4">
+              <Theory blocks={lesson.explanation} />
+            </div>
+          </details>
+        )}
       </div>
 
       {server?.ok && server.exam && (
@@ -420,5 +449,46 @@ function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }:
         )}
       </div>
     </section>
+  );
+}
+
+function Theory({ blocks }: { blocks: Lesson["explanation"] }) {
+  return (
+    <div className="space-y-8">
+      {blocks.map((b) => (
+        <article key={b.title}>
+          <h2 className="font-display text-2xl font-bold">{b.title}</h2>
+          <p className="mt-2 max-w-prose">
+            <RichText text={b.body} />
+          </p>
+          {b.table && (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[20rem] border-collapse overflow-hidden rounded-xl text-left">
+                <thead>
+                  <tr className="bg-atlantic text-surface">
+                    {b.table.head.map((h) => (
+                      <th key={h} className="px-4 py-2.5 font-bold">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {b.table.rows.map((r, i) => (
+                    <tr key={i} className="border-b border-line bg-surface">
+                      {r.map((c, j) => (
+                        <td key={j} className="px-4 py-2.5" lang={j === 0 ? "en" : undefined}>
+                          {c}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </article>
+      ))}
+    </div>
   );
 }

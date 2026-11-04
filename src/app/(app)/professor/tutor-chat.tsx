@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Mic, Square, Send, Volume2, Lightbulb, PenLine, Phone, PhoneOff, Pause, Play, Loader2 } from "lucide-react";
+import { Mic, Square, Send, Volume2, Lightbulb, PenLine, Phone, PhoneOff, Pause, Play, Loader2, ClipboardCheck, Target } from "lucide-react";
 import { Avatar } from "@/components/avatar";
-import type { AvatarLook } from "@/content/scenarios";
+import type { AvatarLook, Place } from "@/content/scenarios";
+import { SceneBackdrop } from "@/components/scene-backdrop";
+import { ConversationReportSheet, type ReportView } from "@/components/conversation-report";
 import { unlockAudio, useVoice, type VoiceName } from "@/lib/voice";
 import { transcribeWav, useVoiceRecorder } from "@/lib/voice-recorder";
 
@@ -37,6 +39,7 @@ export function TutorChat({
   persona = null,
   goals = [],
   startInCall = false,
+  scene = null,
 }: {
   initial: ChatMsg[];
   conversationId: string | null;
@@ -49,6 +52,7 @@ export function TutorChat({
   persona?: { name: string; role: string; look: AvatarLook; voice?: VoiceName } | null;
   goals?: string[];
   startInCall?: boolean;
+  scene?: { place: Place; mission: string; challenge: string | null } | null;
 }) {
   const [messages, setMessages] = useState<ChatMsg[]>(initial);
   const [text, setText] = useState("");
@@ -62,6 +66,8 @@ export function TutorChat({
   const [summary, setSummary] = useState<NonNullable<ChatMsg["correction"]>[] | null>(null);
   const [lastHeard, setLastHeard] = useState("");
   const [lastReply, setLastReply] = useState("");
+  const [report, setReport] = useState<{ report: ReportView; savedPhrases: number } | null>(null);
+  const [reporting, setReporting] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const seq = useRef(0);
   const convRef = useRef(initialId);
@@ -234,6 +240,24 @@ export function TutorChat({
   }, []);
 
   const busy = sending || transcribing;
+  const userTurns = messages.filter((m) => m.role === "user" && !m.failed).length;
+
+  async function openReport() {
+    if (!convRef.current) return;
+    setSummary(null);
+    setReporting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/tutor/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId: convRef.current }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Não foi possível gerar o relatório.");
+      setReport(data);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setReporting(false);
+    }
+  }
 
   return (
     <div className="panel mt-6 flex h-[calc(100dvh-16rem)] min-h-[28rem] flex-col lg:h-[calc(100dvh-14rem)]">
@@ -257,6 +281,12 @@ export function TutorChat({
             <input type="checkbox" checked={autoSpeak} onChange={(e) => setAutoSpeak(e.target.checked)} className="size-4 accent-[var(--atlantic)]" />
             Ler em voz alta
           </label>
+          {userTurns >= 2 && (
+            <button type="button" onClick={openReport} disabled={reporting || busy} className="btn-ghost px-3 py-2 text-sm" aria-label="Encerrar e ver relatório">
+              {reporting ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <ClipboardCheck size={16} aria-hidden />}
+              <span className="hidden sm:inline">Relatório</span>
+            </button>
+          )}
           {voiceEnabled && (
             <button type="button" onClick={startCall} className="btn-go px-4 py-2" aria-label="Iniciar ligação só por voz">
               <Phone size={18} aria-hidden /> Ligar
@@ -265,19 +295,37 @@ export function TutorChat({
         </div>
       </div>
 
-      {goals.length > 0 && (
-        <details className="border-b border-line px-4 py-2 text-sm" open={messages.length <= 1}>
-          <summary className="cursor-pointer font-bold">Seus objetivos nesta cena</summary>
-          <ul className="mt-1 list-disc pl-5 text-muted">
-            {goals.map((g) => (
-              <li key={g}>{g}</li>
-            ))}
-          </ul>
+      {(scene || goals.length > 0) && (
+        <details className="border-b border-line text-sm" open={messages.length <= 1}>
+          <summary className="cursor-pointer px-4 py-2 font-bold">
+            <Target size={14} className="mr-1 inline align-[-2px]" aria-hidden /> Sua missão nesta cena
+          </summary>
+          {scene && (
+            <div className="relative mx-4 mb-2 h-24 overflow-hidden rounded-2xl sm:h-28">
+              <SceneBackdrop place={scene.place} className="absolute inset-0 size-full" />
+              {persona && <Avatar look={persona.look} className="absolute bottom-0 left-4 size-20 overflow-hidden rounded-t-full border-4 border-surface sm:size-24" />}
+            </div>
+          )}
+          <div className="px-4 pb-3">
+            {scene && <p>{scene.mission}</p>}
+            {scene?.challenge && <p className="mt-1 text-muted">Neste nível: {scene.challenge}</p>}
+            {goals.length > 0 && (
+              <ul className="mt-2 list-disc pl-5 text-muted">
+                {goals.map((g) => (
+                  <li key={g}>{g}</li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-2 text-xs text-muted">Quando terminar, toque em “Relatório” para ver sua nota, seus erros e expressões novas.</p>
+          </div>
         </details>
       )}
       {sceneDone && (
         <p role="status" className="border-b border-line bg-correct-bg px-4 py-2 text-sm font-bold text-correct">
-          Cena concluída! +15 XP. Pode continuar conversando ou escolher outra situação.
+          Cena concluída! +15 XP.{" "}
+          <button type="button" onClick={openReport} className="underline">
+            Ver relatório da conversa
+          </button>
         </p>
       )}
       <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
@@ -469,12 +517,18 @@ export function TutorChat({
                 </ul>
               </>
             )}
-            <button type="button" onClick={() => setSummary(null)} className="btn-primary mt-6 w-full">
+            {userTurns >= 2 && (
+              <button type="button" onClick={openReport} className="btn-go mt-6 w-full">
+                <ClipboardCheck size={18} aria-hidden /> Ver relatório completo
+              </button>
+            )}
+            <button type="button" onClick={() => setSummary(null)} className={`btn-primary w-full ${userTurns >= 2 ? "mt-2" : "mt-6"}`}>
               Fechar
             </button>
           </div>
         </div>
       )}
+      {report && <ConversationReportSheet report={report.report} savedPhrases={report.savedPhrases} onClose={() => setReport(null)} />}
     </div>
   );
 }

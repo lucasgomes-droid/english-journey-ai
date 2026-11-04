@@ -143,3 +143,19 @@ describe("qualidade do conteúdo", () => {
     }
   });
 });
+
+describe("cenários do dia a dia (Fase 2)", () => {
+  it("cobrem as categorias obrigatórias, com ambiente, missão e complicações", async () => {
+    const { CATEGORIES, SCENARIOS, missionFor } = await import("@/content/scenarios");
+    expect(SCENARIOS.length).toBeGreaterThanOrEqual(25);
+    for (const c of CATEGORIES) expect(SCENARIOS.some((s) => s.category === c), c).toBe(true);
+    for (const s of SCENARIOS) {
+      expect(s.place, s.id).toBeTruthy();
+      expect(s.mission_pt.length, s.id).toBeGreaterThan(40);
+      expect(s.challenges.length, s.id).toBeGreaterThan(0);
+      expect(missionFor(s, "A1").challenge).toBeNull();
+      expect(missionFor(s, "B2").challenge).toBe(s.challenge_pt);
+    }
+    for (const id of ["cafe", "directions", "supermarket", "airport", "lost-luggage", "coworker", "make-plans", "return-item"]) expect(SCENARIOS.some((s) => s.id === id), id).toBe(true);
+  });
+});

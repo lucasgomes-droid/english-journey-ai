@@ -108,7 +108,7 @@ export async function POST(req: Request) {
   let system: string;
   if (mode === "scenario") {
     const sc = scenario ? { setting: scenario.setting, goals: scenario.goals } : customSetting(customPrompt ?? "");
-    system = scenarioSystemPrompt({ studentName, level, characterName: scenario?.character.name ?? "the person in the scene", setting: sc.setting, goals: sc.goals, recentMistakes });
+    system = scenarioSystemPrompt({ studentName, level, characterName: scenario?.character.name ?? "the person in the scene", setting: sc.setting, goals: sc.goals, recentMistakes, challenges: scenario && !["A1", "A2"].includes(level) ? scenario.challenges : undefined });
   } else {
     system = tutorSystemPrompt({
       studentName,

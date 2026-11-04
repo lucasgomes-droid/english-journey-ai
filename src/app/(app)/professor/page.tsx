@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Plus } from "lucide-react";
 import { getSession } from "@/lib/data";
 import { getLesson } from "@/content/curriculum";
-import { CUSTOM_CHARACTER, getScenario } from "@/content/scenarios";
+import { CUSTOM_CHARACTER, getScenario, missionFor } from "@/content/scenarios";
 import { isAiConfigured, isSttConfigured } from "@/lib/ai";
 import { TutorChat, type ChatMsg } from "./tutor-chat";
 
@@ -89,6 +89,7 @@ export default async function TutorPage({ searchParams }: { searchParams: Promis
             level={scenario || customPrompt ? level : null}
             persona={persona}
             goals={scenario?.goals ?? []}
+            scene={scenario ? { place: scenario.place, ...missionFor(scenario, level) } : null}
             voiceEnabled={isSttConfigured()}
             startInCall={sp.ligar === "1"}
             studentName={firstName}

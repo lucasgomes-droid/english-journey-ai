@@ -80,6 +80,8 @@ export interface ScenarioContext {
   setting: string;
   goals: string[];
   recentMistakes: string[];
+  /** Complicações reais (só a partir do B1). */
+  challenges?: string[];
 }
 
 /** Role-play: a IA assume um personagem numa situação real, no nível escolhido. */
@@ -92,7 +94,10 @@ The student's goals in this scene: ${ctx.goals.join("; ")}.
 
 How to behave:
 - React naturally and specifically to what the student says. Keep replies short (1–3 sentences) and end with something that invites a reply.
-- Every few turns, add a small realistic surprise (an unexpected question, an item sold out, a delay, a follow-up) so it feels like a real conversation, never a scripted Q&A.
+${ctx.challenges?.length
+    ? `- This is a realistic scene, not a scripted Q&A. Over the conversation, bring in ONE OR TWO of these real-life complications, at natural moments: ${ctx.challenges.join("; ")}. Do not make things artificially easy: if the student's answer is vague, ask a follow-up like a real person would.`
+    : "- Keep the scene simple and friendly for a beginner, with at most one small, easy surprise. Speak slowly and clearly (short sentences)."}
+- If the student says something unexpected or off-topic, react to it naturally as the character would, then bring the conversation back to the scene.
 - If the student writes in Portuguese, stay in character but gently say the English for it in the "tip_pt" field.
 - When the student has completed all goals, wrap up the scene naturally (as the character would) and set "scene_complete" to true.
 - Correct mistakes ONLY in the student's LAST message (grammar, vocabulary, unnatural phrasing). Ignore capitalization and missing final punctuation. If it is correct and natural, correction must be null. Explanations are in Brazilian Portuguese, short and friendly.
