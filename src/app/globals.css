@@ -1,26 +1,131 @@
 @import "tailwindcss";
 
+/*
+  Identidade visual "Journey":
+  - Atlantic (azul-petróleo profundo) = base de confiança e foco.
+  - Boarding (amarelo cartão de embarque) = progresso, XP e chamadas para ação.
+  - A trilha é desenhada como uma linha de metrô: cada aula é uma estação.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --paper: #f4f7f6;
+  --surface: #ffffff;
+  --surface-2: #e7efee;
+  --line: #d3dfdd;
+  --ink: #0f2328;
+  --muted: #56707a;
+  --atlantic: #0e4d57;
+  --atlantic-deep: #0a3940;
+  --boarding: #ffc845;
+  --boarding-ink: #3d2c00;
+  --correct: #1b8a5a;
+  --correct-bg: #e2f5ec;
+  --wrong: #c93c3c;
+  --wrong-bg: #fbe8e6;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #0b1b1e;
+    --surface: #10262a;
+    --surface-2: #163338;
+    --line: #23444a;
+    --ink: #e6f0ef;
+    --muted: #93aeb3;
+    --atlantic: #5fc1c9;
+    --atlantic-deep: #9adde2;
+    --boarding: #ffcf5c;
+    --boarding-ink: #2b1f00;
+    --correct: #4cc58d;
+    --correct-bg: #123527;
+    --wrong: #ff7b72;
+    --wrong-bg: #3b1716;
   }
 }
 
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-atlantic: var(--atlantic);
+  --color-atlantic-deep: var(--atlantic-deep);
+  --color-boarding: var(--boarding);
+  --color-boarding-ink: var(--boarding-ink);
+  --color-correct: var(--correct);
+  --color-correct-bg: var(--correct-bg);
+  --color-wrong: var(--wrong);
+  --color-wrong-bg: var(--wrong-bg);
+  --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Atkinson Hyperlegible", system-ui, sans-serif;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+:focus-visible {
+  outline: 3px solid var(--boarding);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-bold transition-[transform,background-color] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-atlantic text-surface hover:bg-atlantic-deep;
+}
+@utility btn-go {
+  @apply btn bg-boarding text-boarding-ink hover:brightness-95;
+}
+@utility btn-ghost {
+  @apply btn border border-line bg-surface text-ink hover:bg-surface-2;
+}
+@utility panel {
+  @apply rounded-2xl border border-line bg-surface;
+}
+@utility field {
+  @apply w-full rounded-xl border border-line bg-surface px-4 py-3 text-ink placeholder:text-muted focus:border-atlantic focus:outline-none;
+}
+@utility chip {
+  @apply inline-flex items-center gap-1 rounded-full bg-surface-2 px-3 py-1 text-sm font-bold text-ink;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.96); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-pop {
+  animation: pop 180ms ease-out;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+.animate-shake {
+  animation: shake 220ms ease-in-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop, .animate-shake { animation: none; }
+  * { transition: none !important; }
 }
