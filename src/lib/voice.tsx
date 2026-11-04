@@ -187,5 +187,30 @@ export function useVoice() {
     [speak],
   );
 
-  return { speak, speakLines, stop, speaking, neural: caps.neural && !neuralBroken };
+  /** Toca uma gravação (ex.: a voz do próprio aluno). Termina quando o áudio acaba. */
+  const playBlob = useCallback(
+    async (blob: Blob) => {
+      halt();
+      const my = ++token.current;
+      const a = getAudio();
+      if (!a) return;
+      const url = URL.createObjectURL(blob);
+      setSpeaking(true);
+      try {
+        a.src = url;
+        a.playbackRate = 1;
+        await new Promise<void>((resolve) => {
+          a.onended = () => resolve();
+          a.onerror = () => resolve();
+          a.play().catch(() => resolve());
+        });
+      } finally {
+        URL.revokeObjectURL(url);
+        if (my === token.current) setSpeaking(false);
+      }
+    },
+    [halt],
+  );
+
+  return { speak, speakLines, playBlob, stop, speaking, neural: caps.neural && !neuralBroken };
 }

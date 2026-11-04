@@ -156,6 +156,18 @@ export default async function DiagnosticoPage() {
           <h2 id="sons" className="font-display text-2xl font-bold">
             Sons que você mais erra
           </h2>
+          {d.weakPairs.length > 0 && (
+            <ul className="mt-4 space-y-2">
+              {d.weakPairs.map((w) => (
+                <li key={w.id}>
+                  <Link href={`/pronuncia/pares/${w.id}`} className="block rounded-xl bg-surface-2 p-3 text-sm hover:bg-boarding/20">
+                    <span className="font-bold">{w.title}</span> <span className="text-muted">· {w.rate}% certo em {w.n} tentativas</span>
+                    <span className="mt-1 block">{w.issue}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
           {d.weakSounds.length ? (
             <ul className="mt-4 space-y-2">
               {d.weakSounds.map((w) => (
@@ -166,7 +178,11 @@ export default async function DiagnosticoPage() {
               ))}
             </ul>
           ) : (
-            <p className="mt-3 text-muted">Aparece quando houver gravações com análise fonética (nota por som).</p>
+            d.weakPairs.length === 0 && (
+              <p className="mt-3 text-muted">
+                Faça os <Link href="/pronuncia" className="font-bold text-atlantic underline">pares mínimos</Link> para descobrir quais sons você troca.
+              </p>
+            )
           )}
           {d.pronunciationWeeks.length > 1 && (
             <div className="mt-5">

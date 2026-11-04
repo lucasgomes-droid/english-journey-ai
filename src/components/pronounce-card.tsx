@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mic, Square, RotateCcw, Snail, Volume2, Loader2 } from "lucide-react";
+import { Mic, Square, RotateCcw, Snail, Volume2, Loader2, User, Repeat } from "lucide-react";
 import { useVoiceRecorder } from "@/lib/voice-recorder";
 import { unlockAudio, useVoice, useVoiceCaps } from "@/lib/voice";
 import { PHONEME_TIPS } from "@/lib/word-check";
@@ -35,7 +35,8 @@ export function PronounceCard({
   onResult?: (score: number) => void;
 }) {
   const caps = useVoiceCaps();
-  const { speak } = useVoice();
+  const { speak, playBlob } = useVoice();
+  const [mine, setMine] = useState<Blob | null>(null);
   const rec = useVoiceRecorder({ silenceMs: 1100, maxSeconds: 25, noSpeechTimeoutMs: 8000 });
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<PronResult | null>(null);
@@ -55,6 +56,7 @@ export function PronounceCard({
       if (!rec.error) setError("Não ouvi nada. Toque no microfone e fale a frase.");
       return;
     }
+    setMine(wav);
     setBusy(true);
     try {
       const form = new FormData();
@@ -141,6 +143,25 @@ export function PronounceCard({
           {busy ? "Analisando…" : rec.active ? (rec.state === "speaking" ? "Ouvindo…" : "Fale agora") : result ? "Tentar de novo" : "Repetir em voz alta"}
           {rec.active && <span className="absolute inset-0 rounded-xl ring-4 ring-wrong/40" style={{ opacity: 0.3 + rec.level * 0.7 }} aria-hidden />}
         </button>
+        {mine && !rec.active && (
+          <>
+            <button type="button" className="btn-ghost px-3" onClick={() => (unlockAudio(), playBlob(mine))} aria-label="Ouvir minha gravação">
+              <User size={18} aria-hidden /> Minha voz
+            </button>
+            <button
+              type="button"
+              className="btn-ghost px-3"
+              onClick={async () => {
+                unlockAudio();
+                await speak(text);
+                await playBlob(mine);
+              }}
+              aria-label="Comparar: modelo e depois a minha voz"
+            >
+              <Repeat size={18} aria-hidden /> Comparar
+            </button>
+          </>
+        )}
       </div>
 
       {(error || rec.error) && <p className="mt-3 rounded-xl bg-wrong-bg px-3 py-2 text-sm text-wrong">{error ?? rec.error}</p>}

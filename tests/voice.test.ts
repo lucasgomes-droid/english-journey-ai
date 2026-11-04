@@ -52,3 +52,23 @@ describe("conteúdo de fala", () => {
     for (const s of SCENARIOS) expect(s.character.voice).toMatch(/^[fm][123]$/);
   });
 });
+
+import { judgePair, PAIR_SETS } from "../src/content/minimal-pairs";
+describe("pares mínimos", () => {
+  it("decide entre alvo, outra palavra e incerto", () => {
+    expect(judgePair("I said think.", "think", "sink")).toBe("target");
+    expect(judgePair("I said sink.", "think", "sink")).toBe("other");
+    expect(judgePair("I said thing.", "think", "sink")).toBe("unclear");
+    expect(judgePair("Think, sink", "think", "sink")).toBe("unclear");
+  });
+  it("conteúdo consistente", () => {
+    for (const s of PAIR_SETS) {
+      expect(s.pairs.length).toBeGreaterThanOrEqual(5);
+      for (const p of s.pairs) {
+        expect(p.a).not.toBe(p.b);
+        expect(p.a).toMatch(/^[a-z]+$/);
+        expect(p.b).toMatch(/^[a-z]+$/);
+      }
+    }
+  });
+});

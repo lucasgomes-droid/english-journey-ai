@@ -70,13 +70,15 @@ export async function chatCompletion(messages: ChatMessage[], opts: { json?: boo
 }
 
 /** Transcreve áudio com um modelo Whisper (endpoint /audio/transcriptions). */
-export async function transcribe(file: Blob, filename: string) {
+/** `prompt` orienta o reconhecimento (ex.: as duas palavras de um par mínimo). */
+export async function transcribe(file: Blob, filename: string, prompt?: string) {
   if (!isSttConfigured()) throw new AiError("Reconhecimento de voz não configurado: defina AI_API_KEY ou STT_API_KEY.", 503);
   const form = new FormData();
   form.append("file", file, filename);
   form.append("model", sttConfig.model);
   form.append("language", "en");
   form.append("response_format", "json");
+  if (prompt) form.append("prompt", prompt.slice(0, 400));
   const res = await fetch(`${sttConfig.baseUrl}/audio/transcriptions`, {
     method: "POST",
     headers: { Authorization: `Bearer ${sttConfig.apiKey}` },

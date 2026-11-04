@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getLesson, getVocab } from "@/content/curriculum";
 import { PHONEME_TIPS } from "@/lib/word-check";
+import { getPairSet } from "@/content/minimal-pairs";
 
 export interface Area {
   key: "listening" | "vocabulary" | "grammar" | "writing" | "conversation" | "pronunciation";
@@ -22,6 +23,8 @@ export interface Diagnostics {
   recentCorrections: { original: string; corrected: string; explanation: string }[];
   listeningByLevel: { level: string; pct: number; attempts: number }[];
   weakSounds: { phoneme: string; misses: number; tip: string }[];
+  /** Pares mínimos em que a palavra mais sai trocada. */
+  weakPairs: { id: string; title: string; rate: number; n: number; issue: string }[];
   pronunciationWeeks: { week: string; avg: number; n: number }[];
   speakingThisWeek: { voiceMessages: number; pronunciation: number };
 }
@@ -43,7 +46,9 @@ export async function computeDiagnostics(supabase: SupabaseClient, userId: strin
   ]);
   const pronRows = pron.data ?? [];
   const phonetic = pronRows.filter((r) => r.provider === "azure" && r.overall !== null);
-  const wordsOnly = pronRows.filter((r) => r.provider !== "azure" && r.completeness !== null);
+  const wordsOnly = pronRows.filter((r) => r.provider !== "azure" && r.provider !== "minimal-pair" && r.completeness !== null);
+  const pairRows = pronRows.filter((r) => r.provider === "minimal-pair");
+  const pairAvg = pairRows.length ? Math.round(pairRows.reduce((s, r) => s + Number(r.completeness), 0) / pairRows.length) : null;
   const pronAvg = phonetic.length ? Math.round(phonetic.reduce((s, r) => s + Number(r.overall), 0) / phonetic.length) : null;
   const wordsAvg = wordsOnly.length ? Math.round(wordsOnly.reduce((s, r) => s + Number(r.completeness), 0) / wordsOnly.length) : null;
 
@@ -76,13 +81,15 @@ export async function computeDiagnostics(supabase: SupabaseClient, userId: strin
     {
       key: "pronunciation",
       label: "Pronúncia",
-      score: phonetic.length >= MIN_SAMPLES ? pronAvg : null,
-      samples: phonetic.length,
+      score: phonetic.length >= MIN_SAMPLES ? pronAvg : pairRows.length >= MIN_SAMPLES ? pairAvg : null,
+      samples: phonetic.length >= MIN_SAMPLES ? phonetic.length : pairRows.length,
       href: "/pronuncia",
       action: "Treinar pronúncia",
       detail: phonetic.length
         ? "Nota média por som (análise fonética), nas suas gravações."
-        : wordsAvg !== null
+        : pairRows.length
+          ? `Pares mínimos: ${pairAvg}% das palavras foram entendidas como você quis dizer (think × sink, red × head…).`
+          : wordsAvg !== null
           ? `Sem análise fonética ainda: ${wordsAvg}% das palavras reconhecidas nas suas gravações.`
           : "Grave frases no treino de pronúncia ou nas aulas para medir.",
     },
@@ -139,6 +146,21 @@ export async function computeDiagnostics(supabase: SupabaseClient, userId: strin
     .slice(0, 4)
     .map(([phoneme, n]) => ({ phoneme, misses: n, tip: PHONEME_TIPS[phoneme] }));
 
+  const byPair = new Map<string, { ok: number; n: number }>();
+  for (const r of pairRows) {
+    const id = ((r.details as { context?: string } | null)?.context ?? "").replace("pair:", "");
+    const e = byPair.get(id) ?? { ok: 0, n: 0 };
+    e.n++;
+    if (Number(r.completeness) === 100) e.ok++;
+    byPair.set(id, e);
+  }
+  const weakPairs = Array.from(byPair.entries())
+    .map(([id, v]) => ({ id, set: getPairSet(id), rate: Math.round((v.ok / v.n) * 100), n: v.n }))
+    .filter((x) => x.set && x.n >= 3 && x.rate < 80)
+    .sort((a, b) => a.rate - b.rate)
+    .slice(0, 4)
+    .map((x) => ({ id: x.id, title: x.set!.title, rate: x.rate, n: x.n, issue: x.set!.issue }));
+
   // Evolução semanal da pronúncia (últimas 8 semanas).
   const weeks = new Map<string, number[]>();
   for (const r of phonetic) {
@@ -157,5 +179,5 @@ export async function computeDiagnostics(supabase: SupabaseClient, userId: strin
     pronunciation: pronRows.filter((r) => r.created_at >= weekAgo).length,
   };
 
-  return { areas, weakest, hardWords, hardTopics, recentCorrections, listeningByLevel, weakSounds, pronunciationWeeks, speakingThisWeek };
+  return { areas, weakest, hardWords, hardTopics, recentCorrections, listeningByLevel, weakSounds, weakPairs, pronunciationWeeks, speakingThisWeek };
 }
