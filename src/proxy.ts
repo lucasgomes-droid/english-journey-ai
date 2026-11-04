@@ -30,9 +30,9 @@ export async function proxy(request: NextRequest) {
   });
 
   // Renova a sessão (não remover).
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims valida o JWT localmente e renova a sessão quando precisa.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub ?? null;
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
   if (!user && !isPublic && !pathname.startsWith("/api")) {
@@ -46,5 +46,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icons/|sw.js|manifest.webmanifest|.*\\.(?:png|svg|jpg|ico|webp)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icons/|fonts/|sw.js|manifest.webmanifest|.*\\.(?:png|svg|jpg|ico|webp)$).*)"],
 };

@@ -7,6 +7,7 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { LEVELS } from "../src/content/curriculum";
+import { MINI_MODULES } from "../src/content/mini";
 
 const q = (v: string) => `'${v.replace(/'/g, "''")}'`;
 const lines: string[] = [
@@ -21,7 +22,8 @@ LEVELS.forEach((lv, i) => {
 });
 
 for (const lv of LEVELS) {
-  for (const m of lv.modules) {
+  const modules = [...lv.modules, ...MINI_MODULES.filter((m) => m.level === lv.code)];
+  for (const m of modules) {
     lines.push(
       `insert into public.modules (id,level_code,sort,title,description) values (${q(m.id)},${q(lv.code)},${m.order},${q(m.title)},${q(m.description)}) on conflict (id) do update set level_code=excluded.level_code, sort=excluded.sort, title=excluded.title, description=excluded.description;`,
     );

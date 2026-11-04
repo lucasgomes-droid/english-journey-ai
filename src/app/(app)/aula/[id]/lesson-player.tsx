@@ -107,7 +107,7 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Le
         {phase === "explain" && (
           <section>
             <p className="font-bold text-muted">
-              {moduleTitle} · {isTest ? "Avaliação" : `Aula ${lesson.order}`}
+              {moduleTitle} · {isTest ? "Avaliação" : lesson.scenarioId ? "Mini-aula" : `Aula ${lesson.order}`}
             </p>
             <h1 className="mt-1 font-display text-4xl font-bold">{lesson.title}</h1>
             <div className="mt-5 rounded-2xl bg-boarding/25 p-4">
@@ -294,6 +294,19 @@ function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }:
         </ul>
         {!passed && <p className="mt-3 text-sm text-muted">Os exercícios que você errou foram para a sua fila de revisão.</p>}
       </div>
+
+      {lesson.scenarioId && (
+        <div className="panel mt-4 flex flex-col items-start gap-3 p-6 text-left sm:flex-row sm:items-center">
+          <MessagesSquare className="shrink-0 text-atlantic" aria-hidden />
+          <div className="flex-1">
+            <p className="font-bold">Agora use na prática</p>
+            <p className="text-muted">Converse com um personagem nessa mesma situação, por texto ou voz.</p>
+          </div>
+          <Link href={`/professor?cenario=${lesson.scenarioId}`} className="btn-go">
+            Praticar a conversa
+          </Link>
+        </div>
+      )}
 
       {lesson.conversation && passed && (
         <div className="panel mt-4 flex flex-col items-start gap-3 p-6 text-left sm:flex-row sm:items-center">

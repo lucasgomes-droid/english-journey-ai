@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { currentUser } from "@/lib/supabase/server";
 import { AiError, transcribe } from "@/lib/ai";
 
 export const maxDuration = 60;
 const MAX_BYTES = 4 * 1024 * 1024; // limite de corpo das funções da Vercel é ~4,5 MB
 
 export async function POST(req: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await currentUser();
   if (!user) return NextResponse.json({ error: "Faça login novamente." }, { status: 401 });
 
   const form = await req.formData().catch(() => null);

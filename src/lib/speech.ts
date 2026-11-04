@@ -20,6 +20,7 @@ function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undef
 export function useSpeech() {
   const [supported, setSupported] = useState(true);
   const [voice, setVoice] = useState<SpeechSynthesisVoice | undefined>();
+  const [enVoices, setEnVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [speaking, setSpeaking] = useState(false);
 
   useEffect(() => {
@@ -28,7 +29,11 @@ export function useSpeech() {
       setSupported(false);
       return;
     }
-    const load = () => setVoice(pickVoice(window.speechSynthesis.getVoices()));
+    const load = () => {
+      const all = window.speechSynthesis.getVoices();
+      setVoice(pickVoice(all));
+      setEnVoices(all.filter((v) => v.lang?.toLowerCase().startsWith("en")));
+    };
     load();
     window.speechSynthesis.addEventListener("voiceschanged", load);
     return () => window.speechSynthesis.removeEventListener("voiceschanged", load);
@@ -56,7 +61,48 @@ export function useSpeech() {
     setSpeaking(false);
   }, []);
 
-  return { speak, stop, speaking, supported };
+  /**
+   * Lê um diálogo em sequência, com uma voz diferente por personagem
+   * (ou tom diferente, se o aparelho tiver só uma voz em inglês).
+   */
+  const speakLines = useCallback(
+    (lines: { speaker: string; text: string }[], opts: { rate?: number; onLine?: (i: number) => void; onEnd?: () => void } = {}) => {
+      if (!supported || typeof window === "undefined") return;
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      const speakers = Array.from(new Set(lines.map((l) => l.speaker)));
+      const pool = enVoices.length ? enVoices : voice ? [voice] : [];
+      const primary = voice ?? pool[0];
+      const others = pool.filter((v) => v !== primary && v.lang.toLowerCase().replace("_", "-").startsWith("en-"));
+      lines.forEach((line, i) => {
+        const u = new SpeechSynthesisUtterance(line.text);
+        const idx = speakers.indexOf(line.speaker);
+        const v = idx === 0 ? primary : (others[(idx - 1) % Math.max(1, others.length)] ?? primary);
+        if (v) {
+          u.voice = v;
+          u.lang = v.lang;
+        } else u.lang = "en-US";
+        u.rate = opts.rate ?? 0.95;
+        // Mesma voz para todos? Diferencia pelo tom.
+        u.pitch = v === primary && idx > 0 ? 0.75 + (idx % 2) * 0.5 : 1;
+        u.onstart = () => {
+          setSpeaking(true);
+          opts.onLine?.(i);
+        };
+        if (i === lines.length - 1) {
+          u.onend = () => {
+            setSpeaking(false);
+            opts.onEnd?.();
+          };
+        }
+        u.onerror = () => setSpeaking(false);
+        synth.speak(u);
+      });
+    },
+    [supported, voice, enVoices],
+  );
+
+  return { speak, speakLines, stop, speaking, supported };
 }
 
 /** Embaralhamento determinístico (mesmo resultado no servidor e no navegador). */

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { ALL_LESSONS, ALL_MODULES, isLessonUnlocked, nextLessonFor } from "@/content/curriculum";
+import { ALL_LESSONS, ALL_MODULES, EVERY_LESSON, isLessonUnlocked, nextLessonFor } from "@/content/curriculum";
+import { SCENARIOS, getScenario } from "@/content/scenarios";
+import { MINI_LESSONS } from "@/content/mini";
 import { gradeExercise, orderTokens } from "@/lib/grading";
 import type { Exercise } from "@/content/types";
 import type { ExerciseAnswer } from "@/lib/grading";
@@ -27,7 +29,7 @@ describe("integridade do conteúdo A1", () => {
   });
 
   it("IDs de aulas, vocabulário e exercícios são únicos", () => {
-    const ids = ALL_LESSONS.flatMap((l) => [l.id, ...l.vocabulary.map((v) => v.id), ...l.exercises.map((e) => e.id)]);
+    const ids = EVERY_LESSON.flatMap((l) => [l.id, ...l.vocabulary.map((v) => v.id), ...l.exercises.map((e) => e.id)]);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
@@ -44,7 +46,7 @@ describe("integridade do conteúdo A1", () => {
   });
 
   it("a resposta oficial de cada exercício é corrigida como certa", () => {
-    for (const l of ALL_LESSONS) {
+    for (const l of EVERY_LESSON) {
       for (const ex of l.exercises) {
         const r = gradeExercise(ex, correctAnswer(ex));
         expect(r.correct, `${ex.id}`).toBe(true);
@@ -53,7 +55,7 @@ describe("integridade do conteúdo A1", () => {
   });
 
   it("índices de múltipla escolha estão dentro das opções", () => {
-    for (const ex of ALL_LESSONS.flatMap((l) => l.exercises)) {
+    for (const ex of EVERY_LESSON.flatMap((l) => l.exercises)) {
       if (ex.type === "multiple_choice") expect(ex.answer).toBeLessThan(ex.options.length);
       if (ex.type === "listening" && ex.options) expect(ex.answer!).toBeLessThan(ex.options.length);
       if (ex.type === "listening" && !ex.options) expect(ex.accepted?.length).toBeGreaterThan(0);
@@ -68,5 +70,38 @@ describe("integridade do conteúdo A1", () => {
     expect(isLessonUnlocked(second, new Set())).toBe(false);
     expect(isLessonUnlocked(second, new Set([first]))).toBe(true);
     expect(nextLessonFor(new Set([first]))?.id).toBe(second);
+  });
+});
+
+describe("mini-aulas e conversas", () => {
+  it("toda mini-aula aponta para uma situação existente e fica sempre aberta", () => {
+    expect(MINI_LESSONS.length).toBeGreaterThanOrEqual(10);
+    for (const l of MINI_LESSONS) {
+      expect(getScenario(l.scenarioId!), l.id).toBeDefined();
+      expect(isLessonUnlocked(l.id, new Set())).toBe(true);
+      expect(ALL_LESSONS.some((x) => x.id === l.id)).toBe(false);
+    }
+  });
+  it("situações têm IDs únicos, objetivos e fala inicial", () => {
+    expect(new Set(SCENARIOS.map((s) => s.id)).size).toBe(SCENARIOS.length);
+    for (const s of SCENARIOS) {
+      expect(s.goals.length).toBeGreaterThan(0);
+      expect(s.opener.length).toBeGreaterThan(5);
+    }
+  });
+});
+
+import { LISTENING } from "@/content/listening";
+describe("listening", () => {
+  it("tem itens em todos os níveis, com respostas válidas", () => {
+    for (const lv of ["A1", "A2", "B1", "B2", "C1", "C2"]) expect(LISTENING.filter((i) => i.level === lv).length).toBeGreaterThanOrEqual(3);
+    expect(new Set(LISTENING.map((i) => i.id)).size).toBe(LISTENING.length);
+    for (const it of LISTENING) {
+      for (const q of it.questions) expect(q.answer).toBeLessThan(q.options.length);
+      // A frase do ditado precisa estar no áudio.
+      const audio = it.lines.map((l) => l.text).join(" ").toLowerCase();
+      const words = it.dictation.toLowerCase().replace(/[.,!?]/g, "").split(" ");
+      expect(words.every((w) => audio.includes(w)), it.id).toBe(true);
+    }
   });
 });

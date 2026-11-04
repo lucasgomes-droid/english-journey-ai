@@ -6,6 +6,15 @@
   - Boarding (amarelo cartão de embarque) = progresso, XP e chamadas para ação.
   - A trilha é desenhada como uma linha de metrô: cada aula é uma estação.
 */
+ /* Algarismos sem zero cortado (a fonte do corpo usa 0 com barra). */
+@font-face {
+  font-family: "EJ Digits";
+  src: url("/fonts/digits.woff2") format("woff2");
+  font-weight: 300 800;
+  font-display: swap;
+  unicode-range: U+0030-0039;
+}
+
 :root {
   --paper: #f4f7f6;
   --surface: #ffffff;
@@ -57,7 +66,7 @@
   --color-correct-bg: var(--correct-bg);
   --color-wrong: var(--wrong);
   --color-wrong-bg: var(--wrong-bg);
-  --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-sans: "EJ Digits", "Atkinson Hyperlegible", system-ui, sans-serif;
   --font-display: "Bricolage Grotesque Variable", "Atkinson Hyperlegible", system-ui, sans-serif;
 }
 
@@ -117,6 +126,13 @@ h3,
 .animate-pop {
   animation: pop 180ms ease-out;
 }
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-page {
+  animation: page-in 200ms ease-out;
+}
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-5px); }
@@ -126,6 +142,6 @@ h3,
   animation: shake 220ms ease-in-out;
 }
 @media (prefers-reduced-motion: reduce) {
-  .animate-pop, .animate-shake { animation: none; }
+  .animate-pop, .animate-shake, .animate-page { animation: none; }
   * { transition: none !important; }
 }

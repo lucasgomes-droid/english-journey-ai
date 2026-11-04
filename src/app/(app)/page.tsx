@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { BookOpen, Clock, Flame, Languages, MessagesSquare, RotateCcw, CheckCircle2 } from "lucide-react";
+import { BookOpen, Clock, Flame, Headphones, Languages, MessagesSquare, RotateCcw, CheckCircle2, Target } from "lucide-react";
+import { SCENARIOS } from "@/content/scenarios";
+import { LISTENING } from "@/content/listening";
+import { Avatar } from "@/components/avatar";
 import { getDashboard } from "@/lib/data";
 import { getModule } from "@/content/curriculum";
 import { LevelLine } from "@/components/brand";
@@ -23,11 +26,18 @@ export default async function Dashboard() {
   const goalPct = Math.min(100, Math.round((d.todayXp / profile.daily_goal_xp) * 100));
   const maxWeek = Math.max(profile.daily_goal_xp, ...d.weekXp.map((w) => w.xp));
 
+  // Situação e áudio do dia mudam diariamente.
+  const dayIndex = Math.floor(Date.parse(`${d.weekXp[6].date}T12:00:00Z`) / 86_400_000);
+  const sceneToday = SCENARIOS[dayIndex % SCENARIOS.length];
+  const levelListening = LISTENING.filter((l) => l.level === profile.current_level);
+  const listeningToday = levelListening[dayIndex % Math.max(1, levelListening.length)] ?? LISTENING[0];
+
   // Rotina diária: distribui o tempo disponível entre revisão, aula e conversa.
   const plan = [
     d.dueReviews > 0 && { href: "/revisao", icon: RotateCcw, title: "Revisão", detail: `${d.dueReviews} ${d.dueReviews === 1 ? "item pendente" : "itens pendentes"}`, minutes: Math.min(10, Math.ceil(d.dueReviews / 3)) },
     nextLesson && { href: `/aula/${nextLesson.id}`, icon: BookOpen, title: nextLesson.kind === "test" ? "Avaliação" : "Aula nova", detail: nextLesson.title, minutes: 10 },
-    profile.daily_minutes >= 15 && { href: "/professor", icon: MessagesSquare, title: "Conversa com o professor", detail: "Pratique o que aprendeu", minutes: Math.max(5, profile.daily_minutes - 20) },
+    profile.daily_minutes >= 15 && { href: `/listening/${listeningToday.id}`, icon: Headphones, title: "Listening", detail: listeningToday.title, minutes: 5 },
+    profile.daily_minutes >= 20 && { href: `/professor?cenario=${sceneToday.id}`, icon: MessagesSquare, title: "Conversa do dia", detail: sceneToday.title, minutes: Math.max(5, profile.daily_minutes - 25) },
   ].filter(Boolean) as { href: string; icon: typeof BookOpen; title: string; detail: string; minutes: number }[];
 
   return (
@@ -145,13 +155,30 @@ export default async function Dashboard() {
         ))}
       </section>
 
+      {/* Situação do dia */}
+      <Link href={`/professor?cenario=${sceneToday.id}`} className="group flex items-center gap-5 overflow-hidden rounded-3xl border border-line bg-surface pr-6 transition-colors hover:border-atlantic">
+        <Avatar look={sceneToday.character.look} className="h-32 w-28 shrink-0 transition-transform duration-300 group-hover:scale-105 sm:w-32" />
+        <span className="min-w-0 py-4">
+          <span className="text-sm font-bold text-muted">Conversa do dia</span>
+          <span className="block font-display text-2xl font-bold leading-tight">{sceneToday.title}</span>
+          <span className="block text-muted">
+            Converse com {sceneToday.character.name}, {sceneToday.character.role}, no nível {profile.current_level}.
+          </span>
+        </span>
+      </Link>
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Desempenho por habilidade */}
         <section className="panel p-6" aria-labelledby="hab">
           <h2 id="hab" className="font-display text-2xl font-bold">
             Desempenho por habilidade
           </h2>
-          <p className="text-sm text-muted">Percentual de acertos nos exercícios</p>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="text-sm text-muted">Percentual de acertos nos exercícios</p>
+            <Link href="/diagnostico" className="inline-flex items-center gap-1 text-sm font-bold text-atlantic hover:underline">
+              <Target size={14} aria-hidden /> Ver meus pontos fracos
+            </Link>
+          </div>
           <ul className="mt-5 space-y-4">
             {d.skills.map((s) => (
               <li key={s.skill}>

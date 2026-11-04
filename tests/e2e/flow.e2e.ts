@@ -125,7 +125,9 @@ async function doLesson(page: Page, lessonIdx: number, wrongIdx: number[] = []) 
 
   // Bloqueio: aula 5 não pode abrir
   await page.goto(`${BASE}/aula/${ALL_LESSONS[4].id}`);
-  if (!page.url().endsWith("/trilha")) throw new Error("Aula bloqueada abriu!");
+  await page.waitForURL("**/trilha", { timeout: 10000 }).catch(() => {
+    throw new Error("Aula bloqueada abriu!");
+  });
   console.log("✓ aula bloqueada redireciona para a trilha");
   await page.screenshot({ path: `${SHOTS}/08-trilha.png`, fullPage: true });
 

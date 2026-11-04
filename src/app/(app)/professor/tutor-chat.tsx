@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mic, Square, Send, Volume2, Lightbulb, PenLine } from "lucide-react";
 import { useSpeech } from "@/lib/speech";
+import { Avatar } from "@/components/avatar";
+import type { AvatarLook } from "@/content/scenarios";
 import { useRecorder } from "@/lib/recorder";
 
 export interface ChatMsg {
@@ -21,12 +23,22 @@ export function TutorChat({
   lessonId,
   voiceEnabled,
   studentName,
+  scenarioId = null,
+  customPrompt = null,
+  level = null,
+  persona = null,
+  goals = [],
 }: {
   initial: ChatMsg[];
   conversationId: string | null;
   lessonId: string | null;
   voiceEnabled: boolean;
   studentName: string;
+  scenarioId?: string | null;
+  customPrompt?: string | null;
+  level?: string | null;
+  persona?: { name: string; role: string; look: AvatarLook } | null;
+  goals?: string[];
 }) {
   const [messages, setMessages] = useState<ChatMsg[]>(initial);
   const [conversationId, setConversationId] = useState(initialId);
@@ -35,6 +47,7 @@ export function TutorChat({
   const [transcribing, setTranscribing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [autoSpeak, setAutoSpeak] = useState(true);
+  const [sceneDone, setSceneDone] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const seq = useRef(0);
   const router = useRouter();
@@ -57,7 +70,11 @@ export function TutorChat({
       const res = await fetch("/api/tutor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId, message: msg, lessonId: conversationId ? null : lessonId, viaVoice }),
+        body: JSON.stringify(
+          conversationId
+            ? { conversationId, message: msg, viaVoice }
+            : { conversationId: null, message: msg, lessonId, scenarioId, customPrompt, level, viaVoice },
+        ),
       });
       const data = await res.json();
       const isNew = data.conversationId && data.conversationId !== conversationId;
@@ -72,6 +89,7 @@ export function TutorChat({
         ...m.map((x) => (x.id === tempId ? { ...x, id: String(data.userMessageId), correction: data.correction } : x)),
         { id: String(data.assistantMessageId ?? `a-${++seq.current}`), role: "assistant", content: data.reply, correction: null, tip: data.tip },
       ]);
+      if (data.sceneComplete) setSceneDone(true);
       if (autoSpeak) speak(data.reply);
       // Atualiza XP e sequência no topo (a conversa rende XP).
       if (!isNew) router.refresh();
@@ -115,10 +133,17 @@ export function TutorChat({
     <div className="panel mt-6 flex h-[calc(100dvh-16rem)] min-h-[28rem] flex-col lg:h-[calc(100dvh-14rem)]">
       <div className="flex items-center justify-between border-b border-line px-4 py-3">
         <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-full bg-boarding font-display font-bold text-boarding-ink">A</span>
+          {persona ? (
+            <Avatar look={persona.look} className="size-11 overflow-hidden rounded-full" />
+          ) : (
+            <span className="grid size-10 place-items-center rounded-full bg-boarding font-display font-bold text-boarding-ink">A</span>
+          )}
           <div>
-            <p className="font-bold">Alex</p>
-            <p className="text-sm text-muted">Seu professor de inglês</p>
+            <p className="font-bold">{persona?.name ?? "Alex"}</p>
+            <p className="text-sm text-muted">
+              {persona ? persona.role : "Seu professor de inglês"}
+              {level ? ` · nível ${level}` : ""}
+            </p>
           </div>
         </div>
         {ttsSupported && (
@@ -129,12 +154,33 @@ export function TutorChat({
         )}
       </div>
 
+      {goals.length > 0 && (
+        <details className="border-b border-line px-4 py-2 text-sm" open={messages.length <= 1}>
+          <summary className="cursor-pointer font-bold">Seus objetivos nesta cena</summary>
+          <ul className="mt-1 list-disc pl-5 text-muted">
+            {goals.map((g) => (
+              <li key={g}>{g}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {sceneDone && (
+        <p role="status" className="border-b border-line bg-correct-bg px-4 py-2 text-sm font-bold text-correct">
+          Cena concluída! +15 XP. Pode continuar conversando ou escolher outra situação.
+        </p>
+      )}
       <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
         {messages.length === 0 && (
           <div className="mx-auto max-w-md py-8 text-center text-muted">
-            <p className="font-display text-xl font-bold text-ink">Say hi to Alex{studentName ? `, ${studentName}` : ""}!</p>
-            <p className="mt-2">Escreva ou grave algo em inglês. Se não souber dizer, escreva em português que o Alex te ajuda.</p>
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <p className="font-display text-xl font-bold text-ink">
+              {customPrompt ? "Comece a sua cena!" : `Say hi to ${persona?.name ?? "Alex"}${studentName ? `, ${studentName}` : ""}!`}
+            </p>
+            <p className="mt-2">
+              {customPrompt
+                ? `Situação: “${customPrompt}”. Diga a primeira frase em inglês (por texto ou voz).`
+                : "Escreva ou grave algo em inglês. Se não souber dizer, escreva em português que o Alex te ajuda."}
+            </p>
+            <div className={`mt-4 flex-wrap justify-center gap-2 ${customPrompt ? "hidden" : "flex"}`}>
               {["Hi! How are you?", "Can you help me practice introductions?", "Como eu digo 'estou com fome'?"].map((s) => (
                 <button key={s} type="button" onClick={() => send(s)} className="rounded-full border border-line px-3 py-1.5 text-sm text-ink hover:bg-surface-2">
                   {s}

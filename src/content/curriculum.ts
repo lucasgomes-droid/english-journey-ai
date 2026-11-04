@@ -7,6 +7,7 @@ import { a1Module6 } from "./a1/module6";
 import { a1Module7 } from "./a1/module7";
 import { a1Module8 } from "./a1/module8";
 import { a1Final } from "./a1/final";
+import { MINI_LESSONS, MINI_MODULES } from "./mini";
 import type { CefrLevel, Lesson, Level, Module, VocabItem } from "./types";
 
 export const LEVELS: Level[] = [
@@ -30,12 +31,16 @@ export const ALL_MODULES: Module[] = LEVELS.flatMap((l) => l.modules);
 /** Todas as aulas em ordem pedagógica. */
 export const ALL_LESSONS: Lesson[] = ALL_MODULES.flatMap((m) => m.lessons);
 
-const lessonMap = new Map(ALL_LESSONS.map((l) => [l.id, l]));
-const moduleMap = new Map(ALL_MODULES.map((m) => [m.id, m]));
+/** Aulas da trilha + mini-aulas (para busca por ID, revisão e banco). */
+export const EVERY_LESSON: Lesson[] = [...ALL_LESSONS, ...MINI_LESSONS];
+export const EVERY_MODULE: Module[] = [...ALL_MODULES, ...MINI_MODULES];
+
+const lessonMap = new Map(EVERY_LESSON.map((l) => [l.id, l]));
+const moduleMap = new Map(EVERY_MODULE.map((m) => [m.id, m]));
 const vocabMap = new Map<string, VocabItem & { lessonId: string }>(
-  ALL_LESSONS.flatMap((l) => l.vocabulary.map((v) => [v.id, { ...v, lessonId: l.id }] as const)),
+  EVERY_LESSON.flatMap((l) => l.vocabulary.map((v) => [v.id, { ...v, lessonId: l.id }] as const)),
 );
-const exerciseMap = new Map(ALL_LESSONS.flatMap((l) => l.exercises.map((e) => [e.id, { exercise: e, lessonId: l.id }] as const)));
+const exerciseMap = new Map(EVERY_LESSON.flatMap((l) => l.exercises.map((e) => [e.id, { exercise: e, lessonId: l.id }] as const)));
 
 export const getLesson = (id: string) => lessonMap.get(id);
 export const getModule = (id: string) => moduleMap.get(id);
@@ -49,6 +54,7 @@ export const getLevel = (code: string) => LEVELS.find((l) => l.code === code);
  * de dominar os fundamentos.
  */
 export function isLessonUnlocked(lessonId: string, completed: Set<string>): boolean {
+  if (lessonId.startsWith("mini-")) return true; // mini-aulas ficam sempre abertas
   const idx = ALL_LESSONS.findIndex((l) => l.id === lessonId);
   if (idx <= 0) return idx === 0;
   return completed.has(ALL_LESSONS[idx - 1].id);

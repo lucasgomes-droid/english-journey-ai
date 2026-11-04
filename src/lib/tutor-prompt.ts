@@ -42,6 +42,7 @@ Respond ONLY with a JSON object, no markdown:
 
 export interface TutorReply {
   reply: string;
+  scene_complete?: boolean;
   correction: { original: string; corrected: string; explanation_pt: string } | null;
   tip_pt: string | null;
 }
@@ -58,11 +59,56 @@ export function parseTutorReply(raw: string): TutorReply {
           c && typeof c === "object" && typeof c.corrected === "string" && c.corrected.trim() && c.corrected.trim() !== (c.original ?? "").trim()
             ? { original: String(c.original ?? ""), corrected: c.corrected, explanation_pt: String(c.explanation_pt ?? "") }
             : null;
-        return { reply: obj.reply.trim(), correction, tip_pt: typeof obj.tip_pt === "string" && obj.tip_pt.trim() ? obj.tip_pt.trim() : null };
+        return {
+          reply: obj.reply.trim(),
+          correction,
+          tip_pt: typeof obj.tip_pt === "string" && obj.tip_pt.trim() ? obj.tip_pt.trim() : null,
+          scene_complete: obj.scene_complete === true,
+        };
       }
     } catch {
       /* cai no texto puro abaixo */
     }
   }
   return { reply: raw.trim() || "Sorry, could you say that again?", correction: null, tip_pt: null };
+}
+
+export interface ScenarioContext {
+  studentName: string;
+  level: CefrLevel;
+  characterName: string;
+  setting: string;
+  goals: string[];
+  recentMistakes: string[];
+}
+
+/** Role-play: a IA assume um personagem numa situação real, no nível escolhido. */
+export function scenarioSystemPrompt(ctx: ScenarioContext): string {
+  return `You are role-playing a real-life situation to help ${ctx.studentName}, a Brazilian Portuguese speaker, practice English.
+SCENE: ${ctx.setting}
+You are ${ctx.characterName}. Stay in character at all times, like a real person in this place would. Never say you are an AI or a teacher.
+Student CEFR level: ${ctx.level}. ${LEVEL_GUIDE[ctx.level]}
+The student's goals in this scene: ${ctx.goals.join("; ")}.
+
+How to behave:
+- React naturally and specifically to what the student says. Keep replies short (1–3 sentences) and end with something that invites a reply.
+- Every few turns, add a small realistic surprise (an unexpected question, an item sold out, a delay, a follow-up) so it feels like a real conversation, never a scripted Q&A.
+- If the student writes in Portuguese, stay in character but gently say the English for it in the "tip_pt" field.
+- When the student has completed all goals, wrap up the scene naturally (as the character would) and set "scene_complete" to true.
+- Correct mistakes ONLY in the student's LAST message (grammar, vocabulary, unnatural phrasing). Ignore capitalization and missing final punctuation. If it is correct and natural, correction must be null. Explanations are in Brazilian Portuguese, short and friendly.
+${ctx.recentMistakes.length ? `- The student often struggles with: ${ctx.recentMistakes.slice(0, 4).join(" | ")}. Create natural chances to practice these.` : ""}
+
+Respond ONLY with a JSON object, no markdown:
+{"reply": "what ${ctx.characterName} says, in English",
+ "correction": null or {"original": "...", "corrected": "...", "explanation_pt": "..."},
+ "tip_pt": null or "dica curta em português",
+ "scene_complete": false}`;
+}
+
+/** Situação criada pelo aluno ("Crie o seu"). */
+export function customSetting(description: string): { setting: string; goals: string[] } {
+  return {
+    setting: `The student created this scene (it may be written in Portuguese — understand it and play the most natural counterpart in it): "${description.slice(0, 400)}". Choose a fitting name-less role (e.g. the shop assistant, the friend, the officer) and play it realistically.`,
+    goals: ["Cumprir o que a situação pede", "Fazer e responder perguntas", "Encerrar a conversa com naturalidade"],
+  };
 }

@@ -123,7 +123,7 @@ export async function submitLesson(input: z.infer<typeof submitSchema>): Promise
   let updatedProfile = profile;
   try {
     updatedProfile = await recordActivity(supabase, profile, {
-      kind: lesson.kind === "test" ? "test" : "lesson",
+      kind: lesson.kind === "test" ? "test" : lesson.scenarioId ? "mini" : "lesson",
       ref: lessonId,
       title: lesson.title,
       xp: xpEarned,
@@ -219,6 +219,7 @@ export async function finishReviewSession(input: { reviewed: number; correct: nu
     score: data.reviewed,
   });
   const newAchievements = await syncAchievements(supabase, updated);
-  revalidatePath("/", "layout");
+  // Só o painel: recarregar /revisao aqui apagaria o resumo da sessão na tela.
+  revalidatePath("/");
   return { ok: true, xp, newAchievements };
 }

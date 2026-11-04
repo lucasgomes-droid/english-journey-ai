@@ -17,6 +17,6 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
   if (!completed.has(id) && !isLessonUnlocked(id, completed)) redirect("/trilha");
 
   const idx = ALL_LESSONS.findIndex((l) => l.id === id);
-  const next = ALL_LESSONS[idx + 1];
+  const next = idx >= 0 ? ALL_LESSONS[idx + 1] : undefined; // mini-aulas não têm "próxima"
   return <LessonPlayer lesson={lesson} moduleTitle={getModule(lesson.moduleId)?.title ?? ""} nextLessonId={next?.id ?? null} />;
 }

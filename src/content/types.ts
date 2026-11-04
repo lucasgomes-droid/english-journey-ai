@@ -110,6 +110,8 @@ export interface Lesson {
   review: string[];
   /** Nota mínima (0–100) para concluir. */
   passScore: number;
+  /** Mini-aula: situação de conversa ligada (Conversa livre). */
+  scenarioId?: string;
 }
 
 export interface Module {
