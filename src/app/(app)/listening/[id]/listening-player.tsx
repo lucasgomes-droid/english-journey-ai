@@ -4,14 +4,16 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, Pause, Play, Snail, CheckCircle2, XCircle } from "lucide-react";
 import type { ListeningItem } from "@/content/listening";
-import { useSpeech } from "@/lib/speech";
+import { unlockAudio, useVoice } from "@/lib/voice";
 import { submitListening } from "@/app/actions/practice";
 
 type Result = Awaited<ReturnType<typeof submitListening>>;
 
 export function ListeningPlayer({ item, rate }: { item: ListeningItem; rate: number }) {
-  const { speakLines, speak, stop, speaking, supported } = useSpeech();
+  const { speakLines, speak, stop } = useVoice();
+  const supported = true;
   const [line, setLine] = useState<number | null>(null);
+  const speaking = line !== null;
   const [plays, setPlays] = useState(0);
   const [answers, setAnswers] = useState<number[]>(() => item.questions.map(() => -1));
   const [dictation, setDictation] = useState("");
@@ -30,8 +32,10 @@ export function ListeningPlayer({ item, rate }: { item: ListeningItem; rate: num
       setLine(null);
       return;
     }
+    unlockAudio();
     setPlays((p) => p + 1);
-    speakLines(item.lines, { rate: slow ? rate * 0.75 : rate, onLine: setLine, onEnd: () => setLine(null) });
+    setLine(0);
+    speakLines(item.lines, { rate: slow ? rate * 0.75 : rate, onLine: (i) => setLine(i < 0 ? null : i) });
   };
 
   const done = result?.ok;
@@ -114,7 +118,10 @@ export function ListeningPlayer({ item, rate }: { item: ListeningItem; rate: num
           <p className="font-bold">Ditado</p>
           <p className="text-sm text-muted">Escreva esta frase do áudio. Toque para ouvir só ela.</p>
           <div className="mt-3 flex gap-2">
-            <button type="button" className="btn-ghost shrink-0 px-3" onClick={() => speak(item.dictation, { rate })} aria-label="Ouvir a frase do ditado">
+            <button type="button" className="btn-ghost shrink-0 px-3" onClick={() => {
+                unlockAudio();
+                speak(item.dictation, { rate });
+              }} aria-label="Ouvir a frase do ditado">
               <Play size={18} aria-hidden />
             </button>
             <input

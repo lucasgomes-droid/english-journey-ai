@@ -14,8 +14,20 @@ export default async function ReviewPage() {
     supabase.from("review_items").select("due_at").eq("user_id", user.id).gt("due_at", now).order("due_at").limit(1),
   ]);
 
+  // Correções de conversa (itens "grammar"): busca a frase corrigida.
+  const msgIds = (data ?? []).filter((r) => r.item_type === "grammar").map((r) => Number(r.item_id.replace("msg-", "")));
+  const { data: corrMsgs } = msgIds.length
+    ? await supabase.from("messages").select("id, correction").in("id", msgIds).eq("user_id", user.id)
+    : { data: [] as { id: number; correction: unknown }[] };
+  const corrById = new Map((corrMsgs ?? []).map((m) => [`msg-${m.id}`, m.correction as { original: string; corrected: string; explanation_pt: string }]));
+
   const cards: ReviewCard[] = [];
   for (const r of data ?? []) {
+    if (r.item_type === "grammar") {
+      const c = corrById.get(r.item_id);
+      if (c?.corrected) cards.push({ kind: "grammar", id: r.item_id, original: c.original, corrected: c.corrected, explanation: c.explanation_pt, struggling: r.lapses >= 2 });
+      continue;
+    }
     if (r.item_type === "vocab") {
       const v = getVocab(r.item_id);
       if (v) cards.push({ kind: "vocab", id: v.id, pt: v.pt, en: v.en, say: v.say, struggling: r.lapses >= 2 });
@@ -31,21 +43,22 @@ export default async function ReviewPage() {
       <p className="mt-2 text-muted">
         Repetição espaçada: o que você acerta volta cada vez mais tarde; o que você erra volta logo. {total ?? 0} itens na sua memória.
       </p>
-      {cards.length === 0 ? (
-        <div className="panel mt-8 p-8 text-center">
-          <p className="font-display text-2xl font-bold">Tudo revisado por agora</p>
-          <p className="mt-2 text-muted">
-            {upcoming?.[0]
-              ? `Próxima revisão em ${new Date(upcoming[0].due_at).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}.`
-              : "Conclua uma aula para colocar palavras novas na fila."}
-          </p>
-          <Link href="/trilha" className="btn-primary mt-6">
-            Ir para a trilha
-          </Link>
-        </div>
-      ) : (
-        <ReviewSession cards={cards} />
-      )}
+      <ReviewSession
+        cards={cards}
+        empty={
+          <div className="panel mt-8 p-8 text-center">
+            <p className="font-display text-2xl font-bold">Tudo revisado por agora</p>
+            <p className="mt-2 text-muted">
+              {upcoming?.[0]
+                ? `Próxima revisão em ${new Date(upcoming[0].due_at).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}.`
+                : "Conclua uma aula para colocar palavras novas na fila."}
+            </p>
+            <Link href="/trilha" className="btn-primary mt-6">
+              Ir para a trilha
+            </Link>
+          </div>
+        }
+      />
     </main>
   );
 }

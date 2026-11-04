@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { X, CheckCircle2, XCircle, MessagesSquare, Trophy, RotateCcw } from "lucide-react";
+import { X, CheckCircle2, XCircle, MessagesSquare, Trophy, RotateCcw, Mic, Keyboard } from "lucide-react";
+import { PronounceCard } from "@/components/pronounce-card";
+import { useVoiceCaps } from "@/lib/voice";
 import type { Lesson } from "@/content/types";
 import { gradeExercise, type ExerciseAnswer, type GradeResult } from "@/lib/grading";
 import { submitLesson, type LessonResult } from "@/app/actions/learning";
@@ -11,11 +13,35 @@ import { SpeakButton } from "@/components/speak-button";
 import { RichText } from "@/components/rich-text";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 
-type Phase = "explain" | "vocab" | "examples" | "practice" | "result";
+type Phase = "explain" | "vocab" | "examples" | "speak" | "practice" | "result";
 
 export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Lesson; moduleTitle: string; nextLessonId: string | null }) {
   const isTest = lesson.kind === "test";
-  const phases: Phase[] = isTest ? ["explain", "practice", "result"] : ["explain", "vocab", "examples", "practice", "result"];
+  const caps = useVoiceCaps();
+  const phases: Phase[] = isTest
+    ? ["explain", "practice", "result"]
+    : caps.stt
+      ? ["explain", "vocab", "examples", "speak", "practice", "result"]
+      : ["explain", "vocab", "examples", "practice", "result"];
+  // Modo fala: responder exercícios com a voz (lembrado neste aparelho).
+  const [speakMode, setSpeakMode] = useState(false);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("ej-speak-mode");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- preferência salva no aparelho
+      setSpeakMode(caps.stt && saved !== "0");
+    } catch {
+      setSpeakMode(caps.stt);
+    }
+  }, [caps.stt]);
+  const toggleSpeak = () => {
+    setSpeakMode((v) => {
+      try {
+        localStorage.setItem("ej-speak-mode", v ? "0" : "1");
+      } catch {}
+      return !v;
+    });
+  };
   const [phase, setPhase] = useState<Phase>("explain");
   // Fila de exercícios: os errados voltam no fim da aula (uma vez). A nota usa só a 1ª tentativa.
   const [queue, setQueue] = useState<number[]>(() => lesson.exercises.map((_, i) => i));
@@ -98,6 +124,18 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Le
         <Link href="/trilha" className="grid size-10 place-items-center rounded-full hover:bg-surface-2" aria-label="Sair da aula">
           <X size={22} aria-hidden />
         </Link>
+        {caps.stt && (
+          <button
+            type="button"
+            onClick={toggleSpeak}
+            aria-pressed={speakMode}
+            className={`order-last flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold ${speakMode ? "bg-boarding text-boarding-ink" : "bg-surface-2 text-muted"}`}
+            title={speakMode ? "Respondendo com a voz. Toque para digitar." : "Respondendo digitando. Toque para falar."}
+          >
+            {speakMode ? <Mic size={16} aria-hidden /> : <Keyboard size={16} aria-hidden />}
+            <span className="hidden sm:inline">{speakMode ? "Modo fala" : "Digitar"}</span>
+          </button>
+        )}
         <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label="Progresso da aula">
           <div className="h-full rounded-full bg-boarding transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
@@ -193,12 +231,26 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Le
           </section>
         )}
 
+        {phase === "speak" && (
+          <section>
+            <h1 className="font-display text-3xl font-bold">Fale em voz alta</h1>
+            <p className="mt-1 text-muted">
+              Ouça, repita e veja sua nota. Falar desde o primeiro dia é o que faz você sair falando. Você pode repetir quantas vezes quiser.
+            </p>
+            <div className="mt-6 space-y-4">
+              {lesson.examples.slice(0, 3).map((e, i) => (
+                <PronounceCard key={e.en} text={e.en} translation={e.pt} context={`${lesson.id}#ex${i}`} />
+              ))}
+            </div>
+          </section>
+        )}
+
         {phase === "practice" && exercise && (
           <section aria-live="polite">
             <p className="mb-4 text-sm text-muted">
               {isRetry ? "Vamos fixar: tente de novo o que você errou" : `Exercício ${pos + 1} de ${total}`}
             </p>
-            <ExerciseView key={`${exercise.id}-${pos}`} exercise={exercise} locked={!!grade} result={grade} onChange={setAnswer} />
+            <ExerciseView key={`${exercise.id}-${pos}-${speakMode ? "v" : "t"}`} exercise={exercise} locked={!!grade} result={grade} onChange={setAnswer} speakMode={speakMode} />
           </section>
         )}
 
@@ -245,7 +297,7 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Le
               )
             ) : (
               <button type="button" onClick={() => setPhase(phases[phaseIdx + 1])} className="btn-primary sm:min-w-40">
-                {phases[phaseIdx + 1] === "practice" ? (isTest ? "Começar avaliação" : "Praticar") : "Continuar"}
+                {phases[phaseIdx + 1] === "practice" ? (isTest ? "Começar avaliação" : "Praticar") : phases[phaseIdx + 1] === "speak" ? "Falar em voz alta" : "Continuar"}
               </button>
             )}
           </div>

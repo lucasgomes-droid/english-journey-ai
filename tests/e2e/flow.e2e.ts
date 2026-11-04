@@ -48,8 +48,8 @@ async function doLesson(page: Page, lessonIdx: number, wrongIdx: number[] = []) 
   await page.goto(`${BASE}/aula/${lesson.id}`);
   await page.getByRole("heading", { level: 1, name: lesson.title, exact: true }).waitFor();
   // Fases de explicação/vocabulário/exemplos
-  for (let i = 0; i < 4; i++) {
-    const btn = page.getByRole("button", { name: /^(Continuar|Praticar|Começar avaliação)$/ });
+  for (let i = 0; i < 5; i++) {
+    const btn = page.getByRole("button", { name: /^(Continuar|Praticar|Começar avaliação|Falar em voz alta)$/ });
     if (!(await btn.isVisible())) break;
     const label = await btn.textContent();
     await btn.click();
@@ -85,6 +85,8 @@ async function doLesson(page: Page, lessonIdx: number, wrongIdx: number[] = []) 
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 860 } });
+  // Este teste responde digitando (o modo fala é testado em outro roteiro, com microfone simulado).
+  await page.addInitScript(() => localStorage.setItem("ej-speak-mode", "0"));
   current = page;
   page.on("pageerror", (e) => console.error("ERRO NA PÁGINA:", e.message));
 
@@ -117,7 +119,7 @@ async function doLesson(page: Page, lessonIdx: number, wrongIdx: number[] = []) 
   // Aula 3: captura de exercícios
   const l3 = ALL_LESSONS[2];
   await page.goto(`${BASE}/aula/${l3.id}`);
-  for (const n of ["Continuar", "Continuar", "Praticar"]) await page.getByRole("button", { name: n, exact: true }).click();
+  for (const n of ["Continuar", "Continuar", "Falar em voz alta", "Praticar"]) await page.getByRole("button", { name: n, exact: true }).click();
   await answer(page, l3.exercises[0]);
   await page.screenshot({ path: `${SHOTS}/06-exercicio.png` });
   await page.getByRole("button", { name: "Verificar" }).click();
@@ -176,13 +178,14 @@ async function doLesson(page: Page, lessonIdx: number, wrongIdx: number[] = []) 
 
   // Celular
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await mobile.addInitScript(() => localStorage.setItem("ej-speak-mode", "0"));
   await mobile.context().addCookies(await page.context().cookies());
   await mobile.goto(`${BASE}/`);
   await mobile.screenshot({ path: `${SHOTS}/13-celular-inicio.png`, fullPage: true });
   await mobile.goto(`${BASE}/trilha`);
   await mobile.screenshot({ path: `${SHOTS}/14-celular-trilha.png` });
   await mobile.goto(`${BASE}/aula/${l3.id}`);
-  for (const n of ["Continuar", "Continuar", "Praticar"]) await mobile.getByRole("button", { name: n, exact: true }).click();
+  for (const n of ["Continuar", "Continuar", "Falar em voz alta", "Praticar"]) await mobile.getByRole("button", { name: n, exact: true }).click();
   await mobile.screenshot({ path: `${SHOTS}/15-celular-exercicio.png` });
 
   console.log(`E-mail de teste: ${email}`);

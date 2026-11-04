@@ -5,6 +5,9 @@ import { AppNav } from "@/components/app-nav";
 import { Wordmark } from "@/components/brand";
 import { getSession } from "@/lib/data";
 import { displayStreak, localDate } from "@/lib/streak";
+import { VoiceCapsProvider } from "@/lib/voice";
+import { isSttConfigured } from "@/lib/ai";
+import { isAzureConfigured, ttsProvider } from "@/lib/speech-server";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user, profile } = await getSession();
@@ -18,7 +21,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .lte("due_at", new Date().toISOString());
   const streak = displayStreak(profile.last_study_date, profile.streak_current, localDate(new Date(), profile.timezone));
 
+  const caps = { neural: ttsProvider() !== "none", phonetic: isAzureConfigured(), stt: isSttConfigured() };
+
   return (
+    <VoiceCapsProvider caps={caps}>
     <div className="mx-auto flex min-h-dvh max-w-6xl gap-8 px-4 lg:px-6">
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-8 py-6 lg:flex">
         <Link href="/">
@@ -50,5 +56,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
       <AppNav variant="bottom" dueReviews={count ?? 0} />
     </div>
+    </VoiceCapsProvider>
   );
 }

@@ -63,12 +63,26 @@ defina `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` (chave *publ
 
 As chaves de IA ficam **somente no servidor**. Nunca coloque `NEXT_PUBLIC_` nelas.
 
+### 2b. Voz natural e nota de pronúncia por som (opcional)
+
+- **Voz natural:** com a chave da Groq, o app já tenta a voz `canopylabs/orpheus-v1-english`.
+  Se o modelo exigir aceite de termos, abra <https://console.groq.com/playground?model=canopylabs%2Forpheus-v1-english>
+  e aceite. Se falhar, o app usa a voz do navegador automaticamente.
+- **Nota de pronúncia por som (fonética):** usa o Azure Speech, que tem plano gratuito (F0, 5 h/mês).
+  1. Em <https://portal.azure.com> crie um recurso **Speech** (Serviços de Fala), tipo de preço **Free F0**,
+     região por exemplo `eastus` ou `brazilsouth`.
+  2. Em **Keys and Endpoint**, copie a **KEY 1** e a **Location/Region**.
+  3. Cadastre `AZURE_SPEECH_KEY` e `AZURE_SPEECH_REGION` na Vercel e faça **Redeploy**.
+  Com isso a voz passa a ser Azure Neural e cada palavra e som recebe nota de 0 a 100.
+  Sem o Azure, o treino de pronúncia confere só quais palavras foram reconhecidas (e diz isso na tela).
+
 ## 3. Publicar na internet (Vercel) — gratuito
 
 1. Entre em <https://vercel.com> com sua conta do GitHub.
 2. **Add New → Project** → importe `english-journey-ai` → **Deploy** (o Next.js é detectado sozinho).
 3. Em **Settings → Environment Variables**, cadastre `AI_API_KEY` (a chave da Groq).
-   Opcionais: `AI_BASE_URL`, `AI_MODEL`, `STT_API_KEY`, `STT_BASE_URL`, `STT_MODEL`.
+   Opcionais: `AI_BASE_URL`, `AI_MODEL`, `STT_API_KEY`, `STT_BASE_URL`, `STT_MODEL`,
+   `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `TTS_PROVIDER`, `TTS_MODEL`.
 4. Em **Deployments**, clique nos três pontos do último deploy → **Redeploy** (para aplicar as variáveis).
 5. Volte ao Supabase e confirme a **Site URL** e as **Redirect URLs** com o endereço final da Vercel.
 

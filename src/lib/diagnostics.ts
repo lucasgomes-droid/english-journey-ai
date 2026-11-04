@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getLesson, getVocab } from "@/content/curriculum";
+import { PHONEME_TIPS } from "@/lib/word-check";
 
 export interface Area {
   key: "listening" | "vocabulary" | "grammar" | "writing" | "conversation" | "pronunciation";
@@ -20,6 +21,9 @@ export interface Diagnostics {
   hardTopics: { lessonId: string; title: string; errors: number; rate: number }[];
   recentCorrections: { original: string; corrected: string; explanation: string }[];
   listeningByLevel: { level: string; pct: number; attempts: number }[];
+  weakSounds: { phoneme: string; misses: number; tip: string }[];
+  pronunciationWeeks: { week: string; avg: number; n: number }[];
+  speakingThisWeek: { voiceMessages: number; pronunciation: number };
 }
 
 const MIN_SAMPLES = 5;
@@ -27,13 +31,21 @@ const pct = (ok: number, total: number) => (total ? Math.round((ok / total) * 10
 
 /** Calcula onde o aluno mais erra, a partir de tudo que ele já fez no app. */
 export async function computeDiagnostics(supabase: SupabaseClient, userId: string): Promise<Diagnostics> {
-  const [ans, lis, vocab, corr, userMsgs] = await Promise.all([
+  const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  const [ans, lis, vocab, corr, userMsgs, pron, voiceMsgs] = await Promise.all([
     supabase.from("exercise_answers").select("lesson_id, skill, correct").eq("user_id", userId).order("created_at", { ascending: false }).limit(2000),
     supabase.from("listening_results").select("level_code, score, total").eq("user_id", userId).limit(500),
     supabase.from("review_items").select("item_id, lapses").eq("user_id", userId).eq("item_type", "vocab").gt("lapses", 0).order("lapses", { ascending: false }).limit(12),
     supabase.from("messages").select("correction").eq("user_id", userId).eq("role", "user").not("correction", "is", null).order("id", { ascending: false }).limit(60),
     supabase.from("messages").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("role", "user"),
+    supabase.from("pronunciation_attempts").select("overall, completeness, provider, details, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(400),
+    supabase.from("messages").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("role", "user").eq("via_voice", true).gte("created_at", weekAgo),
   ]);
+  const pronRows = pron.data ?? [];
+  const phonetic = pronRows.filter((r) => r.provider === "azure" && r.overall !== null);
+  const wordsOnly = pronRows.filter((r) => r.provider !== "azure" && r.completeness !== null);
+  const pronAvg = phonetic.length ? Math.round(phonetic.reduce((s, r) => s + Number(r.overall), 0) / phonetic.length) : null;
+  const wordsAvg = wordsOnly.length ? Math.round(wordsOnly.reduce((s, r) => s + Number(r.completeness), 0) / wordsOnly.length) : null;
 
   const answers = ans.data ?? [];
   const bySkill = (skills: string[]) => {
@@ -61,7 +73,19 @@ export async function computeDiagnostics(supabase: SupabaseClient, userId: strin
     { key: "grammar", label: "Gramática", score: guard(pct(grammarS.ok, grammarS.total), grammarS.total), samples: grammarS.total, href: "/trilha", action: "Rever aulas", detail: "Estruturas: tempos verbais, preposições, ordem das palavras." },
     { key: "writing", label: "Escrita", score: guard(pct(writingS.ok, writingS.total), writingS.total), samples: writingS.total, href: "/mini-aulas", action: "Fazer mini-aulas", detail: "Montar frases certas em inglês (traduções)." },
     { key: "conversation", label: "Conversação", score: convScore, samples: chatTotal, href: "/conversar", action: "Conversar", detail: "Frases enviadas ao professor/personagens sem precisar de correção." },
-    { key: "pronunciation", label: "Pronúncia", score: null, samples: 0, href: "/conversar", action: "Em breve", detail: "A avaliação de pronúncia por som chega com o treino de pronúncia." },
+    {
+      key: "pronunciation",
+      label: "Pronúncia",
+      score: phonetic.length >= MIN_SAMPLES ? pronAvg : null,
+      samples: phonetic.length,
+      href: "/pronuncia",
+      action: "Treinar pronúncia",
+      detail: phonetic.length
+        ? "Nota média por som (análise fonética), nas suas gravações."
+        : wordsAvg !== null
+          ? `Sem análise fonética ainda: ${wordsAvg}% das palavras reconhecidas nas suas gravações.`
+          : "Grave frases no treino de pronúncia ou nas aulas para medir.",
+    },
   ];
   const measured = areas.filter((a) => a.score !== null);
   const weakest = measured.length ? measured.reduce((min, a) => (a.score! < min.score! ? a : min)) : null;
@@ -103,5 +127,35 @@ export async function computeDiagnostics(supabase: SupabaseClient, userId: strin
     })
     .filter((r) => r.attempts > 0);
 
-  return { areas, weakest, hardWords, hardTopics, recentCorrections, listeningByLevel };
+  // Sons mais fracos (fonemas com nota < 60 nas gravações analisadas).
+  const misses = new Map<string, number>();
+  for (const r of phonetic) {
+    const words = ((r.details as { words?: { phonemes?: { phoneme: string; score: number }[] }[] } | null)?.words ?? []);
+    for (const w of words) for (const p of w.phonemes ?? []) if (p.score < 60) misses.set(p.phoneme, (misses.get(p.phoneme) ?? 0) + 1);
+  }
+  const weakSounds = Array.from(misses.entries())
+    .filter(([p]) => PHONEME_TIPS[p])
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([phoneme, n]) => ({ phoneme, misses: n, tip: PHONEME_TIPS[phoneme] }));
+
+  // Evolução semanal da pronúncia (últimas 8 semanas).
+  const weeks = new Map<string, number[]>();
+  for (const r of phonetic) {
+    const d = new Date(r.created_at);
+    const monday = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - ((d.getUTCDay() + 6) % 7)));
+    const k = monday.toISOString().slice(0, 10);
+    weeks.set(k, [...(weeks.get(k) ?? []), Number(r.overall)]);
+  }
+  const pronunciationWeeks = Array.from(weeks.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .slice(-8)
+    .map(([week, v]) => ({ week, avg: Math.round(v.reduce((a, b) => a + b, 0) / v.length), n: v.length }));
+
+  const speakingThisWeek = {
+    voiceMessages: voiceMsgs.count ?? 0,
+    pronunciation: pronRows.filter((r) => r.created_at >= weekAgo).length,
+  };
+
+  return { areas, weakest, hardWords, hardTopics, recentCorrections, listeningByLevel, weakSounds, pronunciationWeeks, speakingThisWeek };
 }

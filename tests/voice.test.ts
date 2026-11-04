@@ -1,0 +1,54 @@
+import { describe, expect, it } from "vitest";
+import { downsample, encodeWav } from "@/lib/voice-recorder";
+import { chunkText } from "@/lib/voice";
+import { wordCheck, PHONEME_TIPS } from "@/lib/word-check";
+import { PRON_SETS } from "@/content/pronunciation";
+import { SCENARIOS } from "@/content/scenarios";
+
+describe("áudio", () => {
+  it("gera WAV PCM 16 kHz mono válido", async () => {
+    const wav = encodeWav(new Float32Array(16000).fill(0.5), 16000);
+    const buf = new DataView(await wav.arrayBuffer());
+    const tag = (o: number) => String.fromCharCode(buf.getUint8(o), buf.getUint8(o + 1), buf.getUint8(o + 2), buf.getUint8(o + 3));
+    expect(tag(0)).toBe("RIFF");
+    expect(tag(8)).toBe("WAVE");
+    expect(buf.getUint16(22, true)).toBe(1); // mono
+    expect(buf.getUint32(24, true)).toBe(16000);
+    expect(buf.getUint16(34, true)).toBe(16);
+    expect(wav.size).toBe(44 + 16000 * 2);
+  });
+  it("reamostra 48 kHz → 16 kHz", () => {
+    expect(downsample(new Float32Array(48000), 48000).length).toBe(16000);
+  });
+});
+
+describe("voz natural: divisão do texto", () => {
+  it("respeita ~190 caracteres e não perde palavras", () => {
+    const text = "Hello there! ".repeat(40) + "This is a very long sentence, with commas, that keeps going and going without a period for a long time, really long, way more than the limit allows for one request";
+    const chunks = chunkText(text);
+    expect(chunks.every((c) => c.length <= 190)).toBe(true);
+    expect(chunks.join(" ").replace(/\s+/g, " ")).toBe(text.replace(/\s+/g, " ").trim());
+  });
+});
+
+describe("verificação de palavras (sem análise fonética)", () => {
+  it("marca palavras reconhecidas e omitidas", () => {
+    const r = wordCheck("I think so", "I sink so");
+    expect(r.words.map((w) => w.accuracy)).toEqual([100, 0, 100]);
+    expect(r.completeness).toBe(67);
+  });
+  it("aceita contrações", () => {
+    expect(wordCheck("I'm not sure", "I am not sure").completeness).toBe(100);
+  });
+});
+
+describe("conteúdo de fala", () => {
+  it("treinos de pronúncia completos", () => {
+    expect(PRON_SETS.length).toBeGreaterThanOrEqual(8);
+    for (const p of PRON_SETS) expect(p.items.length).toBeGreaterThanOrEqual(5);
+    expect(PHONEME_TIPS["θ"]).toBeTruthy();
+  });
+  it("todo personagem tem voz", () => {
+    for (const s of SCENARIOS) expect(s.character.voice).toMatch(/^[fm][123]$/);
+  });
+});

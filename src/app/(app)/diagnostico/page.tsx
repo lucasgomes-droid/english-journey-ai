@@ -41,6 +41,23 @@ export default async function DiagnosticoPage() {
         )}
       </section>
 
+      <section className="grid gap-4 sm:grid-cols-3" aria-label="Fala nesta semana">
+        <div className="panel p-5">
+          <p className="font-display text-3xl font-bold">{d.speakingThisWeek.voiceMessages}</p>
+          <p className="font-bold">frases faladas em conversas</p>
+          <p className="text-sm text-muted">nos últimos 7 dias</p>
+        </div>
+        <div className="panel p-5">
+          <p className="font-display text-3xl font-bold">{d.speakingThisWeek.pronunciation}</p>
+          <p className="font-bold">gravações de pronúncia</p>
+          <p className="text-sm text-muted">nos últimos 7 dias</p>
+        </div>
+        <Link href="/professor?ligar=1" className="flex flex-col justify-center rounded-2xl bg-boarding p-5 text-boarding-ink">
+          <p className="font-display text-xl font-bold">Falar agora</p>
+          <p className="text-sm">Ligação só por voz com o professor</p>
+        </Link>
+      </section>
+
       <section className="panel p-6" aria-labelledby="areas">
         <h2 id="areas" className="font-display text-2xl font-bold">
           Todas as áreas
@@ -52,7 +69,7 @@ export default async function DiagnosticoPage() {
               <div className="flex items-baseline justify-between gap-3">
                 <span className="font-bold">{a.label}</span>
                 <span className="text-sm text-muted">
-                  {a.score === null ? (a.key === "pronunciation" ? "em breve" : `faltam dados (${a.samples}/5)`) : `${a.score}% · ${a.samples} respostas`}
+                  {a.score === null ? `faltam dados (${a.samples}/5)` : `${a.score}% · ${a.samples} ${a.key === "pronunciation" ? "gravações" : "respostas"}`}
                 </span>
               </div>
               <div className="mt-1.5 h-3 overflow-hidden rounded-full bg-surface-2">
@@ -133,6 +150,40 @@ export default async function DiagnosticoPage() {
           ) : (
             <p className="mt-3 text-muted">As correções do professor e dos personagens aparecem aqui.</p>
           )}
+        </section>
+
+        <section className="panel p-6" aria-labelledby="sons">
+          <h2 id="sons" className="font-display text-2xl font-bold">
+            Sons que você mais erra
+          </h2>
+          {d.weakSounds.length ? (
+            <ul className="mt-4 space-y-2">
+              {d.weakSounds.map((w) => (
+                <li key={w.phoneme} className="rounded-xl bg-surface-2 p-3 text-sm">
+                  <span className="font-mono text-base font-bold">/{w.phoneme}/</span> <span className="text-muted">· {w.misses}×</span>
+                  <span className="mt-1 block">{w.tip}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-muted">Aparece quando houver gravações com análise fonética (nota por som).</p>
+          )}
+          {d.pronunciationWeeks.length > 1 && (
+            <div className="mt-5">
+              <p className="text-sm font-bold">Evolução da pronúncia por semana</p>
+              <div className="mt-2 flex h-24 items-end gap-2" role="img" aria-label={`Notas semanais: ${d.pronunciationWeeks.map((w) => w.avg).join(", ")}`}>
+                {d.pronunciationWeeks.map((w) => (
+                  <div key={w.week} className="flex flex-1 flex-col items-center gap-1">
+                    <span className="text-xs text-muted">{w.avg}</span>
+                    <div className="w-full rounded-md bg-atlantic" style={{ height: `${Math.max(6, w.avg * 0.7)}px` }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <Link href="/pronuncia" className="btn-ghost mt-4">
+            Treinar pronúncia
+          </Link>
         </section>
 
         <section className="panel p-6" aria-labelledby="lis-nivel">

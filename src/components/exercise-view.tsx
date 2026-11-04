@@ -6,6 +6,8 @@ import type { ExerciseAnswer } from "@/lib/grading";
 import { orderTokens } from "@/lib/grading";
 import { seededShuffle } from "@/lib/speech";
 import { SpeakButton } from "./speak-button";
+import { MicInput } from "./mic-input";
+import { useVoiceCaps } from "@/lib/voice";
 
 interface Props {
   exercise: Exercise;
@@ -13,6 +15,8 @@ interface Props {
   onChange: (answer: ExerciseAnswer | null) => void;
   /** Resultado da verificação, para colorir as opções. */
   result?: { correct: boolean } | null;
+  /** Modo fala: responder com a voz (tradução, lacuna, ditado e montar frase). */
+  speakMode?: boolean;
 }
 
 const TITLES: Record<Exercise["type"], string> = {
@@ -24,11 +28,16 @@ const TITLES: Record<Exercise["type"], string> = {
   match_pairs: "Ligue os pares",
 };
 
-export function ExerciseView(props: Props) {
+export function ExerciseView(rawProps: Props) {
+  // Sem reconhecimento de voz no servidor, o modo fala vira digitação.
+  const caps = useVoiceCaps();
+  const props = { ...rawProps, speakMode: Boolean(rawProps.speakMode && caps.stt) };
   const { exercise } = props;
   return (
     <div className="animate-pop">
-      <p className="text-sm font-bold text-muted">{TITLES[exercise.type]}</p>
+      <p className="text-sm font-bold text-muted">
+        {props.speakMode && exercise.type === "translate" ? "Diga em inglês" : props.speakMode && exercise.type === "word_order" ? "Diga a frase em inglês" : TITLES[exercise.type]}
+      </p>
       {exercise.type === "multiple_choice" && <Choices {...props} prompt={exercise.prompt} options={exercise.options} answer={exercise.answer} />}
       {exercise.type === "listening" && <Listening {...props} />}
       {exercise.type === "translate" && (
@@ -111,24 +120,32 @@ function ChoicesNoPrompt(p: Props & { options: string[]; answer?: number }) {
   );
 }
 
-function TextInput({ locked, onChange, placeholder, multiline, exercise }: Props & { placeholder: string; multiline?: boolean }) {
+function TextInput({ locked, onChange, placeholder, multiline, exercise, speakMode }: Props & { placeholder: string; multiline?: boolean }) {
   const [v, setV] = useState("");
+  const set = (val: string) => {
+    setV(val);
+    onChange(val.trim() ? { kind: "text", text: val } : null);
+  };
   const common = {
     value: v,
     disabled: locked,
-    placeholder,
+    placeholder: speakMode ? "…ou digite aqui" : placeholder,
     autoCapitalize: "off",
     autoCorrect: "off",
     spellCheck: false,
     lang: "en",
     "aria-label": placeholder,
-    className: "field mt-6 text-lg",
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setV(e.target.value);
-      onChange(e.target.value.trim() ? { kind: "text", text: e.target.value } : null);
-    },
+    className: `field text-lg ${speakMode ? "" : "mt-6"}`,
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => set(e.target.value),
   };
-  return multiline ? <textarea key={exercise.id} rows={3} {...common} /> : <input key={exercise.id} {...common} autoFocus />;
+  const input = multiline ? <textarea key={exercise.id} rows={speakMode ? 2 : 3} {...common} /> : <input key={exercise.id} {...common} autoFocus={!speakMode} />;
+  if (!speakMode) return input;
+  return (
+    <div className="mt-6 flex items-start gap-4">
+      <MicInput size="lg" onText={(t) => set(t)} disabled={locked} label="Falar a resposta" />
+      <div className="min-w-0 flex-1">{input}</div>
+    </div>
+  );
 }
 
 function FillBlank(props: Props) {
@@ -148,7 +165,7 @@ function FillBlank(props: Props) {
   );
 }
 
-function WordOrder({ exercise, locked, onChange }: Props) {
+function WordOrder({ exercise, locked, onChange, speakMode }: Props) {
   const ex = exercise as Extract<Exercise, { type: "word_order" }>;
   const bank = useMemo(() => {
     const tokens = [...orderTokens(ex.answer), ...(ex.distractors ?? [])].map((w, i) => ({ id: i, w }));
@@ -161,6 +178,14 @@ function WordOrder({ exercise, locked, onChange }: Props) {
     onChange(next.length ? { kind: "order", words: next.map((id) => bank.find((b) => b.id === id)!.w) } : null);
   };
 
+  if (speakMode) {
+    return (
+      <>
+        <h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">{ex.prompt}</h2>
+        <SpokenSentence locked={locked} onChange={onChange} />
+      </>
+    );
+  }
   return (
     <>
       <h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">{ex.prompt}</h2>
@@ -257,5 +282,26 @@ function MatchPairs({ exercise, locked, onChange }: Props) {
         Toque numa palavra em inglês e depois na tradução. {mistakes > 0 && `Erros: ${mistakes} (até 1 é aceito).`}
       </p>
     </>
+  );
+}
+
+/** Montar frase no modo fala: o aluno diz a frase inteira. */
+function SpokenSentence({ locked, onChange }: Pick<Props, "locked" | "onChange">) {
+  const [said, setSaid] = useState("");
+  return (
+    <div className="mt-6 flex items-center gap-4">
+      <MicInput
+        size="lg"
+        disabled={locked}
+        label="Falar a frase"
+        onText={(t) => {
+          setSaid(t);
+          onChange({ kind: "order", words: t.split(" ") });
+        }}
+      />
+      <p className="min-h-12 flex-1 rounded-xl border-2 border-dashed border-line px-4 py-3 text-lg" lang="en" aria-live="polite">
+        {said || <span className="text-muted">Toque no microfone e diga a frase</span>}
+      </p>
+    </div>
   );
 }

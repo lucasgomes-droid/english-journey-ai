@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpenText, Headphones, RotateCcw, Target } from "lucide-react";
+import { AudioLines, BookOpenText, Headphones, Phone, RotateCcw, Target } from "lucide-react";
 import { getSession } from "@/lib/data";
 import { MINI_LESSONS } from "@/content/mini";
 import { LISTENING } from "@/content/listening";
@@ -11,6 +11,8 @@ export default async function PraticarPage() {
   const { count } = await supabase.from("review_items").select("item_id", { count: "exact", head: true }).eq("user_id", user.id).lte("due_at", new Date().toISOString());
 
   const tiles = [
+    { href: "/professor?ligar=1", icon: Phone, title: "Ligação com o professor", text: "Conversa só por voz, como uma ligação. Correções no final.", tone: "bg-[#ffd6a5] text-[#3d2200]" },
+    { href: "/pronuncia", icon: AudioLines, title: "Pronúncia", text: "TH, R, H, vogais, finais e -ed: ouça, repita e veja sua nota por som.", tone: "bg-[#bde0fe] text-[#0b2540]" },
     { href: "/mini-aulas", icon: BookOpenText, title: "Mini-aulas", text: `${MINI_LESSONS.length} lições de 5 minutos: pedir comida, se apresentar, aeroporto, entrevista…`, tone: "bg-boarding text-boarding-ink" },
     { href: "/listening", icon: Headphones, title: "Listening", text: `${LISTENING.length} áudios do A1 ao C2, com perguntas e ditado.`, tone: "bg-[#0e4d57] text-white" },
     { href: "/revisao", icon: RotateCcw, title: "Revisão", text: count ? `${count} ${count === 1 ? "item espera" : "itens esperam"} por você agora.` : "Nada pendente agora. Volte mais tarde.", tone: "bg-[#e7c8dd] text-[#3d1d33]" },

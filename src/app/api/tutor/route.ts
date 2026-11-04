@@ -132,7 +132,16 @@ export async function POST(req: Request) {
 
   // Gravações independentes em paralelo.
   const [, aMsgRes, , updated] = await Promise.all([
-    reply.correction ? supabase.from("messages").update({ correction: reply.correction }).eq("id", userMsg.id) : Promise.resolve(null),
+    reply.correction
+      ? Promise.all([
+          supabase.from("messages").update({ correction: reply.correction }).eq("id", userMsg.id),
+          // O erro vira cartão de revisão: você pratica a forma certa até ela sair sozinha.
+          supabase.from("review_items").upsert(
+            { user_id: user.id, item_type: "grammar", item_id: `msg-${userMsg.id}`, due_at: new Date(Date.now() + 6 * 3600_000).toISOString() },
+            { onConflict: "user_id,item_type,item_id", ignoreDuplicates: true },
+          ),
+        ])
+      : Promise.resolve(null),
     supabase.from("messages").insert({ conversation_id: conversationId, user_id: user.id, role: "assistant", content: reply.reply, tip: reply.tip_pt }).select("id").single(),
     supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId),
     // XP pela prática de conversação (2 XP por mensagem; cena concluída vale +15).

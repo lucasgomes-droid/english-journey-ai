@@ -10,7 +10,7 @@ export const metadata = { title: "Conversar" };
 
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
-export default async function TutorPage({ searchParams }: { searchParams: Promise<{ c?: string; aula?: string; cenario?: string; nivel?: string; cena?: string }> }) {
+export default async function TutorPage({ searchParams }: { searchParams: Promise<{ c?: string; aula?: string; cenario?: string; nivel?: string; cena?: string; ligar?: string }> }) {
   const sp = await searchParams;
   const { supabase, user, profile } = await getSession();
 
@@ -90,6 +90,7 @@ export default async function TutorPage({ searchParams }: { searchParams: Promis
             persona={persona}
             goals={scenario?.goals ?? []}
             voiceEnabled={isSttConfigured()}
+            startInCall={sp.ligar === "1"}
             studentName={firstName}
           />
         )}

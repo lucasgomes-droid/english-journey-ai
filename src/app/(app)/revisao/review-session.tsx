@@ -8,11 +8,13 @@ import type { ExerciseAnswer } from "@/lib/grading";
 import { finishReviewSession, submitReview } from "@/app/actions/learning";
 import { ExerciseView } from "@/components/exercise-view";
 import { SpeakButton } from "@/components/speak-button";
-import { useSpeech } from "@/lib/speech";
+import { useVoice } from "@/lib/voice";
+import { MicInput } from "@/components/mic-input";
 
 export type ReviewCard =
   | { kind: "vocab"; id: string; pt: string; en: string; say: string; struggling: boolean }
-  | { kind: "exercise"; id: string; exercise: Exercise; struggling: boolean };
+  | { kind: "exercise"; id: string; exercise: Exercise; struggling: boolean }
+  | { kind: "grammar"; id: string; original: string; corrected: string; explanation: string; struggling: boolean };
 
 interface Feedback {
   correct: boolean;
@@ -21,7 +23,9 @@ interface Feedback {
   nextInDays: number;
 }
 
-export function ReviewSession({ cards }: { cards: ReviewCard[] }) {
+export function ReviewSession({ cards: initialCards, empty }: { cards: ReviewCard[]; empty: React.ReactNode }) {
+  // Cópia própria: se a página recarregar no meio (ex.: ao salvar), a sessão continua.
+  const [cards] = useState(initialCards);
   const [i, setI] = useState(0);
   const [answer, setAnswer] = useState<ExerciseAnswer | null>(null);
   const [text, setText] = useState("");
@@ -31,16 +35,17 @@ export function ReviewSession({ cards }: { cards: ReviewCard[] }) {
   const [done, setDone] = useState<{ xp: number } | null>(null);
   const [pending, start] = useTransition();
   const startedAt = useRef(0);
-  const { speak } = useSpeech();
+  const { speak } = useVoice();
 
   useEffect(() => {
     startedAt.current = Date.now();
   }, []);
 
   const card = cards[i];
+  if (cards.length === 0) return <>{empty}</>;
 
   function check() {
-    const a: ExerciseAnswer | null = card.kind === "vocab" ? (text.trim() ? { kind: "text", text } : null) : answer;
+    const a: ExerciseAnswer | null = card.kind === "exercise" ? answer : text.trim() ? { kind: "text", text } : null;
     if (!a) return;
     setError(null);
     start(async () => {
@@ -52,6 +57,7 @@ export function ReviewSession({ cards }: { cards: ReviewCard[] }) {
       setFeedback(r);
       setStats((s) => ({ reviewed: s.reviewed + 1, correct: s.correct + (r.correct ? 1 : 0) }));
       if (card.kind === "vocab") speak(card.en);
+      if (card.kind === "grammar") speak(card.corrected);
     });
   }
 
@@ -102,19 +108,22 @@ export function ReviewSession({ cards }: { cards: ReviewCard[] }) {
           <div key={card.id}>
             <p className="text-sm font-bold text-muted">Como se diz em inglês?</p>
             <p className="mt-2 font-display text-3xl font-bold">{card.pt}</p>
+            <div className="mt-6 flex items-start gap-3">
+            <MicInput onText={setText} disabled={!!feedback} label="Falar a palavra" />
             <input
               autoFocus
               value={text}
               disabled={!!feedback}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !feedback && check()}
-              className="field mt-6 text-lg"
-              placeholder="Escreva em inglês"
+              className="field text-lg"
+              placeholder="Fale ou escreva em inglês"
               lang="en"
               autoCapitalize="off"
               autoCorrect="off"
               spellCheck={false}
             />
+            </div>
             {feedback && (
               <div className="mt-4 flex items-center gap-3">
                 <SpeakButton text={card.en} withSlow />
@@ -124,8 +133,31 @@ export function ReviewSession({ cards }: { cards: ReviewCard[] }) {
               </div>
             )}
           </div>
+        ) : card.kind === "grammar" ? (
+          <div key={card.id}>
+            <p className="text-sm font-bold text-muted">Erro de uma conversa: diga a forma correta</p>
+            <p className="mt-2 font-display text-2xl font-bold text-wrong line-through" lang="en">
+              {card.original}
+            </p>
+            {feedback && <p className="mt-2 text-muted">{card.explanation}</p>}
+            <div className="mt-6 flex items-start gap-3">
+              <MicInput onText={setText} disabled={!!feedback} label="Falar a frase correta" />
+              <input
+                value={text}
+                disabled={!!feedback}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !feedback && check()}
+                className="field text-lg"
+                placeholder="Fale ou escreva a frase certa"
+                lang="en"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+            </div>
+          </div>
         ) : (
-          <ExerciseView key={card.id} exercise={card.exercise} locked={!!feedback} result={feedback} onChange={setAnswer} />
+          <ExerciseView key={card.id} exercise={card.exercise} locked={!!feedback} result={feedback} onChange={setAnswer} speakMode />
         )}
       </div>
 
@@ -150,7 +182,7 @@ export function ReviewSession({ cards }: { cards: ReviewCard[] }) {
             {i + 1 < cards.length ? "Continuar" : pending ? "Salvando…" : "Concluir"}
           </button>
         ) : (
-          <button type="button" onClick={check} disabled={pending || (card.kind === "vocab" ? !text.trim() : !answer)} className="btn-primary sm:min-w-40">
+          <button type="button" onClick={check} disabled={pending || (card.kind === "exercise" ? !answer : !text.trim())} className="btn-primary sm:min-w-40">
             {pending ? "Verificando…" : "Verificar"}
           </button>
         )}
