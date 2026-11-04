@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Check, Lock, Flag } from "lucide-react";
-import { LEVELS, isLessonUnlocked, nextLessonFor } from "@/content/curriculum";
+import { Check, Lock, Flag, Award } from "lucide-react";
+import { LEVELS, LEVEL_ORDER, isLessonUnlocked, nextLessonFor } from "@/content/curriculum";
 import { syllabusLevel } from "@/content/syllabus";
 import { getCompletedLessons, getSession } from "@/lib/data";
 
@@ -12,13 +12,17 @@ export default async function TrailPage() {
   const { completed, rows } = await getCompletedLessons(supabase, user.id);
   const next = nextLessonFor(completed, startLevel);
   const best = new Map(rows.map((r) => [r.lesson_id as string, r.best_score as number]));
+  const { data: examRows } = await supabase.from("exam_attempts").select("level_code, part").eq("user_id", user.id).eq("passed", true);
+  const examPassed = (lv: string) => new Set((examRows ?? []).filter((r) => r.level_code === lv).map((r) => r.part)).size;
+  const curIdx = LEVEL_ORDER.indexOf(startLevel);
 
   return (
     <main className="space-y-10">
       <header>
         <h1 className="font-display text-4xl font-bold">Sua trilha</h1>
         <p className="mt-2 max-w-2xl text-muted">
-          Cada aula é uma estação. A próxima abre quando você conclui a anterior, e cada módulo termina com uma avaliação.
+          Cada aula é uma estação e pede 70% para concluir. Cada módulo termina com uma avaliação, e cada nível com uma prova de nível (escrita, Speaking e
+          Conversation). O nível seguinte só abre quando você comprova o atual.
         </p>
       </header>
 
@@ -84,7 +88,9 @@ export default async function TrailPage() {
                               ) : (
                                 <>
                                   <span className="font-bold text-muted">{l.title}</span>
-                                  <span className="block text-sm text-muted">Conclua a estação anterior para abrir</span>
+                                  <span className="block text-sm text-muted">
+                                    {LEVEL_ORDER.indexOf(level.code) > curIdx ? `Abre quando você passar na prova de nível ${LEVEL_ORDER[LEVEL_ORDER.indexOf(level.code) - 1]}` : "Conclua a estação anterior para abrir"}
+                                  </span>
                                 </>
                               )}
                             </div>
@@ -95,6 +101,22 @@ export default async function TrailPage() {
                   </div>
                 );
               })}
+              <Link
+                href={`/prova/${level.code}`}
+                className={`panel flex items-center gap-4 border-2 p-5 hover:bg-surface-2 ${examPassed(level.code) === 3 ? "border-boarding" : "border-transparent"}`}
+              >
+                <Award className={examPassed(level.code) === 3 ? "text-boarding" : "text-atlantic"} size={28} aria-hidden />
+                <span className="flex-1">
+                  <span className="block font-display text-xl font-bold">Prova de nível {level.code}</span>
+                  <span className="block text-sm text-muted">
+                    {examPassed(level.code) === 3
+                      ? "Nível comprovado"
+                      : LEVEL_ORDER.indexOf(level.code) < curIdx
+                        ? "Opcional: você já está acima deste nível"
+                        : `Escrita, Speaking e Conversation · ${examPassed(level.code)} de 3 aprovadas`}
+                  </span>
+                </span>
+              </Link>
               <PlannedModules level={level.code} authoredTitles={level.modules.map((m) => m.title)} />
             </div>
           )}

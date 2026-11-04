@@ -71,15 +71,20 @@ export function isLessonUnlocked(lessonId: string, completed: Set<string>, start
   const lv = levelIdx(levelOfLesson(lesson));
   const start = levelIdx(startLevel);
   if (lv < start) return true;
+  // Níveis acima do atual só abrem depois da prova de nível (escrita + Speaking + Conversation).
+  if (lv > start) return false;
   const prev = ALL_LESSONS[idx - 1];
   if (lv === start && levelIdx(levelOfLesson(prev)) < start) return true; // primeira aula do nível inicial
   return completed.has(prev.id);
 }
 
-/** Próxima aula da trilha, a partir do nível em que o aluno está. */
+/**
+ * Próxima aula do nível em que o aluno está. `null` quando todas as aulas do nível
+ * estão feitas: a próxima etapa é a prova de nível (Speaking e Conversation).
+ */
 export function nextLessonFor(completed: Set<string>, startLevel: CefrLevel = "A1"): Lesson | null {
   const start = levelIdx(startLevel);
-  return ALL_LESSONS.find((l) => levelIdx(levelOfLesson(l)) >= start && !completed.has(l.id)) ?? null;
+  return ALL_LESSONS.find((l) => levelIdx(levelOfLesson(l)) === start && !completed.has(l.id)) ?? null;
 }
 
 /** Nível mais alto que já tem aulas escritas. */

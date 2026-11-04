@@ -6,7 +6,7 @@ import { Home, Route, Dumbbell, MessagesSquare, User } from "lucide-react";
 
 const ITEMS = [
   { href: "/", label: "Início", icon: Home, match: ["/"] },
-  { href: "/trilha", label: "Trilha", icon: Route, match: ["/trilha", "/aula"] },
+  { href: "/trilha", label: "Trilha", icon: Route, match: ["/trilha", "/aula", "/prova"] },
   { href: "/praticar", label: "Praticar", icon: Dumbbell, match: ["/praticar", "/mini-aulas", "/listening", "/revisao", "/diagnostico", "/pronuncia", "/falar"] },
   { href: "/conversar", label: "Conversar", icon: MessagesSquare, match: ["/conversar", "/professor"] },
   { href: "/perfil", label: "Perfil", icon: User, match: ["/perfil"] },

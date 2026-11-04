@@ -1,114 +1,38 @@
 /**
- * Teste do conteúdo A2: com o A1 concluído, a primeira aula do A2 abre, é feita
- * de ponta a ponta (modo digitar) e o teste final do A1 sobe o nível.
- * Uso (ambiente local): A2_SETUP_CMD="psql ... {email}" npx tsx tests/e2e/a2.e2e.ts
+ * Conteúdo de todos os níveis: com o A1 comprovado, a primeira aula do A2 abre e é feita
+ * de ponta a ponta (modo digitar); depois a primeira aula do B1, B2, C1 e C2.
+ * Uso (ambiente local): npx tsx tests/e2e/a2.e2e.ts
  */
-import { execSync } from "node:child_process";
 import { chromium } from "playwright";
 import { ALL_LESSONS } from "../../src/content/curriculum";
-import { orderTokens } from "../../src/lib/grading";
-import type { Exercise } from "../../src/content/types";
-import type { Page } from "playwright";
-
-const BASE = process.env.BASE_URL ?? "http://localhost:3000";
-const SHOTS = process.env.SHOTS_DIR ?? "./screenshots";
-
-async function answer(page: Page, ex: Exercise) {
-  const section = page.locator("main section, main .panel").first();
-  switch (ex.type) {
-    case "multiple_choice":
-      return section.getByRole("radio").nth(ex.answer).click();
-    case "listening":
-      if (ex.options) return section.getByRole("radio").nth(ex.answer!).click();
-      return section.locator("input, textarea").fill(ex.accepted![0]);
-    case "translate":
-    case "fill_blank":
-      return section.locator("input, textarea").fill(ex.accepted[0]);
-    case "word_order":
-      for (const w of orderTokens(ex.answer)) await section.locator(`[data-bank-word="${w.replace(/"/g, '\\"')}"]:not([disabled])`).first().click();
-      return;
-    case "match_pairs":
-      for (const [l, r] of ex.pairs) {
-        await section.getByRole("button", { name: l, exact: true }).click();
-        await section.getByRole("button", { name: r, exact: true }).click();
-      }
-  }
-}
+import { BASE, SHOTS, completeLevelExceptFinal, doLesson, signup, sql, uid } from "./helpers";
 
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   await page.addInitScript(() => localStorage.setItem("ej-speak-mode", "0"));
   page.on("pageerror", (e) => console.error("ERRO NA PÁGINA:", e.message));
-  const email = `a2${Date.now()}@example.com`;
-  await page.goto(`${BASE}/cadastro`);
-  await page.getByPlaceholder("Seu nome").fill("Aluno A2");
-  await page.getByPlaceholder("voce@email.com").fill(email);
-  await page.getByPlaceholder("Mínimo de 8 caracteres").fill("senhaforte123");
-  await page.getByRole("button", { name: "Criar conta" }).click();
-  await page.waitForURL("**/boas-vindas");
-  await page.getByRole("button", { name: "Começar no A1" }).click();
-  await page.waitForURL(`${BASE}/`);
+  const email = await signup(page, "a2");
 
-  // Marca o A1 como concluído, exceto o teste final (feito de verdade abaixo).
-  execSync(process.env.A2_SETUP_CMD!.replace("{email}", email));
-  const final = ALL_LESSONS.find((l) => l.id === "a1-final-test")!;
-  for (const lesson of [final, ALL_LESSONS.find((l) => l.id === "a2-m1-l1")!]) {
-    await page.goto(`${BASE}/aula/${lesson.id}`);
-    await page.getByRole("heading", { level: 1, name: lesson.title, exact: true }).waitFor();
-    for (let i = 0; i < 5; i++) {
-      const btn = page.getByRole("button", { name: /^(Continuar|Praticar|Começar avaliação|Falar em voz alta)$/ });
-      if (!(await btn.isVisible())) break;
-      const label = await btn.textContent();
-      await btn.click();
-      if (label === "Praticar" || label === "Começar avaliação") break;
-    }
-    for (let i = 0; i < lesson.exercises.length; i++) {
-      await page.getByText(`Exercício ${i + 1} de ${lesson.exercises.length}`).waitFor();
-      await answer(page, lesson.exercises[i]);
-      await page.getByRole("button", { name: "Verificar" }).click();
-      const st = (await page.getByRole("status").first().textContent()) ?? "";
-      if (!/Correto/.test(st)) throw new Error(`${lesson.exercises[i].id}: ${st}`);
-      await page.getByRole("button", { name: "Continuar" }).click();
-    }
-    await page.getByText(/\+\d+ XP/).first().waitFor({ timeout: 15000 });
-    await page.screenshot({ path: `${SHOTS}/a2-${lesson.id}.png`, fullPage: true });
-    console.log(`✓ ${lesson.title} concluída`);
+  // O A2 continua fechado só com as aulas do A1 feitas (falta a prova de nível).
+  completeLevelExceptFinal(email, "A1");
+  await page.goto(`${BASE}/aula/a2-m1-l1`);
+  await page.waitForURL("**/trilha");
+  console.log("✓ A2 fechado antes da prova de nível do A1");
+
+  for (const lv of ["A2", "B1", "B2", "C1", "C2"]) {
+    sql(`update public.profiles set current_level = '${lv}' where id = ${uid(email)};`);
+    const first = ALL_LESSONS.find((l) => l.id === `${lv.toLowerCase()}-m1-l1`)!;
+    await doLesson(page, first);
+    await page.screenshot({ path: `${SHOTS}/lv-${lv}.png`, fullPage: true });
+    console.log(`✓ ${lv}: ${first.title} concluída`);
   }
-  // Outros níveis: muda o nível inicial e faz a primeira aula de cada um.
-  if (process.env.LEVEL_CMD) {
-    for (const lv of ["B1", "B2", "C1", "C2"]) {
-      execSync(process.env.LEVEL_CMD.replace("{email}", email).replace("{level}", lv));
-      const first = ALL_LESSONS.find((l) => l.id === `${lv.toLowerCase()}-m1-l1`)!;
-      await page.goto(`${BASE}/aula/${first.id}`);
-      await page.getByRole("heading", { level: 1, name: first.title, exact: true }).waitFor();
-      for (let i = 0; i < 5; i++) {
-        const btn = page.getByRole("button", { name: /^(Continuar|Praticar|Começar avaliação|Falar em voz alta)$/ });
-        if (!(await btn.isVisible())) break;
-        const label = await btn.textContent();
-        await btn.click();
-        if (label === "Praticar") break;
-      }
-      for (let i = 0; i < first.exercises.length; i++) {
-        await page.getByText(`Exercício ${i + 1} de ${first.exercises.length}`).waitFor();
-        await answer(page, first.exercises[i]);
-        await page.getByRole("button", { name: "Verificar" }).click();
-        const st = (await page.getByRole("status").first().textContent()) ?? "";
-        if (!/Correto/.test(st)) throw new Error(`${first.exercises[i].id}: ${st}`);
-        await page.getByRole("button", { name: "Continuar" }).click();
-      }
-      await page.getByText(/\+\d+ XP/).first().waitFor({ timeout: 15000 });
-      await page.screenshot({ path: `${SHOTS}/lv-${lv}.png`, fullPage: true });
-      console.log(`✓ ${lv}: ${first.title} concluída`);
-    }
-    execSync(process.env.LEVEL_CMD.replace("{email}", email).replace("{level}", "A2"));
-  }
+  sql(`update public.profiles set current_level = 'A2' where id = ${uid(email)};`);
   await page.goto(`${BASE}/trilha`);
   await page.getByText("Planos e futuro").first().waitFor();
+  await page.getByText("Prova de nível A2", { exact: true }).waitFor();
   await page.screenshot({ path: `${SHOTS}/a2-trilha.png`, fullPage: true });
-  const level = await page.locator("header").first().textContent();
-  if (!/A2/.test(level ?? "")) throw new Error("nível não subiu para A2: " + level);
-  console.log("✓ nível subiu para A2 e a trilha do A2 aparece");
+  console.log("✓ trilha mostra o A2 e a prova de cada nível");
   await browser.close();
 })().catch((e) => {
   console.error("FALHOU:", e);

@@ -77,6 +77,16 @@ describe("integridade do conteúdo A1", () => {
     expect(nextLessonFor(new Set(), "A2")?.id).toBe("a2-m1-l1");
     expect(isLessonUnlocked("a2-m1-l1", new Set(), "A1")).toBe(false);
   });
+  it("o nível seguinte só abre com a prova de nível (subir current_level), nunca só pelo teste final", () => {
+    const a1 = ALL_LESSONS.filter((l) => l.id.startsWith("a1-")).map((l) => l.id);
+    const allA1 = new Set(a1);
+    expect(isLessonUnlocked("a2-m1-l1", allA1, "A1")).toBe(false);
+    expect(nextLessonFor(allA1, "A1")).toBeNull();
+    expect(isLessonUnlocked("a2-m1-l1", allA1, "A2")).toBe(true);
+  });
+  it("aulas exigem 70% (domínio)", () => {
+    for (const l of ALL_LESSONS) expect(l.passScore, l.id).toBeGreaterThanOrEqual(70);
+  });
 });
 
 describe("mini-aulas e conversas", () => {

@@ -49,6 +49,8 @@ export interface DashboardData {
   levelProgress: number;
   overallLessonsDone: number;
   nextLesson: ReturnType<typeof nextLessonFor>;
+  /** Partes da prova do nível atual já aprovadas (relevante quando acabam as aulas do nível). */
+  examPartsPassed: string[];
   skills: { skill: Skill; label: string; accuracy: number | null; answers: number }[];
   activity: { id: number; kind: string; title: string; xp: number; score: number | null; created_at: string }[];
   achievements: string[];
@@ -90,6 +92,12 @@ export async function getDashboard(): Promise<DashboardData> {
   const weekLessons = activity.filter((a) => (a.kind === "lesson" || a.kind === "test") && days.includes(a.local_date)).length;
 
   const levelLessons = lessonsOfLevel(profile.current_level);
+  const nextLesson = nextLessonFor(completed, profile.current_level);
+  let examPartsPassed: string[] = [];
+  if (!nextLesson) {
+    const { data } = await supabase.from("exam_attempts").select("part").eq("user_id", user.id).eq("level_code", profile.current_level).eq("passed", true);
+    examPartsPassed = Array.from(new Set((data ?? []).map((r) => r.part as string)));
+  }
   const levelDone = levelLessons.filter((l) => completed.has(l.id)).length;
 
   const answers = answersRes.data ?? [];
@@ -114,7 +122,8 @@ export async function getDashboard(): Promise<DashboardData> {
     dueReviews: dueRes.count ?? 0,
     levelProgress: levelLessons.length ? Math.round((levelDone / levelLessons.length) * 100) : 0,
     overallLessonsDone: ALL_LESSONS.filter((l) => completed.has(l.id)).length,
-    nextLesson: nextLessonFor(completed, profile.current_level),
+    nextLesson,
+    examPartsPassed,
     skills,
     activity: recentRes.data ?? [],
     achievements: (achRes.data ?? []).map((a) => a.code as string),

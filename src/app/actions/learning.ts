@@ -2,11 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getLesson, getExercise, getModule, getVocab, isLessonUnlocked, LEVEL_ORDER, nextLevel } from "@/content/curriculum";
+import { getLesson, getExercise, getModule, getVocab, isLessonUnlocked } from "@/content/curriculum";
 import { getCompletedLessons, getSession } from "@/lib/data";
 import { gradeExercise, scorePercent, type ExerciseAnswer } from "@/lib/grading";
 import { recordActivity, syncAchievements } from "@/lib/progress";
 import { NEW_SRS, reviewSrs } from "@/lib/srs";
+import { loadLevelExam, recordExamAttempt, writtenContext } from "@/lib/exams";
+import { weakSkillsFrom } from "@/lib/exam-rules";
+import type { CefrLevel } from "@/content/types";
 
 const answerSchema: z.ZodType<ExerciseAnswer> = z.union([
   z.object({ kind: z.literal("choice"), choice: z.number().int().min(0).max(20) }),
@@ -31,6 +34,8 @@ export interface LessonResult {
   firstCompletion: boolean;
   leveledUpTo: string | null;
   newAchievements: string[];
+  /** Teste final de nível: resultado da parte escrita da prova de nível. */
+  exam?: { level: string; passed: boolean; planCreated: boolean };
 }
 
 /**
@@ -51,6 +56,16 @@ export async function submitLesson(input: z.infer<typeof submitSchema>): Promise
 
   const { completed, rows } = await getCompletedLessons(supabase, user.id);
   if (!isLessonUnlocked(lessonId, completed, profile.current_level) && !completed.has(lessonId)) return fail("Esta aula ainda está bloqueada.");
+
+  // Teste final = parte escrita da prova de nível. Reprovou antes? Só refaz depois do plano de recuperação.
+  const isFinal = lesson.kind === "test" && lesson.moduleId.endsWith("-final");
+  const testLevel = (getModule(lesson.moduleId)?.level ?? profile.current_level) as CefrLevel;
+  let writtenAlreadyPassed = false;
+  if (isFinal) {
+    const view = await loadLevelExam(supabase, user.id, testLevel);
+    writtenAlreadyPassed = view.state.parts.written.passed;
+    if (view.state.parts.written.lock === "plan") return fail("Cumpra o plano de recuperação antes de refazer a prova escrita.");
+  }
 
   // Corrige cada exercício da aula. Exercício sem resposta conta como erro.
   const byId = new Map(answers.map((a) => [a.exerciseId, a.answer]));
@@ -108,16 +123,25 @@ export async function submitLesson(input: z.infer<typeof submitSchema>): Promise
   }
 
   let leveledUpTo: string | null = null;
+  let exam: LessonResult["exam"];
   if (lesson.kind === "test") {
-    const mod = lesson.moduleId;
-    await supabase.from("assessments").insert({ user_id: user.id, lesson_id: lessonId, level_code: profile.current_level, score, passed });
-    if (passed && mod.endsWith("-final")) {
-      // Sobe para o nível seguinte ao do teste (nunca rebaixa quem já está acima).
-      const testLevel = getModule(mod)?.level ?? profile.current_level;
-      const nl = nextLevel(testLevel);
-      if (nl && LEVEL_ORDER.indexOf(nl) > LEVEL_ORDER.indexOf(profile.current_level)) {
-        leveledUpTo = nl;
-        await supabase.from("profiles").update({ current_level: nl }).eq("id", user.id);
+    await supabase.from("assessments").insert({ user_id: user.id, lesson_id: lessonId, level_code: testLevel, score, passed });
+    // O teste final não sobe mais de nível sozinho: é a parte escrita da prova (faltam Speaking e Conversation).
+    if (isFinal && !writtenAlreadyPassed) {
+      try {
+        const weak = weakSkillsFrom(graded.map((g) => ({ skill: g.ex.skill, correct: g.correct })));
+        const ctx = passed ? undefined : await writtenContext(supabase, user.id, testLevel, weak);
+        const r = await recordExamAttempt(supabase, user.id, profile.current_level, {
+          level: testLevel,
+          part: "written",
+          score,
+          details: { lessonId, weakSkills: weak },
+          written: ctx,
+        });
+        leveledUpTo = r.leveledUpTo;
+        exam = { level: testLevel, passed: r.passed, planCreated: r.planCreated };
+      } catch (e) {
+        return fail((e as Error).message);
       }
     }
   }
@@ -138,7 +162,7 @@ export async function submitLesson(input: z.infer<typeof submitSchema>): Promise
   const newAchievements = await syncAchievements(supabase, updatedProfile, { perfectLesson: score === 100 });
 
   revalidatePath("/", "layout");
-  return { ok: true, score, passed, passScore: lesson.passScore, xpEarned, firstCompletion, leveledUpTo, newAchievements };
+  return { ok: true, score, passed, passScore: lesson.passScore, xpEarned, firstCompletion, leveledUpTo, newAchievements, exam };
 }
 
 // ---------------------------------------------------------------------------

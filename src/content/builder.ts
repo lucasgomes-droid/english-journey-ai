@@ -30,7 +30,7 @@ export function buildLesson(id: string, moduleId: string, order: number, input: 
     order,
     kind: input.kind ?? "lesson",
     xp: input.xp ?? (input.kind === "test" ? 50 : 20),
-    passScore: input.passScore ?? (input.kind === "test" ? 70 : 60),
+    passScore: input.passScore ?? 70,
     vocabulary: input.vocabulary.map((v) => ({ ...v, id: `${id}-v-${slug(v.en)}` })),
     exercises: input.exercises.map((e, i) => ({ ...e, id: `${id}-e${i + 1}` }) as Exercise),
   };

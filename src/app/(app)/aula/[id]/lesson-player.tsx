@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { X, CheckCircle2, XCircle, MessagesSquare, Trophy, RotateCcw, Mic, Keyboard } from "lucide-react";
+import { X, CheckCircle2, XCircle, MessagesSquare, Trophy, RotateCcw, Mic, Keyboard, Flag } from "lucide-react";
 import { PronounceCard } from "@/components/pronounce-card";
 import { useVoiceCaps } from "@/lib/voice";
 import type { Lesson } from "@/content/types";
@@ -15,7 +15,7 @@ import { ACHIEVEMENTS } from "@/lib/achievements";
 
 type Phase = "explain" | "vocab" | "examples" | "speak" | "practice" | "result";
 
-export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Lesson; moduleTitle: string; nextLessonId: string | null }) {
+export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: { lesson: Lesson; moduleTitle: string; nextLessonId: string | null; lockedHref?: string | null }) {
   const isTest = lesson.kind === "test";
   const caps = useVoiceCaps();
   const phases: Phase[] = isTest
@@ -116,6 +116,19 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Le
     setServer(null);
     startedAt.current = Date.now();
   }
+
+  // Prova escrita com plano de recuperação aberto: a nova tentativa espera o plano.
+  // (Só ao abrir a página; quem acabou de enviar continua vendo o próprio resultado.)
+  if (lockedHref && !server && !pending)
+    return (
+      <main className="mx-auto max-w-xl py-10 text-center">
+        <h1 className="font-display text-3xl font-bold">{lesson.title}</h1>
+        <p className="mt-3 text-muted">Cumpra o plano de recuperação para liberar uma nova tentativa.</p>
+        <Link href={lockedHref} className="btn-go mt-6 inline-flex">
+          Ver meu plano
+        </Link>
+      </main>
+    );
 
   return (
     <main className="mx-auto flex min-h-[calc(100dvh-10rem)] max-w-2xl scroll-mt-4 flex-col lg:min-h-[calc(100dvh-7rem)]" ref={topRef}>
@@ -347,6 +360,23 @@ function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }:
         {!passed && <p className="mt-3 text-sm text-muted">Os exercícios que você errou foram para a sua fila de revisão.</p>}
       </div>
 
+      {server?.ok && server.exam && (
+        <div className={`panel mt-4 flex flex-col items-start gap-3 border-2 p-6 text-left sm:flex-row sm:items-center ${server.exam.passed ? "border-boarding" : "border-wrong"}`}>
+          <Flag className="shrink-0 text-atlantic" aria-hidden />
+          <div className="flex-1">
+            <p className="font-bold">{server.exam.passed ? `Parte escrita da prova ${server.exam.level} aprovada` : `Parte escrita da prova ${server.exam.level}: plano de recuperação criado`}</p>
+            <p className="text-muted">
+              {server.exam.passed
+                ? "Para subir de nível, faltam o Speaking e a Conversation."
+                : "Montamos tarefas com base nos seus erros. A nova tentativa abre quando você cumprir o plano."}
+            </p>
+          </div>
+          <Link href={`/prova/${server.exam.level}`} className="btn-go">
+            {server.exam.passed ? "Continuar a prova" : "Ver meu plano"}
+          </Link>
+        </div>
+      )}
+
       {lesson.scenarioId && (
         <div className="panel mt-4 flex flex-col items-start gap-3 p-6 text-left sm:flex-row sm:items-center">
           <MessagesSquare className="shrink-0 text-atlantic" aria-hidden />
@@ -374,10 +404,12 @@ function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }:
       )}
 
       <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-        <button type="button" onClick={onRetry} className="btn-ghost" disabled={pending}>
-          Refazer exercícios
-        </button>
-        {passed && nextLessonId && server?.ok ? (
+        {!(server?.exam && !server.exam.passed) && (
+          <button type="button" onClick={onRetry} className="btn-ghost" disabled={pending}>
+            Refazer exercícios
+          </button>
+        )}
+        {passed && nextLessonId && server?.ok && !lesson.moduleId.endsWith("-final") ? (
           <Link href={`/aula/${nextLessonId}`} className="btn-go">
             Próxima aula
           </Link>

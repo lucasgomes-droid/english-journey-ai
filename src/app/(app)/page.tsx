@@ -25,6 +25,7 @@ export default async function Dashboard() {
   const d = await getDashboard();
   const { profile, nextLesson } = d;
   const mod = nextLesson ? getModule(nextLesson.moduleId) : null;
+  const courseDone = !nextLesson && profile.current_level === "C2" && d.examPartsPassed.length === 3;
   const goalPct = Math.min(100, Math.round((d.todayXp / profile.daily_goal_xp) * 100));
   const maxWeek = Math.max(profile.daily_goal_xp, ...d.weekXp.map((w) => w.xp));
 
@@ -48,6 +49,7 @@ export default async function Dashboard() {
   type PlanItem = { href: string; icon: typeof BookOpen; title: string; detail: string; minutes: number; done: boolean };
   const plan = [
     d.dueReviews > 0 && { href: "/revisao", icon: RotateCcw, title: "Revisão", detail: `${d.dueReviews} ${d.dueReviews === 1 ? "item pendente" : "itens pendentes"}`, minutes: Math.min(10, Math.ceil(d.dueReviews / 3)), done: done.has("review") },
+    !nextLesson && !courseDone && { href: `/prova/${profile.current_level}`, icon: BookOpen, title: "Prova de nível", detail: `Comprovar o ${profile.current_level}`, minutes: 15, done: done.has("test") },
     nextLesson && { href: `/aula/${nextLesson.id}`, icon: BookOpen, title: nextLesson.kind === "test" ? "Avaliação" : "Aula nova", detail: nextLesson.title, minutes: 10, done: done.has("lesson") || done.has("test") },
     { ...speakTask, minutes: 3, done: done.has("speaking") || done.has("pronunciation") },
     profile.daily_minutes >= 15 && { href: `/listening/${listeningToday.id}`, icon: Headphones, title: "Listening", detail: listeningToday.title, minutes: 5, done: done.has("listening") },
@@ -79,17 +81,30 @@ export default async function Dashboard() {
                   {mod?.title} · {nextLesson.objective}
                 </p>
               </>
-            ) : (
+            ) : courseDone ? (
               <>
                 <h2 className="mt-2 font-display text-4xl font-bold">Você concluiu a trilha do A1 ao C2.</h2>
                 <p className="mt-2 max-w-xl text-white/80">Para manter o nível: revisão diária, conversas com o professor, a gravação semanal e um exame oficial (CPE ou IELTS) para comprovar.</p>
               </>
+            ) : (
+              <>
+                <h2 className="mt-2 font-display text-4xl font-bold sm:text-5xl">Prova de nível {profile.current_level}</h2>
+                <p className="mt-2 max-w-xl text-white/80">
+                  Você terminou as aulas do {profile.current_level}. Para subir de nível, comprove escrita, Speaking e Conversation ({d.examPartsPassed.length} de 3 aprovadas).
+                </p>
+              </>
             )}
           </div>
-          {nextLesson && (
+          {nextLesson ? (
             <Link href={`/aula/${nextLesson.id}`} className="btn-go text-lg">
               {nextLesson.kind === "test" ? "Fazer avaliação" : "Começar aula"}
             </Link>
+          ) : (
+            !courseDone && (
+              <Link href={`/prova/${profile.current_level}`} className="btn-go text-lg">
+                Ir para a prova
+              </Link>
+            )
           )}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/15 px-6 py-4 sm:px-8">
