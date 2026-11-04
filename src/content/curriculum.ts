@@ -8,13 +8,14 @@ import { a1Module7 } from "./a1/module7";
 import { a1Module8 } from "./a1/module8";
 import { a1Final } from "./a1/final";
 import { A2_MODULES } from "./a2";
+import { B1_MODULES } from "./b1";
 import { MINI_LESSONS, MINI_MODULES } from "./mini";
 import type { CefrLevel, Lesson, Level, Module, VocabItem } from "./types";
 
 export const LEVELS: Level[] = [
   { code: "A1", name: "Iniciante", description: "Frases simples do dia a dia, apresentações e informações pessoais.", modules: [a1Module1, a1Module2, a1Module3, a1Module4, a1Module5, a1Module6, a1Module7, a1Module8, a1Final] },
   { code: "A2", name: "Básico", description: "Passado, planos, compras, direções e situações rotineiras.", modules: A2_MODULES },
-  { code: "B1", name: "Intermediário", description: "Viagens, experiências, opiniões e conversas mais longas.", modules: [] },
+  { code: "B1", name: "Intermediário", description: "Viagens, experiências, opiniões e conversas mais longas.", modules: B1_MODULES },
   { code: "B2", name: "Intermediário avançado", description: "Discussões, argumentação e inglês profissional.", modules: [] },
   { code: "C1", name: "Avançado", description: "Linguagem flexível e precisa em contextos acadêmicos e profissionais.", modules: [] },
   { code: "C2", name: "Proficiência", description: "Domínio próximo ao de um nativo culto.", modules: [] },
