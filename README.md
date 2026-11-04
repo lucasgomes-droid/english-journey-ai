@@ -37,22 +37,18 @@ cp .env.example .env.local   # depois preencha as variáveis (veja abaixo)
 npm run dev                  # abra http://localhost:3000
 ```
 
-Sem as variáveis do Supabase o app abre uma tela explicando o que falta.
+O app já se conecta ao Supabase do projeto; para o professor de IA, preencha `AI_API_KEY`.
 
-## 1. Configurar o Supabase (banco e login) — gratuito
+## 1. Supabase (banco e login)
 
-1. Crie uma conta em <https://supabase.com> e clique em **New project** (região: São Paulo).
-2. No projeto, abra **SQL Editor → New query**, cole todo o conteúdo de
-   `supabase/migrations/20261104120000_schema.sql` e clique em **Run**.
-3. Faça o mesmo com `supabase/migrations/20261104120100_seed_content.sql` (conteúdo das aulas).
-4. Em **Project Settings → API** (ou botão **Connect**), copie:
-   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-   - **anon public** ou **publishable key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-5. Em **Authentication → URL Configuration**:
-   - **Site URL**: o endereço do app na Vercel (ex.: `https://english-journey-ai.vercel.app`)
-   - **Redirect URLs**: adicione `https://SEU-APP.vercel.app/auth/callback` e `http://localhost:3000/auth/callback`
-6. A confirmação de e-mail vem ligada: o aluno recebe um link e entra ao clicar. Para testar sem e-mail,
-   desligue em **Authentication → Sign In / Providers → Email → Confirm email**.
+O projeto Supabase oficial (`english-journey-ai`, ref `qxgblksieynolyqsedxr`) já está criado, com as tabelas,
+as regras de segurança (RLS) e todo o conteúdo das aulas. O app já aponta para ele por padrão (`src/lib/env.ts`).
+
+Pendente no Supabase depois do primeiro deploy: em **Authentication → URL Configuration**, coloque o endereço
+da Vercel como **Site URL** e adicione `https://SEU-APP.vercel.app/auth/callback` em **Redirect URLs**.
+
+Para usar outro projeto Supabase: rode os dois arquivos de `supabase/migrations` no **SQL Editor** (nessa ordem) e
+defina `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` (chave *publishable*).
 
 > O plano gratuito do Supabase pausa projetos sem uso por 7 dias; basta reativar no painel.
 
@@ -71,9 +67,8 @@ As chaves de IA ficam **somente no servidor**. Nunca coloque `NEXT_PUBLIC_` nela
 
 1. Entre em <https://vercel.com> com sua conta do GitHub.
 2. **Add New → Project** → importe `english-journey-ai` → **Deploy** (o Next.js é detectado sozinho).
-3. Em **Settings → Environment Variables**, cadastre:
-   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `AI_API_KEY`
-   (opcionais: `AI_BASE_URL`, `AI_MODEL`, `STT_API_KEY`, `STT_BASE_URL`, `STT_MODEL`).
+3. Em **Settings → Environment Variables**, cadastre `AI_API_KEY` (a chave da Groq).
+   Opcionais: `AI_BASE_URL`, `AI_MODEL`, `STT_API_KEY`, `STT_BASE_URL`, `STT_MODEL`.
 4. Em **Deployments**, clique nos três pontos do último deploy → **Redeploy** (para aplicar as variáveis).
 5. Volte ao Supabase e confirme a **Site URL** e as **Redirect URLs** com o endereço final da Vercel.
 
