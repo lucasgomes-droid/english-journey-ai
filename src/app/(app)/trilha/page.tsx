@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check, Lock, Flag } from "lucide-react";
 import { LEVELS, isLessonUnlocked, nextLessonFor } from "@/content/curriculum";
+import { syllabusLevel } from "@/content/syllabus";
 import { getCompletedLessons, getSession } from "@/lib/data";
 
 export const metadata = { title: "Trilha" };
@@ -33,9 +34,7 @@ export default async function TrailPage() {
           </div>
 
           {level.modules.length === 0 ? (
-            <p className="ml-6 mt-4 border-l-4 border-dashed border-line py-3 pl-9 text-muted">
-              Conteúdo deste nível em produção. Ele é liberado após o teste de nível anterior assim que estiver pronto.
-            </p>
+            <PlannedModules level={level.code} authoredTitles={[]} />
           ) : (
             <div className="mt-6 space-y-8">
               {level.modules.map((m) => {
@@ -95,10 +94,40 @@ export default async function TrailPage() {
                   </div>
                 );
               })}
+              <PlannedModules level={level.code} authoredTitles={level.modules.map((m) => m.title)} />
             </div>
           )}
         </section>
       ))}
     </main>
+  );
+}
+
+function PlannedModules({ level, authoredTitles }: { level: Parameters<typeof syllabusLevel>[0]; authoredTitles: string[] }) {
+  const syl = syllabusLevel(level);
+  const planned = syl.modules.filter((m) => !authoredTitles.includes(m.title));
+  if (!planned.length) return null;
+  return (
+    <div className="mt-6 space-y-4">
+      <p className="text-sm text-muted">
+        Em produção neste nível: {planned.length} {planned.length === 1 ? "módulo" : "módulos"}, {planned.reduce((s, m) => s + m.lessons.length, 0)} aulas. Meta do
+        nível: cerca de {syl.words.toLocaleString("pt-BR")} palavras e {syl.hours} horas de estudo.
+      </p>
+      {planned.map((m) => (
+        <details key={m.title} className="rounded-2xl border border-dashed border-line p-5">
+          <summary className="cursor-pointer font-display text-lg font-bold text-muted">
+            {m.title} <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-xs font-bold">em produção</span>
+          </summary>
+          <ul className="mt-3 space-y-2">
+            {m.lessons.map((l) => (
+              <li key={l.title} className="text-sm">
+                <span className="font-bold">{l.title}</span>
+                <span className="text-muted"> · {l.grammar} · você vai conseguir {l.canDo}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+    </div>
   );
 }

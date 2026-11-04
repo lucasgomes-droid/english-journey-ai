@@ -1,0 +1,237 @@
+import { buildLesson } from "../builder";
+import type { Module } from "../types";
+
+const M = "a1-m4";
+
+export const a1Module4: Module = {
+  id: M,
+  level: "A1",
+  order: 4,
+  title: "Casa e cidade",
+  description: "Soletrar, cores e roupas, descrever a casa e dizer onde as coisas estão.",
+  lessons: [
+    buildLesson("a1-m4-l1", M, 1, {
+      title: "Alfabeto e soletrar",
+      objective: "Soletrar seu nome, e-mail e endereço e entender quando alguém soletra.",
+      explanation: [
+        {
+          title: "Por que soletrar é importante",
+          body: "Em hotéis, aeroportos e ligações, pedem para você soletrar: **How do you spell your name?** Responda letra por letra. Os nomes das letras em inglês são bem diferentes dos nossos.",
+          table: {
+            head: ["Letras", "Som aproximado", "Cuidado"],
+            rows: [
+              ["A, H, J, K", "êi, êitch, djêi, kêi", "A soa \"êi\", não \"á\""],
+              ["E, I", "í, ái", "E = \"í\" e I = \"ái\" (o contrário do português!)"],
+              ["G, J", "dji, djêi", "Fácil de trocar: G = dji, J = djêi"],
+              ["R, Y", "ár, uái", "Y soa \"uái\""],
+              ["W, Z", "dâbol-iu, zí (EUA)", "W = \"double U\""],
+            ],
+          },
+        },
+        {
+          title: "E-mail e letras repetidas",
+          body: "Para letras repetidas diga **double**: \"Anna\" = A, **double N**, A. No e-mail, **@** é **at**, o ponto é **dot**, o hífen é **dash** e o underline é **underscore**.",
+        },
+      ],
+      vocabulary: [
+        { en: "spell", pt: "soletrar", say: "SPÉL" },
+        { en: "letter", pt: "letra; carta", say: "LÉ-rer" },
+        { en: "double", pt: "duplo (letra repetida)", say: "DÂ-bol" },
+        { en: "at", pt: "arroba (@)", say: "ÉT" },
+        { en: "dot", pt: "ponto (em e-mail/site)", say: "DÓT" },
+        { en: "email address", pt: "endereço de e-mail", say: "Í-meil a-DRÉS" },
+        { en: "surname", pt: "sobrenome", say: "SÊR-neim" },
+        { en: "first name", pt: "primeiro nome", say: "FÊRST neim" },
+        { en: "repeat", pt: "repetir", say: "ri-PÍT" },
+        { en: "slowly", pt: "devagar", say: "SLÔU-li" },
+      ],
+      examples: [
+        { en: "How do you spell your surname? — S-I-L-V-A.", pt: "Como se soletra seu sobrenome? — S-I-L-V-A." },
+        { en: "My email is ana dot costa at gmail dot com.", pt: "Meu e-mail é ana.costa@gmail.com." },
+        { en: "Can you repeat that slowly, please?", pt: "Pode repetir isso devagar, por favor?" },
+      ],
+      exercises: [
+        { type: "multiple_choice", skill: "vocabulary", prompt: "Como se fala a letra \"E\" em inglês?", options: ["é", "í", "ái"], answer: 1 },
+        { type: "multiple_choice", skill: "vocabulary", prompt: "Como se fala a letra \"I\" em inglês?", options: ["í", "ái", "êi"], answer: 1, explain: "No inglês, I soa \"ái\" e E soa \"í\"." },
+        { type: "multiple_choice", skill: "vocabulary", prompt: "No e-mail, como se lê o símbolo @?", options: ["dot", "at", "dash"], answer: 1 },
+        { type: "listening", skill: "listening", prompt: "Ouça e escolha o nome soletrado.", audio: "J. O. H. N.", options: ["JOHN", "GOHN", "JOAN"], answer: 0 },
+        { type: "listening", skill: "listening", prompt: "Ouça e escolha o nome soletrado.", audio: "K. A. T. E.", options: ["CATE", "KATI", "KATE"], answer: 2 },
+        { type: "translate", skill: "writing", prompt: "Como se soletra o seu nome?", accepted: ["How do you spell your name?"] },
+        { type: "fill_blank", skill: "vocabulary", sentence: "\"Anna\" is A, ___ N, A.", translation: "\"Anna\" é A, dois N, A.", accepted: ["double"] },
+        { type: "word_order", skill: "grammar", prompt: "Você pode repetir, por favor?", answer: "Can you repeat, please?", distractors: ["spell"] },
+        { type: "match_pairs", skill: "vocabulary", prompt: "Ligue as palavras.", pairs: [["surname", "sobrenome"], ["slowly", "devagar"], ["letter", "letra"], ["dot", "ponto"]] },
+      ],
+      conversation: { goal: "Soletre seu nome e seu e-mail para o professor como se estivesse num hotel.", starter: "Welcome to the Grand Hotel! Can I have your name, please? How do you spell that?" },
+      review: ["E = \"í\", I = \"ái\", A = \"êi\".", "Letra repetida: double.", "@ = at, ponto = dot."],
+    }),
+
+    buildLesson("a1-m4-l2", M, 2, {
+      title: "Cores e roupas",
+      objective: "Descrever cores e roupas e dizer o que você está vestindo.",
+      explanation: [
+        {
+          title: "O adjetivo vem antes",
+          body: "Em inglês, a cor vem **antes** do objeto: \"camisa azul\" = **blue shirt**. E o adjetivo **não vai para o plural**: \"sapatos pretos\" = **black shoes** (nunca \"blacks shoes\").",
+        },
+        {
+          title: "Vestindo: wear",
+          body: "**wear** = usar/vestir. Para dizer o que está usando agora: **I'm wearing jeans**. Para hábito: **I usually wear a uniform**.",
+        },
+        {
+          title: "Plural sempre",
+          body: "Algumas roupas são sempre plurais em inglês: **jeans, pants (EUA), trousers (Reino Unido), shorts**. Diga **my jeans are blue**, com **are**.",
+        },
+      ],
+      vocabulary: [
+        { en: "red", pt: "vermelho", say: "RÉD" },
+        { en: "blue", pt: "azul", say: "BLÚU" },
+        { en: "green", pt: "verde", say: "GRÍIN" },
+        { en: "yellow", pt: "amarelo", say: "IÉ-lou" },
+        { en: "black", pt: "preto", say: "BLÉK" },
+        { en: "white", pt: "branco", say: "UÁIT" },
+        { en: "shirt", pt: "camisa", say: "SHÊRT" },
+        { en: "T-shirt", pt: "camiseta", say: "TÍ-shêrt" },
+        { en: "dress", pt: "vestido", say: "DRÉS" },
+        { en: "shoes", pt: "sapatos", say: "SHÚUZ" },
+        { en: "jacket", pt: "jaqueta", say: "DJÉ-ket" },
+        { en: "wear", pt: "usar, vestir", say: "UÉR" },
+      ],
+      examples: [
+        { en: "She's wearing a red dress.", pt: "Ela está usando um vestido vermelho." },
+        { en: "My jeans are blue.", pt: "Meu jeans é azul." },
+        { en: "I like your black jacket!", pt: "Gostei da sua jaqueta preta!" },
+      ],
+      exercises: [
+        { type: "multiple_choice", skill: "grammar", prompt: "\"Camisa branca\" em inglês:", options: ["shirt white", "white shirt", "whites shirt"], answer: 1 },
+        { type: "multiple_choice", skill: "grammar", prompt: "\"Sapatos pretos\" em inglês:", options: ["blacks shoes", "black shoes", "shoes blacks"], answer: 1, explain: "O adjetivo não vai para o plural." },
+        { type: "translate", skill: "writing", prompt: "Eu estou usando uma camiseta verde.", accepted: ["I'm wearing a green T-shirt.", "I am wearing a green T-shirt.", "I'm wearing a green t-shirt.", "I'm wearing a green tshirt."] },
+        { type: "fill_blank", skill: "grammar", sentence: "My jeans ___ blue.", accepted: ["are"], explain: "Jeans é sempre plural: my jeans are." },
+        { type: "match_pairs", skill: "vocabulary", prompt: "Ligue as cores.", pairs: [["yellow", "amarelo"], ["green", "verde"], ["red", "vermelho"], ["white", "branco"]] },
+        { type: "listening", skill: "listening", prompt: "O que ela está usando?", audio: "She's wearing a yellow jacket.", options: ["Jaqueta amarela", "Vestido amarelo", "Jaqueta azul"], answer: 0 },
+        { type: "word_order", skill: "grammar", prompt: "Ele está usando sapatos brancos.", answer: "He's wearing white shoes.", distractors: ["whites"] },
+        { type: "listening", skill: "listening", prompt: "Escreva o que ouviu.", audio: "I like your blue dress.", accepted: ["i like your blue dress"] },
+      ],
+      conversation: { goal: "Descreva o que você está vestindo agora e sua cor favorita.", starter: "What are you wearing today? And what's your favorite color?" },
+      review: ["Cor antes do objeto: blue shirt.", "Adjetivo não tem plural.", "wear = usar; jeans é plural."],
+    }),
+
+    buildLesson("a1-m4-l3", M, 3, {
+      title: "Minha casa",
+      objective: "Descrever sua casa usando there is e there are.",
+      explanation: [
+        {
+          title: "Existe / existem: there is / there are",
+          body: "Para dizer que algo **existe** ou **tem** num lugar, use **there is** (singular) e **there are** (plural). \"Tem um sofá na sala\" = **There's a sofa in the living room**. Não use \"have\" aqui — \"The living room has a sofa\" é possível, mas \"Have a sofa\" está errado.",
+        },
+        {
+          title: "Negativa e pergunta",
+          body: "**There isn't a garage. There aren't any chairs.** Pergunte invertendo: **Is there a balcony? — Yes, there is. Are there any windows? — No, there aren't.**",
+          table: { head: ["", "Singular", "Plural"], rows: [["+", "There's a bed", "There are two beds"], ["-", "There isn't a bed", "There aren't any beds"], ["?", "Is there a bed?", "Are there any beds?"]] },
+        },
+      ],
+      vocabulary: [
+        { en: "house", pt: "casa", say: "RÁUS" },
+        { en: "apartment", pt: "apartamento", say: "a-PÁRT-ment" },
+        { en: "bedroom", pt: "quarto", say: "BÉD-rum" },
+        { en: "bathroom", pt: "banheiro", say: "BÉTH-rum" },
+        { en: "kitchen", pt: "cozinha", say: "KÍ-tchen" },
+        { en: "living room", pt: "sala de estar", say: "LÍ-vin rum" },
+        { en: "sofa", pt: "sofá", say: "SÔU-fa" },
+        { en: "bed", pt: "cama", say: "BÉD" },
+        { en: "fridge", pt: "geladeira", say: "FRÍDJ" },
+        { en: "garden", pt: "jardim, quintal", say: "GÁR-den" },
+      ],
+      examples: [
+        { en: "There are two bedrooms in my apartment.", pt: "Há dois quartos no meu apartamento." },
+        { en: "There's a big sofa in the living room.", pt: "Tem um sofá grande na sala." },
+        { en: "Is there a garden? — No, there isn't.", pt: "Tem jardim? — Não, não tem." },
+      ],
+      exercises: [
+        { type: "fill_blank", skill: "grammar", sentence: "There ___ three bedrooms in the house.", accepted: ["are"] },
+        { type: "fill_blank", skill: "grammar", sentence: "There ___ a fridge in the kitchen.", accepted: ["is", "'s"] },
+        { type: "multiple_choice", skill: "grammar", prompt: "\"Tem um banheiro no apartamento\":", options: ["Have a bathroom in the apartment.", "There is a bathroom in the apartment.", "It has bathroom in apartment."], answer: 1 },
+        { type: "multiple_choice", skill: "grammar", prompt: "Pergunta correta: \"Tem cadeiras?\"", options: ["Are there any chairs?", "Is there any chairs?", "There are chairs?"], answer: 0 },
+        { type: "translate", skill: "writing", prompt: "Não tem garagem.", accepted: ["There isn't a garage.", "There is no garage.", "There's no garage."] },
+        { type: "match_pairs", skill: "vocabulary", prompt: "Ligue os cômodos.", pairs: [["kitchen", "cozinha"], ["bedroom", "quarto"], ["bathroom", "banheiro"], ["living room", "sala de estar"]] },
+        { type: "listening", skill: "listening", prompt: "Quantos quartos tem?", audio: "There are three bedrooms and one bathroom.", options: ["Dois quartos", "Três quartos", "Um quarto"], answer: 1 },
+        { type: "word_order", skill: "grammar", prompt: "Tem uma cama grande no meu quarto.", answer: "There's a big bed in my bedroom.", distractors: ["have"] },
+      ],
+      conversation: { goal: "Descreva sua casa ou apartamento: cômodos e o que há em cada um.", starter: "Tell me about your home. Is it a house or an apartment? How many bedrooms are there?" },
+      review: ["there is (singular) / there are (plural).", "Negativa: isn't / aren't any.", "Pergunta: Is there...? Are there any...?"],
+    }),
+
+    buildLesson("a1-m4-l4", M, 4, {
+      title: "Onde fica?",
+      objective: "Dizer onde as coisas e os lugares estão usando preposições.",
+      explanation: [
+        {
+          title: "Preposições de lugar",
+          body: "Elas dizem **onde** algo está. Atenção: em português \"em\" serve para tudo; em inglês muda.",
+          table: {
+            head: ["Inglês", "Português", "Exemplo"],
+            rows: [
+              ["in", "dentro de", "The keys are in my bag."],
+              ["on", "em cima de (em contato)", "The phone is on the table."],
+              ["under", "embaixo de", "The cat is under the bed."],
+              ["next to", "ao lado de", "The bank is next to the pharmacy."],
+              ["between", "entre", "The café is between the bank and the hotel."],
+              ["opposite", "em frente a (do outro lado)", "The school is opposite the park."],
+            ],
+          },
+        },
+        { title: "Perguntando", body: "**Where is the bank?** / **Where's the station?** Responda com **It's next to...** ou **It's on Main Street** (rua usa **on**)." },
+      ],
+      vocabulary: [
+        { en: "bank", pt: "banco", say: "BÉNK" },
+        { en: "pharmacy", pt: "farmácia", say: "FÁR-ma-si" },
+        { en: "supermarket", pt: "supermercado", say: "SÚ-per-már-ket" },
+        { en: "station", pt: "estação", say: "STÊI-shan" },
+        { en: "park", pt: "parque", say: "PÁRK" },
+        { en: "street", pt: "rua", say: "STRÍIT" },
+        { en: "next to", pt: "ao lado de", say: "NÉKST tu" },
+        { en: "between", pt: "entre", say: "bi-TUÍIN" },
+        { en: "opposite", pt: "em frente a", say: "Ó-po-zit" },
+        { en: "near", pt: "perto de", say: "NÍER" },
+      ],
+      examples: [
+        { en: "Where's the pharmacy? — It's next to the bank.", pt: "Onde fica a farmácia? — Fica ao lado do banco." },
+        { en: "My phone is on the sofa.", pt: "Meu celular está no sofá." },
+        { en: "The hotel is on Oxford Street, near the station.", pt: "O hotel fica na Oxford Street, perto da estação." },
+      ],
+      exercises: [
+        { type: "multiple_choice", skill: "grammar", prompt: "O livro está EM CIMA da mesa: \"The book is ___ the table.\"", options: ["in", "on", "under"], answer: 1 },
+        { type: "multiple_choice", skill: "grammar", prompt: "As chaves estão DENTRO da bolsa: \"The keys are ___ my bag.\"", options: ["on", "at", "in"], answer: 2 },
+        { type: "fill_blank", skill: "grammar", sentence: "The cat is ___ the bed. (embaixo)", accepted: ["under"] },
+        { type: "fill_blank", skill: "grammar", sentence: "The café is ___ the bank and the hotel. (entre)", accepted: ["between"] },
+        { type: "translate", skill: "writing", prompt: "Onde fica a estação?", accepted: ["Where is the station?", "Where's the station?"] },
+        { type: "listening", skill: "listening", prompt: "Onde fica o supermercado?", audio: "The supermarket is opposite the park.", options: ["Ao lado do parque", "Em frente ao parque", "Dentro do parque"], answer: 1 },
+        { type: "word_order", skill: "grammar", prompt: "O banco fica ao lado da farmácia.", answer: "The bank is next to the pharmacy.", distractors: ["in"] },
+        { type: "match_pairs", skill: "vocabulary", prompt: "Ligue as palavras.", pairs: [["near", "perto de"], ["street", "rua"], ["between", "entre"], ["under", "embaixo de"]] },
+      ],
+      conversation: { goal: "Explique ao professor onde ficam três lugares perto da sua casa.", starter: "I'm new in your neighborhood! Is there a supermarket near your house? Where is it?" },
+      review: ["in = dentro, on = em cima/na rua, under = embaixo.", "next to, between, opposite, near.", "Where's...? → It's next to..."],
+    }),
+
+    buildLesson("a1-m4-test", M, 5, {
+      kind: "test",
+      title: "Avaliação do módulo 4",
+      objective: "Comprovar que você domina soletrar, cores e roupas, there is/are e preposições.",
+      explanation: [{ title: "Como funciona", body: "Exercícios de todo o módulo 4. Você precisa de **70%** para avançar." }],
+      vocabulary: [],
+      examples: [],
+      exercises: [
+        { type: "multiple_choice", skill: "vocabulary", prompt: "A letra \"I\" em inglês soa:", options: ["í", "ái", "êi"], answer: 1 },
+        { type: "multiple_choice", skill: "grammar", prompt: "\"Vestido vermelho\":", options: ["dress red", "red dress", "reds dress"], answer: 1 },
+        { type: "fill_blank", skill: "grammar", sentence: "There ___ two bathrooms in my house.", accepted: ["are"] },
+        { type: "translate", skill: "writing", prompt: "Tem uma farmácia perto daqui?", accepted: ["Is there a pharmacy near here?", "Is there a pharmacy nearby?"] },
+        { type: "fill_blank", skill: "grammar", sentence: "My phone is ___ the table. (em cima)", accepted: ["on"] },
+        { type: "listening", skill: "listening", prompt: "Ouça e escolha o sobrenome.", audio: "S. M. I. T. H.", options: ["SMYTH", "SMITH", "SMIHT"], answer: 1 },
+        { type: "word_order", skill: "grammar", prompt: "Ela está usando uma jaqueta preta.", answer: "She's wearing a black jacket." },
+        { type: "multiple_choice", skill: "grammar", prompt: "Pergunta correta:", options: ["Is there any windows?", "Are there any windows?", "There are windows?"], answer: 1 },
+        { type: "listening", skill: "listening", prompt: "Onde está o gato?", audio: "The cat is under the sofa.", options: ["Em cima do sofá", "Embaixo do sofá", "Ao lado do sofá"], answer: 1 },
+        { type: "multiple_choice", skill: "reading", prompt: "\"The bank is between the café and the station.\" O que fica no meio?", options: ["O café", "O banco", "A estação"], answer: 1 },
+      ],
+      review: ["Revise os pontos onde errou antes de tentar novamente."],
+    }),
+  ],
+};

@@ -17,7 +17,9 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Le
   const isTest = lesson.kind === "test";
   const phases: Phase[] = isTest ? ["explain", "practice", "result"] : ["explain", "vocab", "examples", "practice", "result"];
   const [phase, setPhase] = useState<Phase>("explain");
-  const [exIndex, setExIndex] = useState(0);
+  // Fila de exercícios: os errados voltam no fim da aula (uma vez). A nota usa só a 1ª tentativa.
+  const [queue, setQueue] = useState<number[]>(() => lesson.exercises.map((_, i) => i));
+  const [pos, setPos] = useState(0);
   const [answer, setAnswer] = useState<ExerciseAnswer | null>(null);
   const [grade, setGrade] = useState<GradeResult | null>(null);
   const [answers, setAnswers] = useState<{ exerciseId: string; answer: ExerciseAnswer }[]>([]);
@@ -32,21 +34,26 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Le
   }, []);
   useEffect(() => {
     topRef.current?.scrollIntoView({ block: "start" });
-  }, [phase, exIndex]);
+  }, [phase, pos]);
 
-  const exercise = lesson.exercises[exIndex];
+  const exercise = lesson.exercises[queue[pos]];
+  const total = lesson.exercises.length;
+  const isRetry = pos >= total;
   const phaseIdx = phases.indexOf(phase);
   const progress =
     phase === "practice"
-      ? ((phaseIdx + exIndex / lesson.exercises.length) / (phases.length - 1)) * 100
+      ? ((phaseIdx + pos / queue.length) / (phases.length - 1)) * 100
       : (phaseIdx / (phases.length - 1)) * 100;
 
   function check() {
     if (!answer || !exercise) return;
     const g = gradeExercise(exercise, answer);
     setGrade(g);
+    if (isRetry) return;
     setAnswers((a) => [...a, { exerciseId: exercise.id, answer }]);
     setResults((r) => [...r, g.correct]);
+    // Em aulas (não em avaliações), o exercício errado volta no fim para fixar.
+    if (!g.correct && !isTest) setQueue((q) => [...q, queue[pos]]);
   }
 
   function finish(all: { exerciseId: string; answer: ExerciseAnswer }[]) {
@@ -63,8 +70,8 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Le
   }
 
   function next() {
-    if (exIndex + 1 < lesson.exercises.length) {
-      setExIndex(exIndex + 1);
+    if (pos + 1 < queue.length) {
+      setPos(pos + 1);
       setAnswer(null);
       setGrade(null);
     } else {
@@ -74,7 +81,8 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Le
 
   function restart() {
     setPhase("practice");
-    setExIndex(0);
+    setQueue(lesson.exercises.map((_, i) => i));
+    setPos(0);
     setAnswer(null);
     setGrade(null);
     setAnswers([]);
@@ -188,9 +196,9 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId }: { lesson: Le
         {phase === "practice" && exercise && (
           <section aria-live="polite">
             <p className="mb-4 text-sm text-muted">
-              Exercício {exIndex + 1} de {lesson.exercises.length}
+              {isRetry ? "Vamos fixar: tente de novo o que você errou" : `Exercício ${pos + 1} de ${total}`}
             </p>
-            <ExerciseView key={exercise.id} exercise={exercise} locked={!!grade} result={grade} onChange={setAnswer} />
+            <ExerciseView key={`${exercise.id}-${pos}`} exercise={exercise} locked={!!grade} result={grade} onChange={setAnswer} />
           </section>
         )}
 

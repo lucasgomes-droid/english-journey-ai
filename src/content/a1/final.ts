@@ -6,7 +6,7 @@ const M = "a1-final";
 export const a1Final: Module = {
   id: M,
   level: "A1",
-  order: 4,
+  order: 9,
   title: "Avaliação final A1",
   description: "Teste de nível que libera o A2.",
   lessons: [
@@ -40,6 +40,14 @@ export const a1Final: Module = {
         { type: "translate", skill: "writing", prompt: "Ela não gosta de café.", accepted: ["She doesn't like coffee.", "She does not like coffee."] },
         { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "What do you do?", accepted: ["what do you do"] },
         { type: "multiple_choice", skill: "grammar", prompt: "\"Are they from Canada?\" — resposta curta positiva:", options: ["Yes, they do.", "Yes, they are.", "Yes, they is."], answer: 1 },
+        { type: "fill_blank", skill: "grammar", sentence: "There ___ a lot of people at the party.", accepted: ["were", "are"] },
+        { type: "multiple_choice", skill: "grammar", prompt: "Frase correta:", options: ["She can speaks French.", "She can speak French.", "She cans speak French."], answer: 1 },
+        { type: "fill_blank", skill: "grammar", sentence: "Shh! The baby is ___ (sleep).", accepted: ["sleeping"] },
+        { type: "translate", skill: "writing", prompt: "Quanto custa esta camisa?", accepted: ["How much is this shirt?", "How much does this shirt cost?"] },
+        { type: "multiple_choice", skill: "grammar", prompt: "\"Did you ___ the email?\"", options: ["saw", "see", "seen"], answer: 1 },
+        { type: "listening", skill: "listening", prompt: "Onde fica a farmácia?", audio: "The pharmacy is next to the supermarket.", options: ["Ao lado do supermercado", "Em frente ao supermercado", "Dentro do supermercado"], answer: 0 },
+        { type: "word_order", skill: "grammar", prompt: "Eu fui ao cinema ontem à noite.", answer: "I went to the cinema last night.", distractors: ["go"] },
+        { type: "translate", skill: "writing", prompt: "Está ensolarado hoje.", accepted: ["It's sunny today.", "It is sunny today.", "Today it's sunny."] },
       ],
       review: ["Revise os pontos onde errou antes de tentar novamente."],
     }),

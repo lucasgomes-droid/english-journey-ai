@@ -12,6 +12,7 @@ import type { Exercise } from "../../src/content/types";
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const SHOTS = process.env.SHOTS_DIR ?? "./screenshots";
 const email = `aluno${Date.now()}@example.com`;
+let current: Page | null = null;
 
 async function answer(page: Page, ex: Exercise, wrong = false) {
   const section = page.locator("main section, main .panel").first();
@@ -66,6 +67,17 @@ async function doLesson(page: Page, lessonIdx: number, wrongIdx: number[] = []) 
     if (expectCorrect !== /Correto/.test(txt)) throw new Error(`Exercício ${ex.id}: esperado ${expectCorrect ? "certo" : "errado"}, tela: ${txt}`);
     await page.getByRole("button", { name: "Continuar" }).click();
   }
+  // Exercícios errados voltam no fim da aula (não em avaliações): responder certo agora.
+  if (lesson.kind === "lesson") {
+    for (const i of wrongIdx) {
+      await page.getByText("Vamos fixar").waitFor();
+      await answer(page, lesson.exercises[i]);
+      await page.getByRole("button", { name: "Verificar" }).click();
+      const st = (await page.getByRole("status").first().textContent()) ?? "";
+      if (!/Correto/.test(st)) throw new Error(`Repetição de ${lesson.exercises[i].id} deveria estar certa: ${st}`);
+      await page.getByRole("button", { name: "Continuar" }).click();
+    }
+  }
   await page.getByText(/\+\d+ XP/).first().waitFor({ timeout: 15000 });
   return lesson;
 }
@@ -73,6 +85,7 @@ async function doLesson(page: Page, lessonIdx: number, wrongIdx: number[] = []) 
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 860 } });
+  current = page;
   page.on("pageerror", (e) => console.error("ERRO NA PÁGINA:", e.message));
 
   await page.goto(`${BASE}/cadastro`);
@@ -172,7 +185,8 @@ async function doLesson(page: Page, lessonIdx: number, wrongIdx: number[] = []) 
 
   console.log(`E-mail de teste: ${email}`);
   await browser.close();
-})().catch((e) => {
+})().catch(async (e) => {
   console.error("FALHOU:", e);
+  await current?.screenshot({ path: `${SHOTS}/falha.png`, fullPage: true }).catch(() => {});
   process.exit(1);
 });
