@@ -75,3 +75,29 @@ export async function verifyPracticePlan(id: number) {
   revalidatePath(`/dificuldades/${plan.category}`);
   return { ok: true as const, improved: v.improved, summary: v.summary };
 }
+
+const adaptiveSchema = z.array(z.object({ exerciseId: z.string().max(80), correct: z.boolean(), ms: z.number().int().min(0).max(600_000).optional() })).min(1).max(30);
+
+/** Treino adaptativo: os resultados alimentam as dificuldades e a revisão (exercícios da trilha). */
+export async function submitAdaptive(results: z.infer<typeof adaptiveSchema>) {
+  const parsed = adaptiveSchema.safeParse(results);
+  if (!parsed.success) return { ok: false as const };
+  const { supabase, user, profile } = await getSession();
+  const { getExercise } = await import("@/content/curriculum");
+  const { recordActivity } = await import("@/lib/progress");
+  const rows = parsed.data
+    .map((r) => ({ r, e: getExercise(r.exerciseId) }))
+    .filter((x) => x.e)
+    .map(({ r, e }) => ({ user_id: user.id, lesson_id: e!.lessonId, exercise_id: r.exerciseId, skill: e!.exercise.skill, answer: { kind: "adaptive" }, correct: r.correct, response_ms: r.ms ?? null }));
+  if (rows.length) await supabase.from("exercise_answers").insert(rows);
+  const wrong = rows.filter((r) => !r.correct);
+  if (wrong.length)
+    await supabase.from("review_items").upsert(
+      wrong.map((w) => ({ user_id: user.id, item_type: "exercise", item_id: w.exercise_id, repetitions: 0, interval_days: 0, due_at: new Date(Date.now() + 10 * 60_000).toISOString() })),
+      { onConflict: "user_id,item_type,item_id" },
+    );
+  const correct = parsed.data.filter((r) => r.correct).length;
+  if (profile) await recordActivity(supabase, profile, { kind: "review", ref: "adaptive", title: "Treino adaptativo", xp: correct, durationSeconds: Math.round(parsed.data.reduce((s, r) => s + (r.ms ?? 0), 0) / 1000), score: Math.round((correct / parsed.data.length) * 100) }).catch(() => null);
+  // Sem revalidatePath aqui: recarregar a página sortearia outro treino por cima do resumo.
+  return { ok: true as const };
+}

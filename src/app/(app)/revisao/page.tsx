@@ -2,6 +2,10 @@ import Link from "next/link";
 import { getExercise, getVocab } from "@/content/curriculum";
 import { getSession } from "@/lib/data";
 import { ReviewSession, type ReviewCard } from "./review-session";
+import { loadPatterns } from "@/lib/difficulties";
+import { lessonCategory } from "@/lib/difficulty-rules";
+import { classifyCorrection, type ErrorCategory } from "@/content/error-patterns";
+import { prioritizeReview } from "@/lib/adaptive";
 
 export const metadata = { title: "Revisão" };
 
@@ -9,7 +13,7 @@ export default async function ReviewPage() {
   const { supabase, user } = await getSession();
   const now = new Date().toISOString();
   const [{ data }, { count: total }, { data: upcoming }] = await Promise.all([
-    supabase.from("review_items").select("item_type, item_id, lapses").eq("user_id", user.id).lte("due_at", now).order("due_at").limit(20),
+    supabase.from("review_items").select("item_type, item_id, lapses, due_at").eq("user_id", user.id).lte("due_at", now).order("due_at").limit(80),
     supabase.from("review_items").select("item_id", { count: "exact", head: true }).eq("user_id", user.id),
     supabase.from("review_items").select("due_at").eq("user_id", user.id).gt("due_at", now).order("due_at").limit(1),
   ]);
@@ -26,8 +30,25 @@ export default async function ReviewPage() {
   const { data: phRows } = phIds.length ? await supabase.from("personal_phrases").select("id, en, pt").in("id", phIds).eq("user_id", user.id) : { data: [] as { id: number; en: string; pt: string }[] };
   const phById = new Map((phRows ?? []).map((p) => [`ph-${p.id}`, p]));
 
+  // Adaptativo: temas em que você mais erra vêm primeiro na revisão.
+  const { patterns } = await loadPatterns(supabase, user.id);
+  const weak = new Set(patterns.filter((p) => p.recent >= 2).slice(0, 3).map((p) => p.category));
+  const categoryOf = (r: { item_type: string; item_id: string }): ErrorCategory | null => {
+    if (r.item_type === "vocab") return "vocabulary";
+    if (r.item_type === "exercise") {
+      const e = getExercise(r.item_id);
+      return e ? lessonCategory(e.lessonId, e.exercise.skill) : null;
+    }
+    if (r.item_type === "grammar") {
+      const c = corrById.get(r.item_id) as ({ original: string; corrected: string; category?: ErrorCategory } | undefined);
+      return c ? (c.category ?? classifyCorrection(c.original, c.corrected)) : null;
+    }
+    return null;
+  };
+  const ordered = prioritizeReview((data ?? []).map((r) => ({ ...r, category: categoryOf(r) })), weak).slice(0, 20);
+
   const cards: ReviewCard[] = [];
-  for (const r of data ?? []) {
+  for (const r of ordered) {
     if (r.item_type === "grammar") {
       const c = corrById.get(r.item_id);
       if (c?.corrected) cards.push({ kind: "grammar", id: r.item_id, original: c.original, corrected: c.corrected, explanation: c.explanation_pt, struggling: r.lapses >= 2 });

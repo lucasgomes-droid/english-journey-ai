@@ -212,9 +212,14 @@ export default async function MyTeacherPage() {
         ) : (
           <p className="mt-2 text-sm text-muted">Seus erros corrigidos aparecem aqui.</p>
         )}
-        <Link href="/dificuldades" className="mt-3 inline-flex items-center gap-1 text-sm font-bold underline">
-          Ver todos os padrões em Minhas Dificuldades
-        </Link>
+        <div className="mt-3 flex flex-wrap gap-4 text-sm font-bold">
+          <Link href="/dificuldades" className="underline">
+            Ver todos os padrões em Minhas Dificuldades
+          </Link>
+          <Link href="/relatorio" className="underline">
+            Relatório semanal
+          </Link>
+        </div>
       </section>
 
       <section className="panel p-5">

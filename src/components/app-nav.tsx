@@ -9,7 +9,7 @@ import { Home, Route, Dumbbell, MessagesSquare, Mic, Headphones, Sparkles, Trian
 const ITEMS = [
   { href: "/", label: "Início", icon: Home, match: ["/"] },
   { href: "/trilha", label: "Minha Trilha", short: "Trilha", icon: Route, match: ["/trilha", "/aula"] },
-  { href: "/praticar", label: "Praticar", icon: Dumbbell, match: ["/praticar", "/mini-aulas", "/revisao", "/falar"] },
+  { href: "/praticar", label: "Praticar", icon: Dumbbell, match: ["/praticar", "/mini-aulas", "/revisao", "/falar", "/relatorio"] },
   { href: "/conversar", label: "Conversação", short: "Conversar", icon: MessagesSquare, match: ["/conversar", "/professor"] },
   { href: "/pronuncia", label: "Pronúncia", icon: Mic, match: ["/pronuncia"] },
   { href: "/listening", label: "Listening", icon: Headphones, match: ["/listening"] },

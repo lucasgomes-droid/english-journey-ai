@@ -5,16 +5,18 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { ExerciseView } from "@/components/exercise-view";
 import { gradeExercise, scorePercent, type ExerciseAnswer, type GradeResult } from "@/lib/grading";
-import { saveDrillScore } from "@/app/actions/difficulties";
+import { saveDrillScore, submitAdaptive } from "@/app/actions/difficulties";
 import type { Exercise } from "@/content/types";
 
 /** Etapa 4 do plano: exercícios específicos do tema (inclui frases que o próprio aluno errou). */
-export function DrillRunner({ planId, drills }: { planId: number; drills: Exercise[] }) {
+export function DrillRunner({ planId, drills, adaptive = false, labels }: { planId?: number; drills: Exercise[]; adaptive?: boolean; labels?: Record<string, string> }) {
   const router = useRouter();
   const [pos, setPos] = useState(0);
   const [answer, setAnswer] = useState<ExerciseAnswer | null>(null);
   const [grade, setGrade] = useState<GradeResult | null>(null);
   const [results, setResults] = useState<boolean[]>([]);
+  const [timed, setTimed] = useState<{ exerciseId: string; correct: boolean; ms: number }[]>([]);
+  const [shownAt, setShownAt] = useState(() => Date.now());
   const [done, setDone] = useState<number | null>(null);
   const [pending, start] = useTransition();
   const ex = drills[pos];
@@ -24,22 +26,55 @@ export function DrillRunner({ planId, drills }: { planId: number; drills: Exerci
     const g = gradeExercise(ex, answer);
     setGrade(g);
     setResults((r) => [...r, g.correct]);
+    setTimed((t) => [...t, { exerciseId: ex.id, correct: g.correct, ms: Math.min(600_000, Date.now() - shownAt) }]);
   }
   function next() {
     if (pos + 1 < drills.length) {
       setPos(pos + 1);
       setAnswer(null);
       setGrade(null);
+      setShownAt(Date.now());
       return;
     }
     const score = scorePercent(results);
     setDone(score);
     start(async () => {
-      await saveDrillScore(planId, score);
-      router.refresh();
+      // No treino adaptativo não recarrega a página (isso sortearia um treino novo e esconderia o resumo).
+      if (adaptive) await submitAdaptive(timed);
+      else if (planId) {
+        await saveDrillScore(planId, score);
+        router.refresh();
+      }
     });
   }
 
+  if (done !== null && adaptive && labels) {
+    const by = new Map<string, { ok: number; n: number }>();
+    timed.forEach((t) => {
+      const k = labels[t.exerciseId] ?? "Outros";
+      const e = by.get(k) ?? { ok: 0, n: 0 };
+      e.n++;
+      if (t.correct) e.ok++;
+      by.set(k, e);
+    });
+    return (
+      <div className="space-y-3" role="status">
+        <p className="rounded-xl bg-surface-2 p-4">
+          Você acertou <strong>{done}%</strong>. {pending ? "Salvando…" : "Seus resultados já ajustaram os próximos treinos e a revisão."}
+        </p>
+        <ul className="space-y-1 text-sm">
+          {Array.from(by.entries()).map(([k, v]) => (
+            <li key={k} className="flex justify-between gap-2">
+              <span>{k}</span>
+              <span className="tabular-nums text-muted">
+                {v.ok}/{v.n}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
   if (done !== null)
     return (
       <p className="rounded-xl bg-surface-2 p-4" role="status">

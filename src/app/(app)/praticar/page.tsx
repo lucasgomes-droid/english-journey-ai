@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AudioLines, BookOpenText, CalendarCheck, Headphones, Phone, RotateCcw, Target, Timer, UserRound } from "lucide-react";
+import { AudioLines, BarChart3, BookOpenText, CalendarCheck, Headphones, Phone, RotateCcw, Shuffle, Timer, UserRound } from "lucide-react";
 import { getSession } from "@/lib/data";
 import { MINI_LESSONS } from "@/content/mini";
 import { LISTENING } from "@/content/listening";
@@ -11,15 +11,16 @@ export default async function PraticarPage() {
   const { count } = await supabase.from("review_items").select("item_id", { count: "exact", head: true }).eq("user_id", user.id).lte("due_at", new Date().toISOString());
 
   const tiles = [
+    { href: "/praticar/adaptativo", icon: Shuffle, title: "Treino adaptativo", text: "12 exercícios escolhidos pelos seus erros: mais do que você erra, menos do que já domina.", tone: "bg-[#0e4d57] text-white" },
     { href: "/professor?ligar=1", icon: Phone, title: "Ligação com o professor", text: "Conversa só por voz, como uma ligação. Correções no final.", tone: "bg-[#ffd6a5] text-[#3d2200]" },
     { href: "/falar/vida", icon: UserRound, title: "Fale sobre sua vida", text: "Conte sobre você e ganhe frases em inglês no seu nível para treinar.", tone: "bg-[#ffe5ec] text-[#4a1426]" },
     { href: "/falar/desafio", icon: Timer, title: "Desafio de 1 minuto", text: "Fale sem parar sobre um tema. Veja seu ritmo e como dizer melhor.", tone: "bg-[#d8f3dc] text-[#10361b]" },
     { href: "/falar/semanal", icon: CalendarCheck, title: "Gravação semanal", text: "2 minutos por semana para ouvir sua evolução.", tone: "bg-[#e9e3ff] text-[#241a4d]" },
     { href: "/pronuncia", icon: AudioLines, title: "Pronúncia", text: "Pares mínimos (think × sink), sons em frases e shadowing.", tone: "bg-[#bde0fe] text-[#0b2540]" },
     { href: "/mini-aulas", icon: BookOpenText, title: "Mini-aulas", text: `${MINI_LESSONS.length} lições de 5 minutos: pedir comida, se apresentar, aeroporto, entrevista…`, tone: "bg-boarding text-boarding-ink" },
-    { href: "/listening", icon: Headphones, title: "Listening", text: `${LISTENING.length} áudios do A1 ao C2, com perguntas e ditado.`, tone: "bg-[#0e4d57] text-white" },
+    { href: "/listening", icon: Headphones, title: "Listening", text: `${LISTENING.length} áudios do A1 ao C2, com perguntas e ditado.`, tone: "bg-[#ffd6a5] text-[#3d2200]" },
     { href: "/revisao", icon: RotateCcw, title: "Revisão", text: count ? `${count} ${count === 1 ? "item espera" : "itens esperam"} por você agora.` : "Nada pendente agora. Volte mais tarde.", tone: "bg-[#e7c8dd] text-[#3d1d33]" },
-    { href: "/diagnostico", icon: Target, title: "Meus pontos fracos", text: "Descubra onde você mais erra: listening, palavras, gramática ou conversação.", tone: "bg-[#cfe8d8] text-[#12391f]" },
+    { href: "/relatorio", icon: BarChart3, title: "Relatório semanal", text: "Sua semana comparada com a anterior: tempo, acertos, conversa, pronúncia e erros por tema.", tone: "bg-[#cfe8d8] text-[#12391f]" },
   ];
 
   return (
