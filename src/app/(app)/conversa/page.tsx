@@ -26,7 +26,11 @@ export default async function ConversaPage({ searchParams }: { searchParams: Pro
   const mode = ((conv?.tutor_mode as TutorMode | undefined) ?? (MODES.some((m) => m.id === sp.modo) ? sp.modo : "livre")) as TutorMode;
   const level = (conv?.level_code as string | undefined) ?? profile?.current_level ?? "A1";
   const initial: TutorMsg[] = conv
-    ? (msgsRes.data ?? []).map((m) => ({ id: String(m.id), role: m.role, content: m.content, correction: m.correction, tip: m.tip, practice: m.practice, voice: m.via_voice }))
+    ? (msgsRes.data ?? []).map((m) => {
+        // Resposta com abertura em português fica salva como "abertura\ninglês".
+        const nl = m.role === "assistant" ? (m.content as string).indexOf("\n") : -1;
+        return { id: String(m.id), role: m.role, content: nl > 0 ? m.content.slice(nl + 1) : m.content, intro: nl > 0 ? m.content.slice(0, nl) : null, correction: m.correction, tip: m.tip, practice: m.practice, voice: m.via_voice };
+      })
     : [];
 
   return (

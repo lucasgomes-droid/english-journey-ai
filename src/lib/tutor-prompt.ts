@@ -76,7 +76,8 @@ ${ctx.tutorMode === "imersao" ? "" : `LANGUAGE: you understand Portuguese and En
 How to behave:
 - Talk about ANY topic the student brings (work, travel, technology, logistics, job interviews, daily life...). Show genuine interest, react to the details they give, share a short opinion or experience, and ask ONE spontaneous follow-up question that develops what they said. Do not interview them with generic questions.
 - Keep replies short and speakable (1–3 sentences). No lists, no markdown, no emojis.
-- When the student asks how to say something ("como falo...", "how do I say...") or uses Portuguese for a missing word: give the natural English in the reply ("You can say: ...") and put it in "practice" so the app asks them to repeat it. Then, in later turns, create a chance for them to use it again.
+- When the student asks how to say something ("como falo...", "how do I say...") or uses Portuguese for a missing word: give the natural English in the reply and put it in "practice" so the app asks them to repeat it. Then, in later turns, create a chance for them to use it again.
+${ctx.tutorMode === "imersao" ? "" : `- When the student WROTE IN PORTUGUESE (fully or mostly), answer like a Brazilian teacher would: put a short Portuguese lead-in in "intro_pt" (e.g. "O jeito de falar isso em inglês é:" or "Em inglês, a gente diz:"), and put ONLY the English in "reply" (e.g. "I'm going to sleep. Now you try!"). The app speaks intro_pt with a Portuguese voice and reply with an English voice. If the student wrote in English, intro_pt must be null.`}
 - Explain a native expression or slang you use when it may be new for the level (in tip_pt).
 - Correct without embarrassing: be encouraging and specific.
 - SPEECH RECOGNITION: the student's message usually comes from automatic speech recognition. A strange or out-of-place word is more likely a recognition error than a grammar or pronunciation error: never correct it as a mistake. If you cannot tell what they meant, ask them naturally to repeat or rephrase (correction null).
@@ -86,7 +87,8 @@ ${ctx.memory ? `\nWHAT YOU REMEMBER ABOUT THIS STUDENT (work on these points nat
 ${ctx.recentMistakes.length ? `\nRecent mistakes: ${ctx.recentMistakes.slice(0, 5).join(" | ")}` : ""}
 
 Respond ONLY with a JSON object, no markdown:
-{"reply": "what you say (English, following the language rules)",
+{${ctx.tutorMode === "imersao" ? "" : `"intro_pt": null or "short Portuguese lead-in (only when the student wrote in Portuguese)",
+ `}"reply": "what you say (English, following the language rules)",
  "correction": null or {"original": "student's phrase with the mistake", "corrected": "natural correct version", "explanation_pt": "${ctx.tutorMode === "imersao" ? "short explanation in simple English" : "explicação curta"}"},
  "tip_pt": null or "short tip about an expression",
  "practice": null or {"en": "the exact English phrase to repeat (max 12 words)", "pt": "Portuguese translation", "reason": "teach" or "pronunciation" or "correction"}}`;
@@ -99,6 +101,8 @@ export interface TutorPractice {
 }
 
 export interface TutorReply {
+  /** Abertura em português quando o aluno falou em português ("O jeito de falar isso em inglês é:"). */
+  intro_pt?: string | null;
   practice?: TutorPractice | null;
   reply: string;
   scene_complete?: boolean;
@@ -123,7 +127,9 @@ export function parseTutorReply(raw: string): TutorReply {
           p && typeof p === "object" && typeof p.en === "string" && p.en.trim() && p.en.split(/\s+/).length <= 16
             ? { en: p.en.trim(), pt: String(p.pt ?? "").trim(), reason: (["teach", "pronunciation", "correction"].includes(String(p.reason)) ? p.reason : "teach") as TutorPractice["reason"] }
             : null;
+        const intro = (obj as { intro_pt?: unknown }).intro_pt;
         return {
+          intro_pt: typeof intro === "string" && intro.trim() ? intro.trim().slice(0, 200) : null,
           practice,
           reply: obj.reply.trim(),
           correction,

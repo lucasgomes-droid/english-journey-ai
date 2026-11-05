@@ -159,7 +159,7 @@ export async function POST(req: Request) {
           ),
         ])
       : Promise.resolve(null),
-    supabase.from("messages").insert({ conversation_id: conversationId, user_id: user.id, role: "assistant", content: reply.reply, tip: reply.tip_pt, practice: reply.practice ?? null }).select("id").single(),
+    supabase.from("messages").insert({ conversation_id: conversationId, user_id: user.id, role: "assistant", content: reply.intro_pt ? `${reply.intro_pt}\n${reply.reply}` : reply.reply, tip: reply.tip_pt, practice: reply.practice ?? null }).select("id").single(),
     supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId),
     // XP pela prática de conversação (2 XP por mensagem; cena concluída vale +15).
     recordActivity(supabase, profile, {
@@ -182,5 +182,6 @@ export async function POST(req: Request) {
     tip: reply.tip_pt,
     sceneComplete: Boolean(reply.scene_complete),
     practice: reply.practice ?? null,
+    introPt: reply.intro_pt ?? null,
   });
 }

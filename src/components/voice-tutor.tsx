@@ -17,6 +17,8 @@ export interface TutorMsg {
   id: string;
   role: "user" | "assistant";
   content: string;
+  /** Abertura em português (quando o aluno falou em português). */
+  intro?: string | null;
   correction: { original: string; corrected: string; explanation_pt: string } | null;
   tip: string | null;
   practice: { en: string; pt: string; reason: string } | null;
@@ -28,6 +30,9 @@ type Status = "idle" | "listening" | "thinking" | "speaking" | "repeat";
 const TEACHER: AvatarLook = { skin: "#e0ac69", hair: "#2d2d2d", hairStyle: "short", shirt: "#2f62b5", bg: "#f3c24f", accessory: "glasses" };
 /** Velocidade da voz do professor por nível (mais devagar no começo). */
 const RATE: Record<string, number> = { A1: 0.82, A2: 0.9, B1: 0.96, B2: 1, C1: 1, C2: 1.05 };
+/** Relógio fora do componente (evita o aviso de função impura do React Compiler). */
+const now = () => Date.now();
+
 const MODE_LABEL: Record<TutorMode, string> = { livre: "Livre", professor: "Professor", imersao: "Imersão" };
 
 /**
@@ -79,7 +84,7 @@ export function VoiceTutor({
   }, [messages, status]);
   // Momento em que o aluno começou a falar (para medir o tempo de resposta).
   useEffect(() => {
-    if (rec.state === "speaking" && speechAt.current === null) speechAt.current = Date.now();
+    if (rec.state === "speaking" && speechAt.current === null) speechAt.current = now();
   }, [rec.state]);
 
   async function send(content: string, viaVoice: boolean): Promise<TutorMsg | null> {
@@ -87,7 +92,7 @@ export function VoiceTutor({
     if (!msg) return null;
     setError(null);
     const tempId = `u-${++seq.current}`;
-    const responseMs = readyAt.current ? Math.max(0, (speechAt.current ?? Date.now()) - readyAt.current) : undefined;
+    const responseMs = readyAt.current ? Math.max(0, (speechAt.current ?? now()) - readyAt.current) : undefined;
     setMessages((m) => [...m, { id: tempId, role: "user", content: msg, correction: null, tip: null, practice: null, voice: viaVoice }]);
     set("thinking");
     try {
@@ -103,7 +108,7 @@ export function VoiceTutor({
         window.history.replaceState(null, "", `/conversa?c=${data.conversationId}`);
       }
       if (!res.ok) throw new Error(data.error ?? "Não foi possível obter resposta.");
-      const a: TutorMsg = { id: String(data.assistantMessageId ?? `a-${++seq.current}`), role: "assistant", content: data.reply, correction: null, tip: data.tip, practice: data.practice };
+      const a: TutorMsg = { id: String(data.assistantMessageId ?? `a-${++seq.current}`), role: "assistant", content: data.reply, intro: data.introPt ?? null, correction: null, tip: data.tip, practice: data.practice };
       setMessages((m) => [...m.map((x) => (x.id === tempId ? { ...x, id: String(data.userMessageId), correction: data.correction } : x)), a]);
       return a;
     } catch (e) {
@@ -114,11 +119,21 @@ export function VoiceTutor({
     }
   }
 
-  async function say(t: string) {
+  /** Fala e sempre termina: se o áudio travar, segue a conversa depois do tempo esperado. */
+  async function say(t: string, lang: "en" | "pt" = "en") {
     set("speaking");
-    await voice.speak(t, { rate });
-    readyAt.current = Date.now();
+    const limit = (t.split(/\s+/).length * 0.8) / rate * 1000 + 8000;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    await Promise.race([voice.speak(t, { rate: lang === "pt" ? 1.05 : rate, lang }), new Promise<void>((r) => (timer = setTimeout(r, limit)))]);
+    clearTimeout(timer);
+    readyAt.current = now();
     speechAt.current = null;
+  }
+
+  /** Resposta do professor: a abertura em português (voz em português) e depois o inglês. */
+  async function sayReply(a: TutorMsg) {
+    if (a.intro) await say(a.intro, "pt");
+    if (loopOn.current || statusRef.current === "speaking") await say(a.content);
   }
 
   /** Repetição durante a conversa: até 2 tentativas, com retorno falado curto. */
@@ -177,7 +192,7 @@ export function VoiceTutor({
         set("idle");
         return;
       }
-      await say(a.content);
+      await sayReply(a);
       if (a.practice && loopOn.current) await repeatTurn(a);
     }
   }
@@ -209,7 +224,7 @@ export function VoiceTutor({
     unlockAudio();
     const a = await send(text, false);
     setText("");
-    if (a) await say(a.content);
+    if (a) await sayReply(a);
     set("idle");
   }
 
@@ -230,6 +245,20 @@ export function VoiceTutor({
     } finally {
       setReporting(false);
     }
+  }
+
+  /** Pausa a conversa por voz (para ouvir de novo sem o microfone captar o professor). */
+  function pauseLoop() {
+    if (!loopOn.current) return;
+    loopOn.current = false;
+    rec.cancel();
+    set("idle");
+  }
+
+  /** Ouvir de novo. */
+  async function sayAgain(m: TutorMsg) {
+    if (m.intro) await voice.speak(m.intro, { lang: "pt" });
+    await voice.speak(m.content, { rate });
   }
 
   const userTurns = messages.filter((m) => m.role === "user").length;
@@ -282,15 +311,24 @@ export function VoiceTutor({
           {messages.map((m) => (
             <li key={m.id} className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
               <span className="mb-1 text-xs font-bold text-muted">{m.role === "user" ? `Você${m.voice ? " (voz)" : ""}` : "Alex"}</span>
-              <div lang="en" className={`max-w-[88%] rounded-2xl px-4 py-2.5 ${m.role === "user" ? "rounded-br-md bg-atlantic text-surface" : "rounded-bl-md bg-surface-2"}`}>
-                {m.content}
+              <div className={`max-w-[88%] rounded-2xl px-4 py-2.5 ${m.role === "user" ? "rounded-br-md bg-atlantic text-surface" : "rounded-bl-md bg-surface-2"}`}>
+                {m.intro && (
+                  <span className="mb-1 block text-sm italic text-muted" lang="pt-BR">
+                    {m.intro}
+                  </span>
+                )}
+                <span lang="en">{m.content}</span>
               </div>
               {m.role === "assistant" && (
                 <div className="mt-1 flex flex-wrap items-center gap-1">
-                  <button type="button" onClick={() => (unlockAudio(), voice.speak(m.content, { rate }))} className="inline-grid size-8 place-items-center rounded-full text-atlantic hover:bg-surface-2" aria-label="Ouvir de novo">
+                  <button type="button" onClick={() => {
+                      unlockAudio();
+                      pauseLoop();
+                      sayAgain(m);
+                    }} className="inline-grid size-8 place-items-center rounded-full text-atlantic hover:bg-surface-2" aria-label="Ouvir de novo">
                     <Volume2 size={16} aria-hidden />
                   </button>
-                  <button type="button" onClick={() => (unlockAudio(), voice.speak(m.content, { rate: 0.7 }))} className="inline-grid size-8 place-items-center rounded-full text-atlantic hover:bg-surface-2" aria-label="Repetir mais devagar">
+                  <button type="button" onClick={() => (unlockAudio(), pauseLoop(), voice.speak(m.content, { rate: 0.7 }))} className="inline-grid size-8 place-items-center rounded-full text-atlantic hover:bg-surface-2" aria-label="Repetir mais devagar">
                     <Snail size={16} aria-hidden />
                   </button>
                   {translation.on && mode !== "imersao" && <TranslateInline text={m.content} />}

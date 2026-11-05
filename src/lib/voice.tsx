@@ -23,6 +23,16 @@ export type VoiceName = "f1" | "f2" | "f3" | "m1" | "m2" | "m3";
 
 // Um único <audio> compartilhado: desbloqueado no primeiro toque (exigência do iPhone).
 let sharedAudio: HTMLAudioElement | null = null;
+/**
+ * Quem está esperando o fim do áudio compartilhado. Se outra fala começar (ou alguém parar o áudio),
+ * essa espera é liberada — senão a conversa por voz ficava presa em "falando…" para sempre.
+ */
+let pendingEnd: (() => void) | null = null;
+function releasePending() {
+  const r = pendingEnd;
+  pendingEnd = null;
+  r?.();
+}
 const audioCache = new Map<string, string>(); // texto+voz → object URL
 
 // Voz natural com problema (ex.: serviço fora do ar): evita tentar de novo por 10 min.
@@ -126,7 +136,8 @@ async function fetchTts(text: string, voice: VoiceName): Promise<string> {
   const key = `${voice}|${text}`;
   const hit = audioCache.get(key);
   if (hit) return hit;
-  const res = await fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, voice }) });
+  // Sem resposta em 12 s: desiste da voz natural e usa a do aparelho (não trava a conversa).
+  const res = await fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, voice }), signal: AbortSignal.timeout(12_000) });
   if (!res.ok) throw new Error(`tts ${res.status}`);
   const url = URL.createObjectURL(await res.blob());
   audioCache.set(key, url);
@@ -151,6 +162,7 @@ export function useVoice() {
       a.pause();
       a.onended = null;
     }
+    releasePending();
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       const synth = window.speechSynthesis;
       // Cancelar sem nada tocando faz o Android descartar a próxima fala.
@@ -169,22 +181,25 @@ export function useVoice() {
 
   /** Voz do próprio aparelho, em trechos curtos (o Android corta falas longas). */
   const browserSpeak = useCallback(
-    async (text: string, rate: number) => {
+    async (text: string, rate: number, lang = "en") => {
       if (typeof window === "undefined" || !("speechSynthesis" in window)) {
         setAudioIssue("no-voice");
         return;
       }
       const synth = window.speechSynthesis;
       const voices = synth.getVoices();
-      const en = voices.filter((x) => x.lang?.toLowerCase().replace("_", "-").startsWith("en"));
-      if (voices.length > 0 && en.length === 0) setAudioIssue("no-voice");
-      const v = en.find((x) => x.lang.toLowerCase().replace("_", "-") === "en-us") ?? en[0] ?? null;
+      const en = voices.filter((x) => x.lang?.toLowerCase().replace("_", "-").startsWith(lang));
+      if (voices.length > 0 && en.length === 0) {
+        if (lang !== "en") return; // sem voz em português: só mostra o texto
+        setAudioIssue("no-voice");
+      }
+      const v = en.find((x) => x.lang.toLowerCase().replace("_", "-") === (lang === "en" ? "en-us" : "pt-br")) ?? en[0] ?? null;
       const my = token.current;
       for (const part of chunkText(text, 160)) {
         if (my !== token.current) return;
         const ok = await new Promise<boolean>((resolve) => {
           const u = new SpeechSynthesisUtterance(part);
-          u.lang = v?.lang ?? "en-US";
+          u.lang = v?.lang ?? (lang === "en" ? "en-US" : "pt-BR");
           if (v) u.voice = v;
           u.rate = rate;
           let started = false;
@@ -192,6 +207,8 @@ export function useVoice() {
           const guard = setTimeout(() => resolve(started), 4000);
           u.onstart = () => {
             started = true;
+            // Alguns navegadores nunca avisam o fim da fala: libera depois do tempo esperado.
+            setTimeout(() => resolve(true), (part.split(/\s+/).length * 0.8) / Math.max(0.5, rate) * 1000 + 5000);
           };
           u.onend = () => {
             clearTimeout(guard);
@@ -215,13 +232,18 @@ export function useVoice() {
   );
 
   const speak = useCallback(
-    async (text: string, opts: { voice?: VoiceName; rate?: number } = {}) => {
+    async (text: string, opts: { voice?: VoiceName; rate?: number; lang?: "en" | "pt" } = {}) => {
       halt();
       const my = ++token.current;
       const rate = opts.rate ?? 1;
       const voice = opts.voice ?? "f1";
       setSpeaking(true);
       try {
+        // Português: a voz natural do servidor é só em inglês, então usa a voz do aparelho.
+        if (opts.lang === "pt") {
+          await browserSpeak(text, rate, "pt");
+          return;
+        }
         if (caps.neural && !neuralBroken) {
           const chunks = chunkText(text);
           let next: Promise<string> | null = fetchTts(chunks[0], voice);
@@ -234,14 +256,31 @@ export function useVoice() {
             a.playbackRate = rate;
             (a as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
             await new Promise<void>((resolve, reject) => {
-              a.onended = () => resolve();
-              a.onerror = () => reject(new Error("audio"));
+              releasePending();
+              // Trava de segurança: se o "fim do áudio" nunca chegar, segue em frente.
+              const guard = setTimeout(done, (chunks[i].split(/\s+/).length * 0.75) / Math.max(0.5, rate) * 1000 + 6000);
+              function done() {
+                clearTimeout(guard);
+                if (pendingEnd === done) pendingEnd = null;
+                resolve();
+              }
+              pendingEnd = done;
+              a.onended = done;
+              a.onerror = () => {
+                clearTimeout(guard);
+                if (pendingEnd === done) pendingEnd = null;
+                reject(new Error("audio"));
+              };
               a.play().catch((e: DOMException) => {
                 // Bloqueio de autoplay não é defeito da voz: só precisa de um toque.
                 if (e?.name === "NotAllowedError") {
                   setAudioIssue("blocked");
-                  resolve();
-                } else reject(e);
+                  done();
+                } else if (e?.name === "AbortError") done();
+                else {
+                  clearTimeout(guard);
+                  reject(e);
+                }
               });
             });
             if (my !== token.current) return;

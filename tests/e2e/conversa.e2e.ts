@@ -35,10 +35,11 @@ let current: Page | null = null;
   // Pergunta em português, por voz: "como falo...?"
   writeFileSync(STT, "Eu trabalho em um armazém. Como falo isso em inglês?");
   await page.getByRole("button", { name: "Iniciar conversa por voz" }).click();
-  await page.getByText("You can say: I work in a warehouse").first().waitFor({ timeout: 40000 });
+  await page.getByText("O jeito de falar isso em inglês é:").first().waitFor({ timeout: 40000 });
+  await page.getByText("I work in a warehouse and I'm responsible for inventory.").first().waitFor();
   await page.getByText("Repita comigo").first().waitFor();
   await page.getByText("Você (voz)").first().waitFor();
-  console.log("✓ conversa por voz: entendeu português, ensinou a frase e pediu para repetir");
+  console.log("✓ conversa por voz: pergunta em português → 'O jeito de falar isso em inglês é:' + frase em inglês, e pede para repetir");
 
   // Repetição sem entender → pede de novo (não marca erro); depois certa → elogio.
   writeFileSync(STT, "");
@@ -67,7 +68,10 @@ let current: Page | null = null;
   await page.goto(`${BASE}/conversa`);
   await page.getByText("Conversas anteriores").waitFor();
   await page.locator("aside").getByRole("link").nth(1).click();
-  await page.getByText("You can say: I work in a warehouse").first().waitFor();
+  await page.getByText("O jeito de falar isso em inglês é:").first().waitFor();
+  // Ouvir de novo não trava: a conversa pausa e pode recomeçar.
+  await page.getByRole("button", { name: "Ouvir de novo" }).first().click();
+  await page.getByRole("button", { name: "Iniciar conversa por voz" }).waitFor();
   console.log(`✓ histórico: conversa salva com modo, tempo de resposta (${times} falas) e reaberta`);
   await browser.close();
 })().catch(async (e) => {
