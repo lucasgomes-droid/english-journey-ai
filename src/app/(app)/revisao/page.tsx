@@ -70,7 +70,7 @@ export default async function ReviewPage() {
 
   return (
     <main className="mx-auto max-w-2xl">
-      <h1 className="font-display text-4xl font-bold">Revisão</h1>
+      <h1 className="font-display text-3xl font-bold">Revisão</h1>
       <p className="mt-2 text-muted">
         Repetição espaçada: o que você acerta volta cada vez mais tarde; o que você erra volta logo. {total ?? 0} itens na sua memória.
       </p>

@@ -52,7 +52,7 @@ export function ListeningPlayer({ item, rate }: { item: ListeningItem; rate: num
       </p>
 
       {/* Player */}
-      <section className="mt-6 rounded-3xl bg-[#0e4d57] p-6 text-white">
+      <section className="mt-6 rounded-3xl bg-hero p-6 text-white">
         {!supported ? (
           <p>Seu navegador não tem síntese de voz. Use Chrome, Edge ou Safari atualizados.</p>
         ) : (

@@ -1,10 +1,10 @@
 export function Logo({ size = 36 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 512 512" aria-hidden="true">
-      <rect width="512" height="512" rx="112" fill="#0e4d57" />
-      <path d="M310 118 V300 a92 92 0 0 1 -184 0" fill="none" stroke="#ffc845" strokeWidth="56" strokeLinecap="round" />
+      <rect width="512" height="512" rx="112" fill="#2f62b5" />
+      <path d="M310 118 V300 a92 92 0 0 1 -184 0" fill="none" stroke="#f3c24f" strokeWidth="56" strokeLinecap="round" />
       <circle cx="310" cy="118" r="44" fill="#fff" />
-      <circle cx="310" cy="118" r="20" fill="#0e4d57" />
+      <circle cx="310" cy="118" r="20" fill="#2f62b5" />
       <circle cx="126" cy="300" r="30" fill="#fff" />
     </svg>
   );
@@ -14,7 +14,7 @@ export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
     <span className="flex items-center gap-2.5">
       <Logo />
-      <span className={`font-display text-lg font-bold leading-none ${compact ? "hidden sm:inline" : ""}`}>
+      <span className={`whitespace-nowrap font-display text-base font-bold leading-none ${compact ? "hidden sm:inline" : ""}`}>
         English Journey <span className="text-muted font-semibold">AI</span>
       </span>
     </span>
@@ -34,7 +34,7 @@ export function LevelLine({ current = "A1", inverted = false }: { current?: stri
               i < ci
                 ? "border-boarding bg-boarding text-boarding-ink"
                 : i === ci
-                  ? `border-boarding ${inverted ? "bg-[#0e4d57] text-white" : "bg-surface text-ink"}`
+                  ? `border-boarding ${inverted ? "bg-hero text-white" : "bg-surface text-ink"}`
                   : inverted
                     ? "border-white/30 bg-transparent text-white/70"
                     : "border-line bg-surface text-muted"

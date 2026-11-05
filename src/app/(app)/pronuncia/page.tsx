@@ -35,7 +35,7 @@ export default async function PronunciaPage() {
 
   return (
     <main>
-      <h1 className="font-display text-4xl font-bold">Pronúncia</h1>
+      <h1 className="font-display text-3xl font-bold">Pronúncia</h1>
       <p className="mt-2 max-w-2xl text-muted">
         Treinos dos sons que mais travam quem fala português. Comece pelos pares mínimos, depois treine frases e faça shadowing.
       </p>
@@ -74,7 +74,7 @@ export default async function PronunciaPage() {
           return (
             <li key={p.id}>
               <Link href={`/pronuncia/${p.id}`} className="panel flex h-full items-start gap-4 p-5 transition-colors hover:border-atlantic">
-                <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#0e4d57] font-display text-lg font-bold text-boarding">{p.title.split(" ")[0]}</span>
+                <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-hero font-display text-lg font-bold text-boarding">{p.title.split(" ")[0]}</span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">
                     <span className="font-display text-lg font-bold">{p.title}</span>

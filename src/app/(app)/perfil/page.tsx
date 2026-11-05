@@ -6,6 +6,7 @@ import { signOut } from "@/app/actions/account";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { AchievementIcon } from "@/components/achievement-icon";
 import { ResetProgress } from "@/components/reset-progress";
+import { ThemeChoice } from "@/components/theme-choice";
 
 export const metadata = { title: "Perfil" };
 
@@ -17,7 +18,7 @@ export default async function ProfilePage() {
   return (
     <main className="space-y-8">
       <header>
-        <h1 className="font-display text-4xl font-bold">Perfil</h1>
+        <h1 className="font-display text-3xl font-bold">Perfil</h1>
         <p className="mt-1 text-muted">{user.email}</p>
       </header>
 
@@ -74,6 +75,8 @@ export default async function ProfilePage() {
           <ProfileForm profile={profile} />
         </section>
       )}
+
+      <ThemeChoice />
 
       <ResetProgress />
 

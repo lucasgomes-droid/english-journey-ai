@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { ProgressTabs } from "@/components/progress-tabs";
 import { ArrowRight, Clock, GraduationCap, MessagesSquare, Mic, Sparkles, Target, TriangleAlert, Trophy } from "lucide-react";
 import { getDashboard, getSession } from "@/lib/data";
 import { loadTeacherPanel } from "@/lib/teacher";
 import { getCategory } from "@/content/error-patterns";
 import { ALL_LESSONS } from "@/content/curriculum";
 
-export const metadata = { title: "Meu Professor IA" };
+export const metadata = { title: "Meu progresso" };
 
 const WEEK = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "UTC" });
 
@@ -53,17 +54,18 @@ export default async function MyTeacherPage() {
 
   return (
     <main className="space-y-6">
+      <ProgressTabs />
       <header>
-        <h1 className="font-display text-4xl font-bold">Meu Professor IA</h1>
-        <p className="mt-2 max-w-2xl text-muted">Seu painel de desenvolvimento. Tudo aqui vem dos seus exercícios, conversas e gravações reais; sem dados, sem nota.</p>
+        <h1 className="font-display text-3xl font-bold">Meu progresso</h1>
+        <p className="mt-1 max-w-2xl text-muted">O professor IA acompanha sua evolução. Tudo aqui vem dos seus exercícios, conversas e gravações reais; sem dados, sem nota.</p>
       </header>
 
-      <section className="rounded-3xl bg-[#0e4d57] p-6 text-white">
-        <p className="flex items-center gap-2 text-sm text-white/70">
+      <section className="panel border-2 border-boarding p-6">
+        <p className="flex items-center gap-2 text-sm font-bold text-muted">
           <Sparkles size={16} aria-hidden /> O professor recomenda agora
         </p>
         <h2 className="mt-1 font-display text-2xl font-bold sm:text-3xl">{t.recommendation.title}</h2>
-        <p className="mt-1 text-white/80">{t.recommendation.why}</p>
+        <p className="mt-1 text-muted">{t.recommendation.why}</p>
         <Link href={t.recommendation.href} className="btn-go mt-4 inline-flex">
           {t.recommendation.cta} <ArrowRight size={18} aria-hidden />
         </Link>
@@ -190,6 +192,35 @@ export default async function MyTeacherPage() {
           ) : (
             <p className="mt-2 text-sm text-muted">Nada pendente.</p>
           )}
+        </section>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="panel p-5">
+          <h2 className="font-display text-xl font-bold">Palavras para treinar a pronúncia</h2>
+          <p className="text-sm text-muted">Palavras que o reconhecedor não entendeu quando você repetiu frases.</p>
+          {t.missedWords.length ? (
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {t.missedWords.map((w) => (
+                <li key={w.word} className="rounded-full bg-wrong-bg px-3 py-1 text-sm font-bold text-wrong" lang="en">
+                  {w.word} <span className="font-normal">×{w.n}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-sm text-muted">Nenhuma ainda. Repita frases na conversa ou no treino de pronúncia.</p>
+          )}
+        </section>
+        <section className="panel p-5">
+          <h2 className="font-display text-xl font-bold">Expressões aprendidas</h2>
+          <p className="text-sm text-muted">{t.phrases.total} no seu banco de frases (entram na revisão).</p>
+          <ul className="mt-3 space-y-1 text-sm">
+            {t.phrases.recent.map((p) => (
+              <li key={p.en}>
+                <strong lang="en">{p.en}</strong> <span className="text-muted">· {p.pt}</span>
+              </li>
+            ))}
+          </ul>
         </section>
       </div>
 

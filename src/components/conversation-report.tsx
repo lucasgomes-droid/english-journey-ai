@@ -7,6 +7,7 @@ import { Pt } from "@/components/pt";
 
 export interface ReportView {
   summary_pt: string;
+  strengths_pt?: string[];
   said: { original: string; better: string }[];
   mistakes: { original: string; corrected: string; explanation_pt: string }[];
   expressions: { en: string; pt: string }[];
@@ -14,6 +15,9 @@ export interface ReportView {
   rubric: Record<string, number>;
   score: number;
   suggestion_pt: string;
+  pronunciation?: { en: string; best: number; first: number; attempts: number; missed: string[] }[];
+  exercises?: { label: string; href: string }[];
+  responseSeconds?: number | null;
 }
 
 function Say({ text }: { text: string }) {
@@ -54,9 +58,22 @@ export function ConversationReportSheet({ report, savedPhrases, onClose }: { rep
           <RubricBars rubric={report.rubric} />
         </section>
 
+        {report.strengths_pt && report.strengths_pt.length > 0 && (
+          <section className="mt-5">
+            <h3 className="font-bold">Pontos positivos</h3>
+            <ul className="mt-2 space-y-1 text-sm">
+              {report.strengths_pt.map((s) => (
+                <li key={s} className="flex gap-2">
+                  <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-correct" aria-hidden /> {s}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {report.goals.length > 0 && (
           <section className="mt-5">
-            <h3 className="font-bold">Missão</h3>
+            <h3 className="font-bold">Objetivos</h3>
             <ul className="mt-2 space-y-1">
               {report.goals.map((g) => (
                 <li key={g.goal} className="flex items-center gap-2 text-sm">
@@ -122,10 +139,49 @@ export function ConversationReportSheet({ report, savedPhrases, onClose }: { rep
           </section>
         )}
 
+        {report.pronunciation && report.pronunciation.length > 0 && (
+          <section className="mt-5">
+            <h3 className="font-bold">Pronúncia nesta conversa</h3>
+            <ul className="mt-2 space-y-2">
+              {report.pronunciation.map((p) => (
+                <li key={p.en} className="rounded-xl bg-surface-2 p-3 text-sm">
+                  <span className="font-bold" lang="en">
+                    {p.en}
+                  </span>
+                  <Say text={p.en} />
+                  <span className="block text-muted">
+                    {p.attempts} {p.attempts === 1 ? "tentativa" : "tentativas"} · {p.first}% → {p.best}% das palavras
+                    {p.missed.length > 0 && <> · treinar: <span lang="en">{p.missed.join(", ")}</span></>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {typeof report.responseSeconds === "number" && (
+          <p className="mt-4 text-sm text-muted">Tempo médio para começar a responder: {report.responseSeconds} s.</p>
+        )}
+
         {report.suggestion_pt && (
           <section className="mt-5 rounded-2xl bg-atlantic/10 p-4">
             <h3 className="font-bold">Sugestão de prática</h3>
             <p className="mt-1">{report.suggestion_pt}</p>
+          </section>
+        )}
+
+        {report.exercises && report.exercises.length > 0 && (
+          <section className="mt-5">
+            <h3 className="font-bold">Exercícios recomendados</h3>
+            <ul className="mt-2 space-y-1">
+              {report.exercises.map((e) => (
+                <li key={e.href}>
+                  <a href={e.href} className="font-bold text-atlantic underline">
+                    {e.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 

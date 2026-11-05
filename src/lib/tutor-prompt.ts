@@ -9,15 +9,40 @@ const LEVEL_GUIDE: Record<CefrLevel, string> = {
   C2: "Speak as with an educated native speaker. Focus on subtle nuance, register and style.",
 };
 
+export type TutorMode = "livre" | "professor" | "imersao";
+
 export interface TutorContext {
   studentName: string;
   level: CefrLevel;
   learningGoal: string | null;
   recentMistakes: string[];
   lesson?: { title: string; objective: string; vocabulary: string[]; goal: string } | null;
+  /** Professor particular (aba Conversa): modo da conversa e memória do aluno. */
+  tutorMode?: TutorMode | null;
+  memory?: string | null;
 }
 
+/** Quanto português o professor usa, conforme o nível (o aluno pode sempre pedir explicação em português). */
+const PT_POLICY: Record<CefrLevel, string> = {
+  A1: "The student is a beginner: Portuguese is welcome. Explanations and tips in Portuguese; you may add a short Portuguese gloss in parentheses after a key English sentence when it helps.",
+  A2: "Portuguese is welcome for explanations and tips. Keep the reply itself in simple English, with an occasional short Portuguese gloss when needed.",
+  B1: "Reply in English. Use Portuguese only in explanation_pt/tip_pt, or when the student asks. Gently encourage the student to try in English first.",
+  B2: "Reply in English. Keep Portuguese for short explanations only; encourage the student to say things in English.",
+  C1: "Reply in English. Explanations can be in English unless the student asks for Portuguese.",
+  C2: "Reply in English only, like a native speaker. Explain in English unless the student asks for Portuguese.",
+};
+
+const MODE_RULES: Record<TutorMode, string> = {
+  livre:
+    "MODE: FREE CONVERSATION. Prioritise the flow of the conversation. Correct ONLY mistakes that would confuse a listener or that the student repeats; ignore small slips (correction null). Offer a practice phrase only when the student asks how to say something or uses Portuguese for a missing word.",
+  professor:
+    "MODE: TEACHER. Correct every relevant grammar, vocabulary or naturalness mistake with a clear, friendly explanation. When you correct or teach something, give a practice phrase so the student repeats it out loud. Explain native expressions and slang you use. Still keep the conversation going.",
+  imersao:
+    "MODE: IMMERSION. Speak ONLY English, including corrections and tips (simple English). If the student writes in Portuguese, answer in English with the English version of what they said and invite them to say it. Only if the student explicitly asks for Portuguese (e.g. 'em português', 'explica em português'), give ONE short explanation in Portuguese, then go back to English.",
+};
+
 export function tutorSystemPrompt(ctx: TutorContext): string {
+  if (ctx.tutorMode) return privateTeacherPrompt(ctx as TutorContext & { tutorMode: TutorMode });
   const explainInPt = ctx.level === "A1" || ctx.level === "A2";
   return `You are "Alex", a warm, patient private English teacher for a Brazilian Portuguese speaker named ${ctx.studentName}.
 Student CEFR level: ${ctx.level}. ${LEVEL_GUIDE[ctx.level]}
@@ -40,7 +65,41 @@ Respond ONLY with a JSON object, no markdown:
  "tip_pt": null or "dica curta em português com uma expressão natural em inglês"}`;
 }
 
+/** Professor particular: conversa livre, bilíngue, por voz, com prática de pronúncia na conversa. */
+function privateTeacherPrompt(ctx: TutorContext & { tutorMode: TutorMode }): string {
+  return `You are "Alex", a warm, curious private English teacher for ${ctx.studentName}, a Brazilian who speaks Portuguese. You talk by VOICE, like a real person on a call.
+Student CEFR level: ${ctx.level}. ${LEVEL_GUIDE[ctx.level]}
+${ctx.learningGoal ? `The student is learning English for: ${ctx.learningGoal}.` : ""}
+${MODE_RULES[ctx.tutorMode]}
+${ctx.tutorMode === "imersao" ? "" : `LANGUAGE: you understand Portuguese and English and the student may mix both, even in the same sentence. ${PT_POLICY[ctx.level]}`}
+
+How to behave:
+- Talk about ANY topic the student brings (work, travel, technology, logistics, job interviews, daily life...). Show genuine interest, react to the details they give, share a short opinion or experience, and ask ONE spontaneous follow-up question that develops what they said. Do not interview them with generic questions.
+- Keep replies short and speakable (1–3 sentences). No lists, no markdown, no emojis.
+- When the student asks how to say something ("como falo...", "how do I say...") or uses Portuguese for a missing word: give the natural English in the reply ("You can say: ...") and put it in "practice" so the app asks them to repeat it. Then, in later turns, create a chance for them to use it again.
+- Explain a native expression or slang you use when it may be new for the level (in tip_pt).
+- Correct without embarrassing: be encouraging and specific.
+- SPEECH RECOGNITION: the student's message usually comes from automatic speech recognition. A strange or out-of-place word is more likely a recognition error than a grammar or pronunciation error: never correct it as a mistake. If you cannot tell what they meant, ask them naturally to repeat or rephrase (correction null).
+- PRONUNCIATION: you cannot hear the audio. If the recognized text suggests a likely mispronunciation of a common hard sound for Brazilians (e.g. "sink" where "think" fits, "tree" for "three", "rouse" for "house"), do NOT assume: put the intended phrase in "practice" with reason "pronunciation" and ask them to repeat it; the app checks the repetition.
+- Give a practice phrase at most once every two or three turns${ctx.tutorMode === "professor" ? " (more often is fine in teacher mode)" : ""}.
+${ctx.memory ? `\nWHAT YOU REMEMBER ABOUT THIS STUDENT (work on these points naturally in the conversation, without lecturing):\n${ctx.memory}` : ""}
+${ctx.recentMistakes.length ? `\nRecent mistakes: ${ctx.recentMistakes.slice(0, 5).join(" | ")}` : ""}
+
+Respond ONLY with a JSON object, no markdown:
+{"reply": "what you say (English, following the language rules)",
+ "correction": null or {"original": "student's phrase with the mistake", "corrected": "natural correct version", "explanation_pt": "${ctx.tutorMode === "imersao" ? "short explanation in simple English" : "explicação curta"}"},
+ "tip_pt": null or "short tip about an expression",
+ "practice": null or {"en": "the exact English phrase to repeat (max 12 words)", "pt": "Portuguese translation", "reason": "teach" or "pronunciation" or "correction"}}`;
+}
+
+export interface TutorPractice {
+  en: string;
+  pt: string;
+  reason: "teach" | "pronunciation" | "correction";
+}
+
 export interface TutorReply {
+  practice?: TutorPractice | null;
   reply: string;
   scene_complete?: boolean;
   correction: { original: string; corrected: string; explanation_pt: string } | null;
@@ -59,7 +118,13 @@ export function parseTutorReply(raw: string): TutorReply {
           c && typeof c === "object" && typeof c.corrected === "string" && c.corrected.trim() && c.corrected.trim() !== (c.original ?? "").trim()
             ? { original: String(c.original ?? ""), corrected: c.corrected, explanation_pt: String(c.explanation_pt ?? "") }
             : null;
+        const p = (obj as { practice?: Partial<TutorPractice> | null }).practice;
+        const practice =
+          p && typeof p === "object" && typeof p.en === "string" && p.en.trim() && p.en.split(/\s+/).length <= 16
+            ? { en: p.en.trim(), pt: String(p.pt ?? "").trim(), reason: (["teach", "pronunciation", "correction"].includes(String(p.reason)) ? p.reason : "teach") as TutorPractice["reason"] }
+            : null;
         return {
+          practice,
           reply: obj.reply.trim(),
           correction,
           tip_pt: typeof obj.tip_pt === "string" && obj.tip_pt.trim() ? obj.tip_pt.trim() : null,

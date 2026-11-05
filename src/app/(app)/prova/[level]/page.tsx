@@ -41,7 +41,7 @@ export default async function LevelExamPage({ params }: { params: Promise<{ leve
       </Link>
       <header>
         <p className="text-sm font-bold text-atlantic">{levelInfo?.name}</p>
-        <h1 className="font-display text-4xl font-bold">Prova de nível {exam.level}</h1>
+        <h1 className="font-display text-3xl font-bold">Prova de nível {exam.level}</h1>
         <p className="mt-2 text-muted">
           Para subir de nível você precisa comprovar as três partes. Se não passar em uma delas, o app monta um plano de recuperação com base nos seus erros, e a nova
           tentativa abre quando você cumprir o plano.

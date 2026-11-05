@@ -13,7 +13,7 @@ export default async function MiniAulasPage() {
 
   return (
     <main>
-      <h1 className="font-display text-4xl font-bold">Mini-aulas</h1>
+      <h1 className="font-display text-3xl font-bold">Mini-aulas</h1>
       <p className="mt-2 max-w-2xl text-muted">
         Lições de 5 minutos para situações reais. Aprenda as frases-chave, pratique e termine conversando com um personagem. Todas ficam sempre abertas, fora da ordem da trilha.
       </p>

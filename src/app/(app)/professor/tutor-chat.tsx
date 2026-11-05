@@ -453,7 +453,7 @@ export function TutorChat({
 
       {/* Ligação: só voz */}
       {call !== "off" && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-[#0b2f35] px-6 py-10 text-white" role="dialog" aria-modal="true" aria-label={`Ligação com ${name}`}>
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-hero px-6 py-10 text-white" role="dialog" aria-modal="true" aria-label={`Ligação com ${name}`}>
           <p className="text-sm text-white/70">Ligação · nível {level ?? "do seu perfil"}</p>
           <div className="flex flex-col items-center">
             <div className="relative">

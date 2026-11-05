@@ -14,17 +14,18 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0e4d57" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1b1e" },
-  ],
+  themeColor: "#f4efe5",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        {/* Aplica o tema salvo antes de pintar a tela (evita piscar). */}
+        <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem("ej-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}` }} />
+      </head>
       <body className="min-h-dvh antialiased">
         {children}
         <RegisterSW />

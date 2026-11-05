@@ -72,3 +72,19 @@ describe("pares mínimos", () => {
     }
   });
 });
+
+import { judgeRepeat, wordSoundTips } from "@/lib/sound-tips";
+describe("dicas de som por palavra (sem análise fonética)", () => {
+  it("aponta os sons difíceis prováveis e trata reconhecimento ruim como 'repita'", () => {
+    expect(wordSoundTips("think").join(" ")).toMatch(/TH surdo/);
+    expect(wordSoundTips("this").join(" ")).toMatch(/TH sonoro/);
+    expect(wordSoundTips("house").join(" ")).toMatch(/H aspirado/);
+    expect(wordSoundTips("red").join(" ")).toMatch(/R americano/);
+    expect(wordSoundTips("worked").join(" ")).toMatch(/-ED final/);
+    expect(wordSoundTips("sheep").join(" ")).toMatch(/I longo/);
+    expect(judgeRepeat(0, "")).toBe("unclear");
+    expect(judgeRepeat(20, "uh")).toBe("unclear");
+    expect(judgeRepeat(60, "I work in a house")).toBe("improve");
+    expect(judgeRepeat(100, "I work in a warehouse")).toBe("good");
+  });
+});

@@ -65,7 +65,7 @@ export function recommend(patterns: Pattern[], weakest: WeakArea | null, dueRevi
 
 export async function loadTeacherPanel(supabase: SupabaseClient, uid: string, profile: Profile) {
   const since = new Date(Date.now() - 70 * 86_400_000).toISOString();
-  const [diag, { events, patterns }, plans, timesRes, convRes, msgRes, pairRes, dueRes] = await Promise.all([
+  const [diag, { events, patterns }, plans, timesRes, convRes, msgRes, pairRes, dueRes, wordsRes, phrasesRes] = await Promise.all([
     computeDiagnostics(supabase, uid),
     loadPatterns(supabase, uid),
     loadPlans(supabase, uid),
@@ -74,7 +74,14 @@ export async function loadTeacherPanel(supabase: SupabaseClient, uid: string, pr
     supabase.from("messages").select("correction, created_at").eq("user_id", uid).eq("role", "user").gte("created_at", since).limit(2000),
     supabase.from("pronunciation_attempts").select("completeness, created_at").eq("user_id", uid).eq("provider", "minimal-pair").gte("created_at", since).limit(2000),
     supabase.from("review_items").select("item_id", { count: "exact", head: true }).eq("user_id", uid).lte("due_at", new Date().toISOString()),
+    supabase.from("pronunciation_attempts").select("details").eq("user_id", uid).eq("provider", "whisper-words").gte("created_at", since).limit(400),
+    supabase.from("personal_phrases").select("en, pt", { count: "exact" }).eq("user_id", uid).order("created_at", { ascending: false }).limit(8),
   ]);
+  // Palavras que não saíram ao repetir (reconhecedor de fala), mais frequentes primeiro.
+  const missedMap = new Map<string, number>();
+  for (const r of wordsRes.data ?? [])
+    for (const w of ((r.details as { words?: { word: string; accuracy: number }[] } | null)?.words ?? [])) if (w.accuracy < 70) missedMap.set(w.word, (missedMap.get(w.word) ?? 0) + 1);
+  const missedWords = [...missedMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([word, n]) => ({ word, n }));
 
   // Tempo para formular respostas, por habilidade (mediana em segundos).
   const times = timesRes.data ?? [];
@@ -116,6 +123,8 @@ export async function loadTeacherPanel(supabase: SupabaseClient, uid: string, pr
     pronunciationWeeks,
     recentErrors,
     dueReviews: dueRes.count ?? 0,
+    missedWords,
+    phrases: { total: phrasesRes.count ?? 0, recent: (phrasesRes.data ?? []) as { en: string; pt: string }[] },
     recommendation: recommend(patterns, diag.weakest, dueRes.count ?? 0, plans),
   };
 }

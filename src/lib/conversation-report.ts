@@ -5,6 +5,7 @@ import { rubricScore } from "@/lib/exam-rules";
 
 export interface ConversationReport {
   summary_pt: string;
+  strengths_pt: string[];
   said: { original: string; better: string }[];
   mistakes: { original: string; corrected: string; explanation_pt: string }[];
   expressions: { en: string; pt: string }[];
@@ -29,6 +30,7 @@ export function normalizeReport(o: Record<string, unknown> | null, goals: string
   const doneList = arr(o.goals_done);
   return {
     summary_pt: str(o.summary_pt),
+    strengths_pt: arr(o.strengths_pt).map(str).filter(Boolean).slice(0, 3),
     said: arr(o.said)
       .map((x) => x as Record<string, unknown>)
       .map((x) => ({ original: str(x.original), better: str(x.better) }))
@@ -64,6 +66,7 @@ Lines marked STUDENT are what the student actually said (possibly via speech rec
 Score each criterion 0–5 against the ${input.level} level (3 = meets the level): task (achieved the goals), accuracy (grammar), range (vocabulary/structures), interaction (kept the conversation going, asked and answered).
 Reply ONLY with JSON:
 {"summary_pt":"2 sentences in Brazilian Portuguese: honest overall verdict",
+ "strengths_pt":["up to 3 concrete positive points, in Portuguese"],
  "said":[{"original":"a student's line, verbatim","better":"a more natural version at about one level above"}],
  "mistakes":[{"original":"student's phrase","corrected":"correct English","explanation_pt":"short reason in Portuguese"}],
  "expressions":[{"en":"useful natural expression for this scene that the student did not use","pt":"translation"}],

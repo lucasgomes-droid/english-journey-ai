@@ -1,14 +1,15 @@
 /**
  * Fase 5 — responsividade e menu: em celular (360), tablet (768) e computador (1280), claro e escuro,
  * nenhuma página principal pode ter rolagem horizontal nem texto menor que 12 px;
- * o menu tem as 10 áreas (barra lateral no computador, "Mais" no celular).
+ * o menu tem as 6 áreas de estudo (barra lateral no computador, barra inferior no celular).
  * Uso: npx tsx tests/e2e/responsive.e2e.ts
  */
 import { chromium } from "playwright";
 import { BASE, SHOTS, signup } from "./helpers";
 
-const PAGES = ["/", "/trilha", "/praticar", "/conversar", "/professor?cenario=cafe&nivel=B1", "/pronuncia", "/listening", "/meu-professor", "/dificuldades", "/avaliacoes", "/perfil", "/prova/A1", "/aula/a1-m1-l1", "/revisao"];
-const MENU = ["Início", "Minha Trilha", "Praticar", "Conversação", "Pronúncia", "Listening", "Meu Professor IA", "Minhas Dificuldades", "Avaliações", "Meu Perfil"];
+const PAGES = ["/", "/trilha", "/praticar", "/conversa", "/conversar", "/professor?cenario=cafe&nivel=B1", "/pronuncia", "/listening", "/meu-professor", "/dificuldades", "/avaliacoes", "/perfil", "/prova/A1", "/aula/a1-m1-l1", "/revisao"];
+const MENU = ["Início", "Trilha", "Praticar", "Conversa", "Meu progresso", "Perfil"];
+const BOTTOM = ["Início", "Trilha", "Praticar", "Conversa", "Progresso"];
 
 (async () => {
   const browser = await chromium.launch();
@@ -26,11 +27,14 @@ const MENU = ["Início", "Minha Trilha", "Praticar", "Conversação", "Pronúnci
   ]) {
     for (const scheme of ["light", "dark"] as const) {
       const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, storageState: state, colorScheme: scheme });
+      // O tema escuro agora é uma opção do Perfil (salva no aparelho).
+      if (scheme === "dark") await ctx.addInitScript(() => localStorage.setItem("ej-theme", "dark"));
       const page = await ctx.newPage();
       page.on("pageerror", (e) => problems.push(`${vp.name} ${scheme}: erro de página ${e.message}`));
       for (const path of PAGES) {
         await page.goto(`${BASE}${path}`);
-        await page.waitForLoadState("networkidle");
+        await page.waitForLoadState("load");
+        await page.waitForTimeout(700);
         const r = await page.evaluate(() => {
           const overflow = document.documentElement.scrollWidth - window.innerWidth;
           const small: string[] = [];
@@ -48,18 +52,10 @@ const MENU = ["Início", "Minha Trilha", "Praticar", "Conversação", "Pronúnci
         if (scheme === "dark" && ["/", "/meu-professor", "/conversar", "/avaliacoes"].includes(path))
           await page.screenshot({ path: `${SHOTS}/f5-${vp.name}-${path.replace(/\W+/g, "_") || "home"}.png`, fullPage: vp.width < 1000 });
       }
-      // Menu com as 10 áreas.
+      // Menu focado: 6 áreas no computador, 5 atalhos + Perfil no topo no celular.
       await page.goto(`${BASE}/`);
-      if (vp.width >= 1024) {
-        for (const m of MENU) if (!(await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: m, exact: true }).count())) problems.push(`${vp.name}: menu sem ${m}`);
-      } else {
-        await page.getByRole("button", { name: "Mais" }).click();
-        const sheet = page.getByRole("dialog", { name: "Todas as áreas" });
-        for (const m of MENU) if (!(await sheet.getByRole("link", { name: m, exact: true }).count())) problems.push(`${vp.name}: "Mais" sem ${m}`);
-        if (scheme === "dark") await page.screenshot({ path: `${SHOTS}/f5-${vp.name}-menu.png` });
-        await sheet.getByRole("link", { name: "Avaliações" }).click();
-        await page.waitForURL("**/avaliacoes");
-      }
+      const nav = page.getByRole("navigation", { name: "Principal" }).filter({ visible: true });
+      for (const m of vp.width >= 1024 ? MENU : BOTTOM) if (!(await nav.getByRole("link", { name: m, exact: true }).count())) problems.push(`${vp.name}: menu sem ${m}`);
       await ctx.close();
     }
     console.log(`✓ ${vp.name}px verificado (claro e escuro)`);
@@ -69,7 +65,7 @@ const MENU = ["Início", "Minha Trilha", "Praticar", "Conversação", "Pronúnci
     console.error("PROBLEMAS:\n" + problems.join("\n"));
     process.exit(1);
   }
-  console.log(`✓ ${PAGES.length} páginas × 3 tamanhos × 2 temas sem rolagem horizontal nem texto pequeno; menu com as 10 áreas`);
+  console.log(`✓ ${PAGES.length} páginas × 3 tamanhos × 2 temas sem rolagem horizontal nem texto pequeno; menu focado (6 áreas)`);
 })().catch((e) => {
   console.error("FALHOU:", e);
   process.exit(1);

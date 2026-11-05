@@ -19,7 +19,7 @@ export default async function ShadowPage({ params }: { params: Promise<{ id: str
         <ArrowLeft size={16} aria-hidden /> Pronúncia
       </Link>
       <p className="mt-1 text-sm font-bold text-atlantic">Shadowing · {item.level}</p>
-      <h1 className="font-display text-4xl font-bold">{item.title}</h1>
+      <h1 className="font-display text-3xl font-bold">{item.title}</h1>
       <p className="mt-3 rounded-2xl bg-boarding/20 p-4">
         Ouça a frase e repita logo em seguida, imitando o ritmo, a entonação e as pausas, como uma sombra. O microfone abre sozinho quando o áudio termina.
       </p>

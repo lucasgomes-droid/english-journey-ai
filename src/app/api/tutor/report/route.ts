@@ -6,6 +6,7 @@ import { getScenario } from "@/content/scenarios";
 import { getLesson } from "@/content/curriculum";
 import { conversationReport } from "@/lib/conversation-report";
 import { savePhrases } from "@/lib/speaking";
+import { classifyCorrection, getCategory, type ErrorCategory } from "@/content/error-patterns";
 
 export const maxDuration = 60;
 
@@ -39,8 +40,38 @@ export async function POST(req: Request) {
   }
   if (!report) return NextResponse.json({ error: "Não foi possível gerar o relatório agora. Tente de novo." }, { status: 502 });
 
-  await supabase.from("conversations").update({ report, report_score: report.score }).eq("id", conv.id);
+  // Pronúncia nesta conversa (repetições conferidas pelo reconhecedor), correções e tempo de resposta.
+  const [pronRes, corrRes] = await Promise.all([
+    supabase.from("pronunciation_attempts").select("reference_text, completeness, details").eq("user_id", user.id).filter("details->>context", "eq", `chat:${conv.id}`).limit(100),
+    supabase.from("messages").select("correction, response_ms").eq("conversation_id", conv.id).eq("user_id", user.id).eq("role", "user"),
+  ]);
+  const byPhrase = new Map<string, { best: number; first: number; attempts: number; missed: Set<string> }>();
+  for (const r of pronRes.data ?? []) {
+    const e = byPhrase.get(r.reference_text) ?? { best: 0, first: Number(r.completeness), attempts: 0, missed: new Set<string>() };
+    e.best = Math.max(e.best, Number(r.completeness));
+    e.attempts++;
+    for (const w of ((r.details as { words?: { word: string; accuracy: number }[] } | null)?.words ?? [])) if (w.accuracy < 70) e.missed.add(w.word);
+    byPhrase.set(r.reference_text, e);
+  }
+  const pronunciation = [...byPhrase.entries()].map(([en, e]) => ({ en, best: e.best, first: e.first, attempts: e.attempts, missed: [...e.missed].slice(0, 5) }));
+  const cats = new Map<ErrorCategory, number>();
+  for (const m of corrRes.data ?? []) {
+    const c = m.correction as { original?: string; corrected?: string; category?: ErrorCategory } | null;
+    if (c?.corrected) {
+      const k = c.category ?? classifyCorrection(c.original ?? "", c.corrected);
+      cats.set(k, (cats.get(k) ?? 0) + 1);
+    }
+  }
+  const times = (corrRes.data ?? []).map((m) => m.response_ms as number | null).filter((x): x is number => typeof x === "number");
+  const responseSeconds = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length / 100) / 10 : null;
+  const exercises = [
+    ...[...cats.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([c]) => ({ label: `Plano de recuperação: ${getCategory(c)!.label}`, href: `/dificuldades/${c}` })),
+    ...(pronunciation.some((p) => p.best < 85) ? [{ label: "Treinar pronúncia (pares mínimos e frases)", href: "/pronuncia" }] : []),
+    { label: "Revisar as expressões novas desta conversa", href: "/revisao" },
+  ];
+  const full = { ...report, pronunciation, exercises, responseSeconds };
+  await supabase.from("conversations").update({ report: full, report_score: report.score }).eq("id", conv.id);
   // As expressões novas vão para o seu banco de frases e entram na revisão.
   const saved = await savePhrases(supabase, user.id, scenario?.title ?? conv.title, "conversation", report.expressions);
-  return NextResponse.json({ report, savedPhrases: saved.length });
+  return NextResponse.json({ report: full, savedPhrases: saved.length });
 }

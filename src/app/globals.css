@@ -16,39 +16,45 @@
 }
 
 :root {
-  --paper: #f4f7f6;
-  --surface: #ffffff;
-  --surface-2: #e7efee;
-  --line: #d3dfdd;
-  --ink: #0f2328;
-  --muted: #56707a;
-  --atlantic: #0e4d57;
-  --atlantic-deep: #0a3940;
-  --boarding: #ffc845;
-  --boarding-ink: #3d2c00;
-  --correct: #1b8a5a;
-  --correct-bg: #e2f5ec;
-  --wrong: #c93c3c;
-  --wrong-bg: #fbe8e6;
+  /* Tema creme (padrão): papel creme, cartões claros, azul de estudo e amarelo de ação. */
+  --paper: #f4efe5;
+  --sidebar: #ece5d7;
+  --surface: #fffdf8;
+  --surface-2: #f3ede2;
+  --line: #e4dccc;
+  --ink: #1d2733;
+  --muted: #5d6874;
+  --atlantic: #2f62b5;
+  --atlantic-deep: #234d92;
+  --boarding: #f3c24f;
+  --boarding-ink: #3a2a00;
+  --gold: #c9a043;
+  --hero: #1f3b66;
+  --correct: #1b7f53;
+  --correct-bg: #e3f3e9;
+  --wrong: #c03a35;
+  --wrong-bg: #fbe8e5;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #0b1b1e;
-    --surface: #10262a;
-    --surface-2: #163338;
-    --line: #23444a;
-    --ink: #e6f0ef;
-    --muted: #93aeb3;
-    --atlantic: #5fc1c9;
-    --atlantic-deep: #9adde2;
-    --boarding: #ffcf5c;
-    --boarding-ink: #2b1f00;
-    --correct: #4cc58d;
-    --correct-bg: #123527;
-    --wrong: #ff7b72;
-    --wrong-bg: #3b1716;
-  }
+/* Tema escuro: opção em Perfil (salvo no aparelho). */
+:root[data-theme="dark"] {
+  --paper: #121822;
+  --sidebar: #171f2b;
+  --surface: #1b2431;
+  --surface-2: #222d3c;
+  --line: #2e3a4b;
+  --ink: #ecf0f5;
+  --muted: #a3afbd;
+  --atlantic: #7fa9ec;
+  --atlantic-deep: #a8c5f3;
+  --boarding: #f3c24f;
+  --boarding-ink: #2b1f00;
+  --gold: #d6b25e;
+  --hero: #1f3b66;
+  --correct: #55c78f;
+  --correct-bg: #14321f;
+  --wrong: #ff8a80;
+  --wrong-bg: #3a1a18;
 }
 
 @theme inline {
@@ -66,6 +72,9 @@
   --color-correct-bg: var(--correct-bg);
   --color-wrong: var(--wrong);
   --color-wrong-bg: var(--wrong-bg);
+  --color-sidebar: var(--sidebar);
+  --color-gold: var(--gold);
+  --color-hero: var(--hero);
   --font-sans: "EJ Digits", "Atkinson Hyperlegible", system-ui, sans-serif;
   --font-display: "Bricolage Grotesque Variable", "Atkinson Hyperlegible", system-ui, sans-serif;
 }
@@ -110,13 +119,13 @@ h3,
   @apply btn border border-line bg-surface text-ink hover:bg-surface-2;
 }
 @utility panel {
-  @apply rounded-2xl border border-line bg-surface;
+  @apply rounded-3xl border border-line bg-surface shadow-[0_1px_2px_rgba(60,45,20,0.06),0_4px_16px_rgba(60,45,20,0.05)];
 }
 @utility field {
   @apply w-full rounded-xl border border-line bg-surface px-4 py-3 text-ink placeholder:text-muted focus:border-atlantic focus:outline-none;
 }
 @utility chip {
-  @apply inline-flex items-center gap-1 rounded-full bg-surface-2 px-3 py-1 text-sm font-bold text-ink;
+  @apply inline-flex items-center gap-1 rounded-full border border-line bg-surface px-3 py-1 text-sm font-bold text-ink;
 }
 
 @keyframes pop {

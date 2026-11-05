@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProgressTabs } from "@/components/progress-tabs";
 import { Award, CheckCircle2, CircleDashed, Lock, XCircle } from "lucide-react";
 import { getCompletedLessons, getSession } from "@/lib/data";
 import { LEVELS, LEVEL_ORDER, isLessonUnlocked } from "@/content/curriculum";
@@ -22,8 +23,9 @@ export default async function AssessmentsPage() {
 
   return (
     <main className="space-y-6">
+      <ProgressTabs />
       <header>
-        <h1 className="font-display text-4xl font-bold">Avaliações</h1>
+        <h1 className="font-display text-3xl font-bold">Avaliações</h1>
         <p className="mt-2 max-w-2xl text-muted">
           Cada módulo termina com uma avaliação (70%) e cada nível com uma prova em três partes: escrita (Reading, Writing e Listening, 75%), Speaking (60%) e
           Conversation (60%). Se não passar, você recebe um plano de recuperação e refaz depois de praticar.

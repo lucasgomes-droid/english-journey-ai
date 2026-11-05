@@ -30,14 +30,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <VoiceCapsProvider caps={caps}>
     <TranslationProvider initial={profile.show_translation ?? true}>
       <AudioIssueBanner />
-    <div className="mx-auto flex min-h-dvh max-w-6xl gap-8 px-4 lg:px-6">
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-8 py-6 lg:flex">
-        <Link href="/">
+    <div className="flex min-h-dvh">
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-8 border-r border-line bg-sidebar px-4 py-6 lg:flex">
+        <Link href="/" className="px-2">
           <Wordmark />
         </Link>
         <AppNav variant="sidebar" dueReviews={count ?? 0} />
       </aside>
-      <div className="min-w-0 flex-1 pb-28 lg:pb-12">
+      <div className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 pb-28 lg:px-8 lg:pb-12">
         <header className="flex items-center justify-between py-4 lg:justify-end lg:py-6">
           <Link href="/" className="lg:hidden" aria-label="English Journey AI — início">
             <Wordmark compact />
@@ -53,9 +53,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Zap size={16} className="text-[#d49b00]" aria-hidden />
               {profile.xp_total} XP
             </span>
-            <span className="chip bg-atlantic text-surface" title="Nível atual">
+            <Link href="/perfil" className="grid size-9 place-items-center rounded-full bg-atlantic text-sm font-bold text-surface" title="Nível atual · Perfil" aria-label={`Nível ${profile.current_level} · abrir perfil`}>
               {profile.current_level}
-            </span>
+            </Link>
           </div>
         </header>
         {children}

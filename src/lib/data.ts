@@ -70,7 +70,7 @@ const SKILL_LABELS: Record<Skill, string> = {
   speaking: "Speaking",
 };
 
-export async function getDashboard(): Promise<DashboardData> {
+export const getDashboard = cache(async (): Promise<DashboardData> => {
   const { supabase, user, profile } = await getSession();
   if (!profile) throw new Error("Perfil não encontrado. Verifique se o SQL 20261104120000_schema.sql foi executado.");
   const tz = profile.timezone || "America/Sao_Paulo";
@@ -132,7 +132,7 @@ export async function getDashboard(): Promise<DashboardData> {
     todayKinds: Array.from(new Set(activity.filter((a) => a.local_date === today).map((a) => a.kind as string))),
     lastWeeklyAt: weeklyRes.data?.[0]?.created_at ?? null,
   };
-}
+});
 
 /** Erros recentes do aluno, usados para personalizar o professor de IA. */
 export async function getRecentMistakes(supabase: SupabaseClient, userId: string, limit = 8) {

@@ -7,7 +7,7 @@ import { chromium } from "playwright";
 import AxeBuilder from "@axe-core/playwright";
 import { BASE, signup } from "./helpers";
 
-const PAGES = ["/", "/trilha", "/praticar", "/praticar/adaptativo", "/conversar", "/professor?cenario=cafe&nivel=B1", "/pronuncia", "/listening", "/meu-professor", "/dificuldades", "/dificuldades/questions", "/avaliacoes", "/relatorio", "/perfil", "/prova/A1", "/aula/a1-m1-l1", "/revisao"];
+const PAGES = ["/", "/trilha", "/praticar", "/praticar/adaptativo", "/conversa", "/conversar", "/professor?cenario=cafe&nivel=B1", "/pronuncia", "/listening", "/meu-professor", "/dificuldades", "/dificuldades/questions", "/avaliacoes", "/relatorio", "/perfil", "/prova/A1", "/aula/a1-m1-l1", "/revisao"];
 
 (async () => {
   const browser = await chromium.launch();
@@ -22,10 +22,13 @@ const PAGES = ["/", "/trilha", "/praticar", "/praticar/adaptativo", "/conversar"
   ])
     for (const scheme of ["light", "dark"] as const) {
       const ctx = await browser.newContext({ viewport: { width: vp.w, height: vp.h }, storageState: state, colorScheme: scheme });
+      // O tema escuro agora é uma opção do Perfil (salva no aparelho).
+      if (scheme === "dark") await ctx.addInitScript(() => localStorage.setItem("ej-theme", "dark"));
       const page = await ctx.newPage();
       for (const p of PAGES) {
         await page.goto(`${BASE}${p}`);
-        await page.waitForLoadState("networkidle");
+        await page.waitForLoadState("load");
+        await page.waitForTimeout(700);
         const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
         for (const v of r.violations.filter((v) => v.impact === "serious" || v.impact === "critical"))
           problems.push(`${vp.w} ${scheme} ${p}: ${v.id} (${v.nodes.length}) ${v.nodes[0]?.target.join(" ")} — ${v.nodes[0]?.failureSummary?.split("\n")[1] ?? ""}`);

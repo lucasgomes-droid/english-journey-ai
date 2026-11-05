@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProgressTabs } from "@/components/progress-tabs";
 import { ArrowRight, CheckCircle2, CircleAlert, TrendingDown, TrendingUp, Minus, Sparkles } from "lucide-react";
 import { getSession } from "@/lib/data";
 import { loadPatterns, loadPlans } from "@/lib/difficulties";
@@ -39,8 +40,9 @@ export default async function DifficultiesPage() {
 
   return (
     <main className="space-y-6">
+      <ProgressTabs />
       <header>
-        <h1 className="font-display text-4xl font-bold">Minhas Dificuldades</h1>
+        <h1 className="font-display text-3xl font-bold">Minhas Dificuldades</h1>
         <p className="mt-2 max-w-2xl text-muted">
           Os padrões dos seus erros, a partir dos seus exercícios, conversas, listenings e gravações reais. Para cada um, o professor monta um plano: explica em
           português, mostra exemplos, cria exercícios, coloca você para usar numa conversa e verifica se você evoluiu.

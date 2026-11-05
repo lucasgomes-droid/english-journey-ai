@@ -19,7 +19,7 @@ export default async function ListeningPage({ searchParams }: { searchParams: Pr
 
   return (
     <main>
-      <h1 className="font-display text-4xl font-bold">Listening</h1>
+      <h1 className="font-display text-3xl font-bold">Listening</h1>
       <p className="mt-2 max-w-2xl text-muted">
         Ouça diálogos e textos reais do seu nível, responda às perguntas e escreva uma frase de ditado. Primeiro sem ler; a transcrição aparece depois que você responde.
       </p>

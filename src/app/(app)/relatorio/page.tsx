@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProgressTabs } from "@/components/progress-tabs";
 import { ArrowDown, ArrowUp, Info } from "lucide-react";
 import { getSession } from "@/lib/data";
 import { loadWeeks } from "@/lib/weekly-report";
@@ -30,8 +31,9 @@ export default async function WeeklyReportPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-6">
+      <ProgressTabs />
       <header>
-        <h1 className="font-display text-4xl font-bold">Relatório semanal</h1>
+        <h1 className="font-display text-3xl font-bold">Relatório semanal</h1>
         <p className="mt-2 text-muted">Últimos 7 dias comparados com os 7 dias anteriores. “—” quando ainda não há dados suficientes para medir.</p>
       </header>
 

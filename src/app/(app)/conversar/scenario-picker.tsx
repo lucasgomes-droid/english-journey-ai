@@ -75,10 +75,10 @@ export function ScenarioPicker({ scenarios, defaultLevel, categoryOrder }: { sce
 
       <ul className="mt-4 grid grid-cols-2 gap-3 pb-20 sm:grid-cols-3 lg:grid-cols-4 lg:pb-0">
         <li>
-          <Link href="/professor" className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-3xl bg-[#0e4d57] p-4 text-white">
+          <Link href="/conversa" className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-3xl bg-hero p-4 text-white">
             <MessagesSquare className="absolute left-4 top-4 opacity-80" size={28} aria-hidden />
             <span className="font-display text-lg font-bold leading-tight">Professor Alex</span>
-            <span className="text-sm text-white/80">Conversa livre sobre qualquer assunto</span>
+            <span className="text-sm text-white/80">Conversa por voz sobre qualquer assunto</span>
           </Link>
         </li>
         <li className="hidden lg:block">

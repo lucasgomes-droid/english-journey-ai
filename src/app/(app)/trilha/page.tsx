@@ -1,156 +1,128 @@
 import Link from "next/link";
-import { Check, Lock, Flag, Award } from "lucide-react";
+import { Award, Check, Flag, Lock } from "lucide-react";
 import { LEVELS, LEVEL_ORDER, isLessonUnlocked, nextLessonFor } from "@/content/curriculum";
-import { syllabusLevel } from "@/content/syllabus";
 import { getCompletedLessons, getSession } from "@/lib/data";
+import { StudyRail } from "@/components/study-rail";
+import { TalkingPeople } from "@/components/illustrations";
+import type { CefrLevel } from "@/content/types";
 
 export const metadata = { title: "Trilha" };
 
-export default async function TrailPage() {
+export default async function TrailPage({ searchParams }: { searchParams: Promise<{ nivel?: string }> }) {
+  const sp = await searchParams;
   const { supabase, user, profile } = await getSession();
-  const startLevel = profile?.current_level ?? "A1";
+  const current = (profile?.current_level ?? "A1") as CefrLevel;
+  const shown = (LEVEL_ORDER.includes(sp.nivel as CefrLevel) ? sp.nivel : current) as CefrLevel;
   const { completed, rows } = await getCompletedLessons(supabase, user.id);
-  const next = nextLessonFor(completed, startLevel);
+  const next = nextLessonFor(completed, current);
   const best = new Map(rows.map((r) => [r.lesson_id as string, r.best_score as number]));
   const { data: examRows } = await supabase.from("exam_attempts").select("level_code, part").eq("user_id", user.id).eq("passed", true);
   const examPassed = (lv: string) => new Set((examRows ?? []).filter((r) => r.level_code === lv).map((r) => r.part)).size;
-  const curIdx = LEVEL_ORDER.indexOf(startLevel);
+  const level = LEVELS.find((l) => l.code === shown)!;
+  const curIdx = LEVEL_ORDER.indexOf(current);
+  const shownIdx = LEVEL_ORDER.indexOf(shown);
+  const all = level.modules.flatMap((m) => m.lessons);
+  const doneCount = all.filter((l) => completed.has(l.id)).length;
 
   return (
-    <main className="space-y-10">
-      <header>
-        <h1 className="font-display text-4xl font-bold">Sua trilha</h1>
-        <p className="mt-2 max-w-2xl text-muted">
-          Cada aula é uma estação e pede 70% para concluir. Cada módulo termina com uma avaliação, e cada nível com uma prova de nível (escrita, Speaking e
-          Conversation). O nível seguinte só abre quando você comprova o atual.
-        </p>
-      </header>
+    <div className="grid gap-6 xl:grid-cols-[1fr_20rem] [&>*]:min-w-0">
+      <main className="space-y-6">
+        <h1 className="font-display text-3xl font-bold">Trilha de Estudos</h1>
 
-      {LEVELS.map((level) => (
-        <section key={level.code} aria-labelledby={`lv-${level.code}`}>
-          <div className="flex items-center gap-3">
-            <span className="grid size-12 place-items-center rounded-2xl bg-atlantic font-display text-lg font-bold text-surface">{level.code}</span>
+        <nav aria-label="Níveis" className="flex gap-2 overflow-x-auto pb-1">
+          {LEVELS.map((l, i) => (
+            <Link
+              key={l.code}
+              href={`/trilha?nivel=${l.code}`}
+              aria-current={l.code === shown ? "page" : undefined}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border-2 px-4 py-1.5 text-sm font-bold ${
+                l.code === shown ? "border-gold bg-boarding text-boarding-ink" : i < curIdx ? "border-gold bg-surface text-ink" : "border-line bg-surface text-muted"
+              }`}
+            >
+              {i > curIdx && <Lock size={13} aria-label="bloqueado" />}
+              {l.code}
+            </Link>
+          ))}
+        </nav>
+
+        <section className="panel p-6 sm:p-8" aria-labelledby="sua-trilha">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 id={`lv-${level.code}`} className="font-display text-2xl font-bold">
-                {level.name}
+              <h2 id="sua-trilha" className="font-display text-2xl font-bold">
+                Sua trilha · {level.code} {level.name}
               </h2>
-              <p className="text-sm text-muted">{level.description}</p>
+              <p className="mt-1 text-sm text-muted">
+                {doneCount} de {all.length} estações · cada aula pede 70%, cada módulo termina com uma avaliação e o nível com uma prova.
+              </p>
+              <div className="mt-3 h-2 max-w-sm overflow-hidden rounded-full bg-surface-2">
+                <div className="h-full rounded-full bg-gold" style={{ width: `${Math.round((doneCount / Math.max(1, all.length)) * 100)}%` }} />
+              </div>
             </div>
+            <TalkingPeople className="hidden h-24 w-28 shrink-0 sm:block" />
           </div>
-
-          {level.modules.length === 0 ? (
-            <PlannedModules level={level.code} authoredTitles={[]} />
-          ) : (
-            <div className="mt-6 space-y-8">
-              {level.modules.map((m) => {
-                const done = m.lessons.filter((l) => completed.has(l.id)).length;
-                return (
-                  <div key={m.id} className="panel p-5 sm:p-6">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <h3 className="font-display text-xl font-bold">{m.title}</h3>
-                      <span className="text-sm text-muted">
-                        {done}/{m.lessons.length} estações
-                      </span>
-                    </div>
-                    <p className="text-muted">{m.description}</p>
-                    <ol className="relative mt-5">
-                      {m.lessons.map((l, i) => {
-                        const isDone = completed.has(l.id);
-                        const unlocked = isDone || isLessonUnlocked(l.id, completed, startLevel);
-                        const isNext = next?.id === l.id;
-                        const last = i === m.lessons.length - 1;
-                        return (
-                          <li key={l.id} className="relative flex gap-4 pb-5 last:pb-0">
-                            {!last && (
-                              <span aria-hidden className={`absolute left-[19px] top-10 h-[calc(100%-2.5rem)] w-1.5 rounded ${isDone ? "bg-boarding" : "bg-line"}`} />
-                            )}
-                            <span
-                              aria-hidden
-                              className={`relative z-10 grid size-11 shrink-0 place-items-center rounded-full border-4 ${
-                                isDone
-                                  ? "border-boarding bg-boarding text-boarding-ink"
-                                  : isNext
-                                    ? "border-boarding bg-surface text-atlantic"
-                                    : "border-line bg-surface-2 text-muted"
-                              }`}
-                            >
-                              {isDone ? <Check size={18} strokeWidth={3} /> : l.kind === "test" ? <Flag size={16} /> : unlocked ? <span className="size-2.5 rounded-full bg-atlantic" /> : <Lock size={15} />}
-                            </span>
-                            <div className="min-w-0 flex-1 pt-1">
-                              {unlocked ? (
-                                <Link href={`/aula/${l.id}`} className="group block">
-                                  <span className="font-bold group-hover:text-atlantic group-hover:underline">{l.title}</span>
-                                  {isNext && <span className="ml-2 rounded-full bg-boarding px-2 py-0.5 text-xs font-bold text-boarding-ink">Você está aqui</span>}
-                                  <span className="block text-sm text-muted">
-                                    {isDone ? `Melhor nota: ${best.get(l.id)}% · refazer` : l.objective}
-                                  </span>
-                                </Link>
-                              ) : (
-                                <>
-                                  <span className="font-bold text-muted">{l.title}</span>
-                                  <span className="block text-sm text-muted">
-                                    {LEVEL_ORDER.indexOf(level.code) > curIdx ? `Abre quando você passar na prova de nível ${LEVEL_ORDER[LEVEL_ORDER.indexOf(level.code) - 1]}` : "Conclua a estação anterior para abrir"}
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ol>
-                  </div>
-                );
-              })}
-              <Link
-                href={`/prova/${level.code}`}
-                className={`panel flex items-center gap-4 border-2 p-5 hover:bg-surface-2 ${examPassed(level.code) === 3 ? "border-boarding" : "border-transparent"}`}
-              >
-                <Award className={examPassed(level.code) === 3 ? "text-boarding" : "text-atlantic"} size={28} aria-hidden />
-                <span className="flex-1">
-                  <span className="block font-display text-xl font-bold">Prova de nível {level.code}</span>
-                  <span className="block text-sm text-muted">
-                    {examPassed(level.code) === 3
-                      ? "Nível comprovado"
-                      : LEVEL_ORDER.indexOf(level.code) < curIdx
-                        ? "Opcional: você já está acima deste nível"
-                        : `Escrita, Speaking e Conversation · ${examPassed(level.code)} de 3 aprovadas`}
-                  </span>
-                </span>
-              </Link>
-              <PlannedModules level={level.code} authoredTitles={level.modules.map((m) => m.title)} />
-            </div>
+          {shownIdx > curIdx && (
+            <p className="mt-4 rounded-2xl bg-surface-2 p-3 text-sm">
+              Este nível abre quando você passar na <Link href={`/prova/${LEVEL_ORDER[shownIdx - 1]}`} className="font-bold underline">prova de nível {LEVEL_ORDER[shownIdx - 1]}</Link>.
+            </p>
           )}
-        </section>
-      ))}
-    </main>
-  );
-}
 
-function PlannedModules({ level, authoredTitles }: { level: Parameters<typeof syllabusLevel>[0]; authoredTitles: string[] }) {
-  const syl = syllabusLevel(level);
-  const planned = syl.modules.filter((m) => !authoredTitles.includes(m.title));
-  if (!planned.length) return null;
-  return (
-    <div className="mt-6 space-y-4">
-      <p className="text-sm text-muted">
-        Em produção neste nível: {planned.length} {planned.length === 1 ? "módulo" : "módulos"}, {planned.reduce((s, m) => s + m.lessons.length, 0)} aulas. Meta do
-        nível: cerca de {syl.words.toLocaleString("pt-BR")} palavras e {syl.hours} horas de estudo.
-      </p>
-      {planned.map((m) => (
-        <details key={m.title} className="rounded-2xl border border-dashed border-line p-5">
-          <summary className="cursor-pointer font-display text-lg font-bold text-muted">
-            {m.title} <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-xs font-bold">em produção</span>
-          </summary>
-          <ul className="mt-3 space-y-2">
-            {m.lessons.map((l) => (
-              <li key={l.title} className="text-sm">
-                <span className="font-bold">{l.title}</span>
-                <span className="text-muted"> · {l.grammar} · você vai conseguir {l.canDo}</span>
-              </li>
+          <div className="mt-6 space-y-8">
+            {level.modules.map((m) => (
+              <div key={m.id}>
+                <h3 className="font-display text-lg font-bold">{m.title}</h3>
+                <ol className="relative mt-3">
+                  {m.lessons.map((l, i) => {
+                    const isDone = completed.has(l.id);
+                    const unlocked = isDone || isLessonUnlocked(l.id, completed, current);
+                    const isNext = next?.id === l.id;
+                    const last = i === m.lessons.length - 1;
+                    return (
+                      <li key={l.id} className="relative flex items-center gap-4 pb-4 last:pb-0">
+                        {!last && <span aria-hidden className={`absolute left-[25px] top-[52px] h-[calc(100%-44px)] w-1 rounded ${isDone ? "bg-gold" : "bg-line"}`} />}
+                        <span
+                          aria-hidden
+                          className={`relative z-10 grid size-[54px] shrink-0 place-items-center rounded-full border-[3px] font-display text-lg font-bold ${
+                            isDone ? "border-gold bg-gold text-boarding-ink" : isNext ? "border-gold bg-boarding text-boarding-ink ring-4 ring-boarding/30" : unlocked ? "border-gold bg-surface text-ink" : "border-line bg-surface-2 text-muted"
+                          }`}
+                        >
+                          {isDone ? <Check size={22} strokeWidth={3} /> : l.kind === "test" ? <Flag size={20} /> : l.order}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          {unlocked ? (
+                            <Link href={`/aula/${l.id}`} className="group block">
+                              <span className={`inline-block font-bold ${isNext ? "rounded-full bg-gold px-4 py-1.5 text-boarding-ink" : "group-hover:text-atlantic group-hover:underline"}`}>{l.title}</span>
+                              <span className="block text-sm text-muted">{isDone ? `Melhor nota: ${best.get(l.id)}% · refazer` : isNext ? "Você está aqui" : l.objective}</span>
+                            </Link>
+                          ) : (
+                            <span className="block font-bold text-muted">{l.title}</span>
+                          )}
+                        </div>
+                        {!unlocked && <Lock size={16} className="shrink-0 text-muted" aria-label="bloqueada" />}
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
             ))}
-          </ul>
-        </details>
-      ))}
+
+            <Link href={`/prova/${level.code}`} className={`flex items-center gap-4 rounded-2xl border-2 p-4 ${examPassed(level.code) === 3 ? "border-gold bg-boarding/15" : "border-dashed border-line hover:border-gold"}`}>
+              <span className="grid size-[54px] shrink-0 place-items-center rounded-full bg-gold text-white">
+                <Award size={24} aria-hidden />
+              </span>
+              <span className="flex-1">
+                <span className="block font-display text-lg font-bold">Prova de nível {level.code}</span>
+                <span className="block text-sm text-muted">
+                  {examPassed(level.code) === 3 ? "Nível comprovado" : `Escrita, Speaking e Conversation · ${examPassed(level.code)} de 3 aprovadas`}
+                </span>
+              </span>
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      <aside aria-label="Rotina e semana">
+        <StudyRail />
+      </aside>
     </div>
   );
 }
