@@ -35,29 +35,34 @@ export default async function ConversaPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_20rem] [&>*]:min-w-0">
-      <main className="space-y-4">
-        <header>
-          <h1 className="font-display text-3xl font-bold">Conversa com o professor</h1>
-          <p className="mt-1 text-muted">Fale por voz, em português ou inglês, sobre qualquer assunto. O professor corrige, ensina e pede para você repetir as frases novas.</p>
-        </header>
-
-        <nav aria-label="Modo da conversa" className="grid grid-cols-3 gap-2">
-          {MODES.map((m) => (
-            <Link
-              key={m.id}
-              href={`/conversa?modo=${m.id}`}
-              aria-current={m.id === mode ? "true" : undefined}
-              className={`rounded-2xl border-2 p-2.5 text-center sm:p-3 sm:text-left ${m.id === mode ? "border-atlantic bg-surface" : "border-line bg-surface/60 hover:border-atlantic/50"}`}
-            >
-              <span className="block font-bold">
-                <span className="hidden sm:inline">Modo </span>
+      <main className="space-y-3">
+        <header className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">Conversa com o professor</h1>
+          <nav aria-label="Modo da conversa" className="flex gap-1 rounded-full border border-line bg-surface p-1">
+            {MODES.map((m) => (
+              <Link
+                key={m.id}
+                href={`/conversa?modo=${m.id}`}
+                aria-current={m.id === mode ? "true" : undefined}
+                title={m.text}
+                className={`rounded-full px-3 py-1.5 text-sm font-bold ${m.id === mode ? "bg-atlantic text-surface" : "text-muted hover:text-ink"}`}
+              >
                 {m.title}
-              </span>
-              <span className="hidden text-sm text-muted sm:block">{m.text}</span>
-            </Link>
-          ))}
-        </nav>
-        {conv && <p className="text-sm text-muted">Continuando uma conversa no modo {MODES.find((m) => m.id === mode)!.title}. Escolher um modo acima começa uma conversa nova.</p>}
+              </Link>
+            ))}
+          </nav>
+        </header>
+        <p className="flex gap-4 text-sm font-bold xl:hidden">
+          <a href="#historico-conversas" className="text-atlantic underline">
+            Conversas anteriores
+          </a>
+          <Link href="/conversar" className="text-atlantic underline">
+            Situações reais
+          </Link>
+        </p>
+        <p className="hidden text-sm text-muted xl:block">
+          {MODES.find((m) => m.id === mode)!.text} {conv ? "Trocar de modo começa uma conversa nova." : ""}
+        </p>
 
         {isAiConfigured() ? (
           <VoiceTutor key={conv?.id ?? `new-${mode}`} initial={initial} conversationId={conv?.id ?? null} mode={mode} level={level} studentName={profile?.display_name.split(" ")[0] ?? ""} />
@@ -66,7 +71,7 @@ export default async function ConversaPage({ searchParams }: { searchParams: Pro
         )}
       </main>
 
-      <aside className="space-y-5" aria-label="Situações e histórico">
+      <aside id="historico-conversas" className="space-y-5" aria-label="Situações e histórico">
         <Link href="/conversar" className="panel flex items-center gap-4 p-5 hover:border-atlantic">
           <TalkingPeople className="h-20 w-24 shrink-0" />
           <span>

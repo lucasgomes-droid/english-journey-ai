@@ -16,12 +16,15 @@ import { BASE, signup } from "./helpers";
   await signup(page, "travada");
   await page.goto(`${BASE}/conversa`);
   const t0 = Date.now();
-  await page.getByRole("button", { name: "Iniciar conversa por voz" }).click();
-  await page.getByText("Alex está falando…").waitFor();
-  // Mesmo sem a voz do servidor, a conversa segue: ouve, transcreve e responde.
+  await page.getByRole("button", { name: "Ligar para o professor" }).click();
+  await page.getByText(/Alex está falando/).waitFor();
+  // Mesmo sem a voz do servidor, a fala termina e chega a vez do aluno.
+  await page.getByRole("button", { name: "Responder falando", exact: true }).waitFor({ timeout: 60000 });
+  await page.getByRole("button", { name: "Responder falando", exact: true }).click();
+  await page.waitForTimeout(2000);
+  await page.getByRole("button", { name: "Enviar minha resposta", exact: true }).click();
   await page.getByText("That sounds interesting!").first().waitFor({ timeout: 60000 });
   console.log(`✓ voz do servidor travada: a conversa seguiu sozinha (${Math.round((Date.now() - t0) / 1000)} s)`);
-  await page.getByRole("button", { name: "Encerrar a conversa por voz" }).click();
   await browser.close();
 })()
   .catch((e) => {
