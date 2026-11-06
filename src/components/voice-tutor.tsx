@@ -37,6 +37,15 @@ const RATE: Record<string, number> = { A1: 0.82, A2: 0.9, B1: 0.96, B2: 1, C1: 1
 /** Relógio fora do componente (evita o aviso de função impura do React Compiler). */
 const now = () => Date.now();
 
+interface RepeatTarget {
+  /** Mensagem onde o resultado aparece (a resposta do professor ou a fala corrigida do aluno). */
+  id: string;
+  en: string;
+  kind: "practice" | "fix";
+}
+const practiceOf = (a: TutorMsg): RepeatTarget | null => (a.practice ? { id: a.id, en: a.practice.en, kind: "practice" } : null);
+const FIX_KEY = (mode: string) => `ej-fix-now-${mode}`;
+
 const MODE_LABEL: Record<TutorMode, string> = { livre: "Livre", professor: "Professor", imersao: "Imersão" };
 const HANDS_FREE_KEY = "ej-hands-free";
 
@@ -75,13 +84,23 @@ export function VoiceTutor({
   const convRef = useRef(initialId);
   const [convId, setConvId] = useState(initialId);
   const statusRef = useRef<Status>(status);
-  const practiceFor = useRef<TutorMsg | null>(null);
+  /**
+   * Frase que o aluno precisa repetir agora: uma frase ensinada ("practice") ou a forma correta
+   * de algo que ele acabou de dizer ("fix", correção na hora). Ref para a lógica, estado para a tela.
+   */
+  const practiceFor = useRef<RepeatTarget | null>(null);
   const [practiceText, setPracticeText] = useState<string | null>(null);
-  /** Frase que o aluno precisa repetir agora (ref para a lógica, estado para a tela). */
-  const setPractice = (a: TutorMsg | null) => {
-    practiceFor.current = a;
-    setPracticeText(a?.practice?.en ?? null);
+  const [practiceKind, setPracticeKind] = useState<RepeatTarget["kind"] | null>(null);
+  const setPractice = (t: RepeatTarget | null) => {
+    practiceFor.current = t;
+    setPracticeText(t?.en ?? null);
+    setPracticeKind(t?.kind ?? null);
   };
+  /** Resposta do professor que espera a correção terminar para ser falada. */
+  const pendingReply = useRef<TutorMsg | null>(null);
+  /** A resposta guardada só aparece na legenda quando o professor for falá-la. */
+  const [heldId, setHeldId] = useState<string | null>(null);
+  const [fixNow, setFixNow] = useState(mode === "professor");
   const repeatTries = useRef(0);
   const readyAt = useRef<number>(0);
   const speechAt = useRef<number | null>(null);
@@ -98,8 +117,10 @@ export function VoiceTutor({
     try {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- preferência salva no aparelho
       setHandsFree(localStorage.getItem(HANDS_FREE_KEY) === "1");
+      const f = localStorage.getItem(FIX_KEY(mode));
+      if (f !== null) setFixNow(f === "1");
     } catch {}
-  }, []);
+  }, [mode]);
   // A legenda rola sozinha DENTRO da área da conversa (a página não se mexe).
   useEffect(() => {
     const el = scroller.current;
@@ -110,7 +131,7 @@ export function VoiceTutor({
     if (rec.state === "speaking" && speechAt.current === null) speechAt.current = now();
   }, [rec.state]);
 
-  async function send(content: string, viaVoice: boolean): Promise<TutorMsg | null> {
+  async function send(content: string, viaVoice: boolean): Promise<{ a: TutorMsg; userId: string; fix: TutorMsg["correction"] } | null> {
     const msg = content.trim();
     if (!msg) return null;
     setError(null);
@@ -133,7 +154,7 @@ export function VoiceTutor({
       if (!res.ok) throw new Error(data.error ?? "Não foi possível obter resposta.");
       const a: TutorMsg = { id: String(data.assistantMessageId ?? `a-${++seq.current}`), role: "assistant", content: data.reply, intro: data.introPt ?? null, correction: null, tip: data.tip, practice: data.practice };
       setMessages((m) => [...m.map((x) => (x.id === tempId ? { ...x, id: String(data.userMessageId), correction: data.correction } : x)), a]);
-      return a;
+      return { a, userId: String(data.userMessageId), fix: data.correction ?? null };
     } catch (e) {
       setMessages((m) => m.filter((x) => x.id !== tempId));
       setText(msg);
@@ -162,11 +183,44 @@ export function VoiceTutor({
 
   /** Resposta do professor: a abertura em português (voz em português) e depois o inglês. */
   async function reply(a: TutorMsg) {
-    setPractice(a.practice ? a : null);
+    setPractice(practiceOf(a));
     repeatTries.current = 0;
     if (a.intro) await say(a.intro, "pt");
     if (statusRef.current === "speaking") await say(a.content);
     yourTurn();
+  }
+
+  /** Mesmo som em português ou em inglês (Imersão), conforme o modo. */
+  const coach = (pt: string, en: string) => (mode === "imersao" ? say(en) : say(pt, "pt"));
+
+  /**
+   * Correção na hora: antes de seguir a conversa, o professor diz em português que a forma correta é X
+   * e pede para você tentar de novo. A resposta dele fica guardada e é falada depois.
+   */
+  async function correctFirst(r: { a: TutorMsg; userId: string; fix: NonNullable<TutorMsg["correction"]> }) {
+    pendingReply.current = r.a;
+    setHeldId(r.a.id);
+    setPractice({ id: r.userId, en: r.fix.corrected, kind: "fix" });
+    repeatTries.current = 0;
+    await coach("Quase! A forma correta é:", "Almost! The correct way is:");
+    if (statusRef.current === "speaking") await say(r.fix.corrected);
+    if (statusRef.current === "speaking") await coach("Tenta de novo.", "Try again.");
+    yourTurn();
+  }
+
+  /** Depois da correção (acertou, tentou duas vezes ou pulou), o professor continua a conversa. */
+  async function continueAfterFix() {
+    const p = pendingReply.current;
+    pendingReply.current = null;
+    setHeldId(null);
+    if (p) await reply(p);
+    else yourTurn();
+  }
+
+  async function handleAnswer(r: Awaited<ReturnType<typeof send>>) {
+    if (!r) return set("turn");
+    if (r.fix && fixNow) return correctFirst({ ...r, fix: r.fix });
+    await reply(r.a);
   }
 
   /** Grava a vez do aluno. No modo normal, termina quando ele toca de novo; no mãos livres, no silêncio. */
@@ -192,35 +246,41 @@ export function VoiceTutor({
       await say("Sorry, I didn't catch that. Could you say it again?");
       return yourTurn();
     }
-    const a = await send(said, true);
-    if (a) await reply(a);
-    else set("turn");
+    await handleAnswer(await send(said, true));
   }
 
-  /** Repetição da frase ensinada: conferida pelo reconhecedor; se não deu para ouvir, pede de novo. */
+  /** Repetição (frase ensinada ou correção): conferida pelo reconhecedor; se não deu para ouvir, pede de novo. */
   async function checkRepetition(wav: Blob) {
-    const a = practiceFor.current!;
+    const t = practiceFor.current!;
     let r: RepeatResult;
     try {
-      r = await checkRepeat(wav, a.practice!.en, `chat:${convRef.current}`);
+      r = await checkRepeat(wav, t.en, `chat:${convRef.current}`);
     } catch (e) {
       setError((e as Error).message);
       setPractice(null);
+      if (t.kind === "fix") return continueAfterFix();
       return set("turn");
     }
-    setRepeats((x) => ({ ...x, [a.id]: [...(x[a.id] ?? []), r] }));
+    setRepeats((x) => ({ ...x, [t.id]: [...(x[t.id] ?? []), r] }));
     repeatTries.current++;
+    const fix = t.kind === "fix";
     if (r.verdict === "unclear") {
-      await say("Sorry, I didn't catch that. Could you say it again?");
-    } else if (r.verdict === "good") {
-      setPractice(null);
-      await say(r.score === 100 ? "Perfect! Your turn now." : "Great job! Your turn now.");
-    } else if (repeatTries.current >= 2) {
-      setPractice(null);
-      await say("Good effort. We'll practise that again later. Your turn!");
-    } else {
-      await say(`Almost! Listen: ${a.practice!.en}`);
+      await (fix ? coach("Não consegui ouvir bem. Repete, por favor.", "Sorry, I didn't catch that. Could you say it again?") : say("Sorry, I didn't catch that. Could you say it again?"));
+      return yourTurn();
     }
+    if (r.verdict === "good" || repeatTries.current >= 2) {
+      setPractice(null);
+      if (fix) {
+        await (r.verdict === "good" ? coach("Isso! Muito bem.", "Yes! Well done.") : coach("Boa tentativa. A gente treina de novo depois.", "Good effort. We'll practise it again later."));
+        return continueAfterFix();
+      }
+      await say(r.verdict === "good" ? (r.score === 100 ? "Perfect! Your turn now." : "Great job! Your turn now.") : "Good effort. We'll practise that again later. Your turn!");
+      return yourTurn();
+    }
+    if (fix) {
+      await coach("Quase! Escuta de novo:", "Almost! Listen again:");
+      await say(t.en);
+    } else await say(`Almost! Listen: ${t.en}`);
     yourTurn();
   }
 
@@ -245,8 +305,12 @@ export function VoiceTutor({
   }
 
   function skipRepeat() {
+    const wasFix = practiceFor.current?.kind === "fix";
     setPractice(null);
-    set("turn");
+    if (wasFix) {
+      set("speaking");
+      continueAfterFix();
+    } else set("turn");
   }
 
   function cancelRecording() {
@@ -259,10 +323,9 @@ export function VoiceTutor({
     unlockAudio();
     voice.stop();
     setPractice(null);
-    const a = await send(text, false);
+    const r = await send(text, false);
     setText("");
-    if (a) await reply(a);
-    else set("turn");
+    await handleAnswer(r);
   }
 
   async function openReport() {
@@ -270,6 +333,8 @@ export function VoiceTutor({
     rec.cancel();
     voice.stop();
     setPractice(null);
+    pendingReply.current = null;
+    setHeldId(null);
     set("turn");
     setReporting(true);
     try {
@@ -291,6 +356,14 @@ export function VoiceTutor({
     await voice.speak(m.content, { rate: slow ? 0.7 : rate });
   }
 
+  function toggleFixNow() {
+    const v = !fixNow;
+    setFixNow(v);
+    try {
+      localStorage.setItem(FIX_KEY(mode), v ? "1" : "0");
+    } catch {}
+  }
+
   function toggleHandsFree() {
     const v = !handsFree;
     setHandsFree(v);
@@ -305,7 +378,7 @@ export function VoiceTutor({
     idle: messages.length ? "Toque para retomar a ligação" : "Toque para ligar para o professor",
     turn: handsFree ? "Pode falar quando quiser" : "Sua vez · toque para responder",
     recording: handsFree ? "Ouvindo… pare de falar para enviar" : rec.state === "speaking" ? "Ouvindo você… toque para enviar" : "Pode falar… toque para enviar",
-    repeat: "Repita a frase · toque no microfone",
+    repeat: practiceKind === "fix" ? "Tente de novo · toque no microfone" : "Repita a frase · toque no microfone",
     repeating: "Repetindo… toque para enviar",
     thinking: "Alex está pensando…",
     speaking: "Alex está falando…",
@@ -350,7 +423,7 @@ export function VoiceTutor({
 
       {/* Legenda da conversa: rola sozinha, só aqui dentro */}
       <ol ref={scroller} className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4" aria-label="Legenda da conversa" aria-live="polite">
-        {messages.map((m) => (
+        {messages.filter((m) => m.id !== heldId).map((m) => (
           <li key={m.id} className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
             <div className={`max-w-[88%] rounded-2xl px-4 py-2.5 ${m.role === "user" ? "rounded-br-md bg-atlantic text-surface" : "rounded-bl-md bg-surface-2"}`}>
               {m.intro && (
@@ -383,6 +456,15 @@ export function VoiceTutor({
                   → <strong lang="en">{m.correction.corrected}</strong>
                 </p>
                 <p className="text-muted">{m.correction.explanation_pt}</p>
+                {repeats[m.id] && (
+                  <p className="mt-1 font-bold" role="status">
+                    {repeats[m.id].some((r) => r.verdict === "good")
+                      ? "✓ Você repetiu certo."
+                      : repeats[m.id][repeats[m.id].length - 1].verdict === "unclear"
+                        ? "Não deu para ouvir a repetição."
+                        : `Tentativa: “${repeats[m.id][repeats[m.id].length - 1].recognized}”`}
+                  </p>
+                )}
               </div>
             )}
             {m.tip && (
@@ -422,7 +504,7 @@ export function VoiceTutor({
         )}
         {practiceText && (status === "repeat" || status === "repeating") && (
           <p className="mb-2 text-center text-sm">
-            Repita: <strong lang="en">{practiceText}</strong>{" "}
+            {practiceKind === "fix" ? "Forma correta, tente de novo:" : "Repita:"} <strong lang="en">{practiceText}</strong>{" "}
             <button type="button" onClick={skipRepeat} className="ml-1 text-muted underline">
               pular
             </button>
@@ -459,13 +541,19 @@ export function VoiceTutor({
             <p className="text-sm text-muted">Reconhecimento de voz desativado; use o teclado.</p>
           )}
           <div className="flex w-24 justify-end">
-            {messages.some((m) => m.role === "assistant") && <NotUnderstood text={[...messages].reverse().find((m) => m.role === "assistant")!.content} context="Conversation with the private English teacher" />}
+            {messages.some((m) => m.role === "assistant") && <NotUnderstood text={[...messages].reverse().find((m) => m.role === "assistant" && m.id !== heldId)?.content ?? ""} context="Conversation with the private English teacher" />}
           </div>
         </div>
-        <label className="mt-3 flex items-center justify-center gap-2 text-xs text-muted">
-          <input type="checkbox" checked={handsFree} onChange={toggleHandsFree} className="size-4 accent-[var(--atlantic)]" />
-          Mãos livres (o professor percebe sozinho quando você termina)
-        </label>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-muted">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={fixNow} onChange={toggleFixNow} className="size-4 accent-[var(--atlantic)]" />
+            Corrigir na hora e pedir para tentar de novo
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={handsFree} onChange={toggleHandsFree} className="size-4 accent-[var(--atlantic)]" />
+            Mãos livres
+          </label>
+        </div>
       </footer>
 
       {report && <ConversationReportSheet report={report.report} savedPhrases={report.savedPhrases} onClose={() => setReport(null)} />}

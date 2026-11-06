@@ -71,9 +71,18 @@ let current: Page | null = null;
   console.log("✓ repetição: reconhecimento ruim pede para repetir; repetição certa é confirmada");
 
   // Continua a conversa, encerra e vê o relatório.
+  // Correção na hora (padrão no modo Professor): corrige em português, diz a forma certa e pede para tentar de novo.
   writeFileSync(STT, "I have 30 years and I like my job");
   await answer("Responder falando", "Enviar minha resposta");
+  await page.getByText("Forma correta, tente de novo:").waitFor({ timeout: 40000 });
+  await page.getByText("Tente de novo · toque no microfone").waitFor();
+  if (await page.getByText("That sounds interesting!").count()) throw new Error("o professor seguiu a conversa antes da nova tentativa");
+  await page.screenshot({ path: `${SHOTS}/conversa-corrigir-na-hora.png` });
+  writeFileSync(STT, "I'm 30 years old");
+  await answer("Repetir a frase", "Enviar a repetição");
+  await page.getByText("✓ Você repetiu certo.").waitFor({ timeout: 40000 });
   await page.getByText("That sounds interesting!").first().waitFor({ timeout: 40000 });
+  console.log("✓ correção na hora: 'a forma correta é…', tenta de novo, confere e só então o professor continua");
   rmSync(STT, { force: true });
   await page.getByRole("button", { name: "Encerrar e ver relatório" }).click();
   const sheet = page.getByRole("dialog", { name: "Relatório da conversa" });

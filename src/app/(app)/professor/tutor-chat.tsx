@@ -10,6 +10,7 @@ import { NotUnderstood, TranslateInline } from "@/components/help";
 import { useTranslationPref } from "@/lib/translation";
 import { unlockAudio, useVoice, type VoiceName } from "@/lib/voice";
 import { transcribeWav, useVoiceRecorder } from "@/lib/voice-recorder";
+import { checkRepeat } from "@/components/practice-card";
 
 export interface ChatMsg {
   id: string;
@@ -28,6 +29,15 @@ interface Reply {
 }
 
 type CallState = "off" | "listening" | "thinking" | "speaking" | "paused";
+const FIX_NOW_KEY = "ej-fix-now-cenario";
+/** Correção na hora, durante a ligação: a forma certa e o resultado da nova tentativa. */
+interface CallFix {
+  original: string;
+  corrected: string;
+  explanation_pt: string;
+  result: "waiting" | "good" | "tried" | "skipped";
+  heard?: string;
+}
 
 export function TutorChat({
   initial,
@@ -68,6 +78,9 @@ export function TutorChat({
   const [summary, setSummary] = useState<NonNullable<ChatMsg["correction"]>[] | null>(null);
   const [lastHeard, setLastHeard] = useState("");
   const [lastReply, setLastReply] = useState("");
+  const [fixNow, setFixNow] = useState(true);
+  const [callFix, setCallFix] = useState<CallFix | null>(null);
+  const skipFix = useRef(false);
   const [report, setReport] = useState<{ report: ReportView; savedPhrases: number } | null>(null);
   const [reporting, setReporting] = useState(false);
   const translation = useTranslationPref();
@@ -86,6 +99,21 @@ export function TutorChat({
     callRef.current = s;
     setCall(s);
   };
+
+  useEffect(() => {
+    try {
+      const f = localStorage.getItem(FIX_NOW_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- preferência salva no aparelho
+      if (f !== null) setFixNow(f === "1");
+    } catch {}
+  }, []);
+  function toggleFixNow() {
+    const v = !fixNow;
+    setFixNow(v);
+    try {
+      localStorage.setItem(FIX_NOW_KEY, v ? "1" : "0");
+    } catch {}
+  }
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -192,16 +220,79 @@ export function TutorChat({
         return;
       }
       if (r.correction) setCallNotes((n) => [...n, r.correction!]);
+      if (r.correction && fixNow) {
+        await correctInCall(r.correction);
+        if (callNow() === "off" || callNow() === "paused") return;
+      }
       setLastReply(r.reply);
       setCallState("speaking");
       await voice.speak(r.reply, { voice: charVoice });
     }
   }
 
+  /**
+   * Correção na hora: em português, "a forma correta é…", a frase certa em inglês e "tenta de novo".
+   * A nova tentativa é conferida pelo reconhecedor (até 2 vezes; se não deu para ouvir, pede de novo).
+   * Depois disso o personagem continua a conversa.
+   */
+  async function correctInCall(c: NonNullable<ChatMsg["correction"]>) {
+    const alive = () => callNow() !== "off" && callNow() !== "paused" && !skipFix.current;
+    skipFix.current = false;
+    setCallFix({ ...c, result: "waiting" });
+    setCallState("speaking");
+    await voice.speak("Quase! A forma correta é:", { lang: "pt" });
+    if (alive()) await voice.speak(c.corrected);
+    if (alive()) await voice.speak("Tenta de novo.", { lang: "pt" });
+    let tries = 0;
+    let unclear = 0;
+    while (alive()) {
+      setCallState("listening");
+      const wav = await rec.listen({ silenceMs: 1300, noSpeechTimeoutMs: 15000, maxSeconds: 20 });
+      if (!alive() || !wav) break;
+      setCallState("thinking");
+      let res;
+      try {
+        res = await checkRepeat(wav, c.corrected, `chat:${convRef.current}`);
+      } catch (e) {
+        setError((e as Error).message);
+        break;
+      }
+      if (!alive()) break;
+      setCallState("speaking");
+      if (res.verdict === "unclear" && unclear++ < 2) {
+        await voice.speak("Não consegui ouvir bem. Repete, por favor.", { lang: "pt" });
+        continue;
+      }
+      tries++;
+      setCallFix((f) => f && { ...f, heard: res.recognized });
+      if (res.verdict === "good") {
+        setCallFix((f) => f && { ...f, result: "good" });
+        await voice.speak("Isso! Muito bem.", { lang: "pt" });
+        return;
+      }
+      if (tries >= 2) {
+        setCallFix((f) => f && { ...f, result: "tried" });
+        await voice.speak("Boa tentativa. Vamos seguir.", { lang: "pt" });
+        return;
+      }
+      await voice.speak("Quase! Escuta de novo:", { lang: "pt" });
+      if (alive()) await voice.speak(c.corrected);
+    }
+    setCallFix((f) => f && f.result === "waiting" ? { ...f, result: "skipped" } : f);
+    if (skipFix.current && callNow() !== "off" && callNow() !== "paused") setCallState("speaking");
+  }
+
+  function skipCallFix() {
+    skipFix.current = true;
+    rec.cancel();
+    voice.stop();
+  }
+
   async function startCall() {
     unlockAudio();
     setError(null);
     setCallNotes([]);
+    setCallFix(null);
     setSummary(null);
     setCallState("speaking");
     // Se a conversa está começando, o personagem fala primeiro.
@@ -470,7 +561,7 @@ export function TutorChat({
             </div>
             <p className="mt-6 font-display text-3xl font-bold">{name}</p>
             <p className="mt-2 flex items-center gap-2 text-lg text-white/85" aria-live="polite">
-              {call === "listening" && (rec.state === "speaking" ? "Ouvindo você…" : "Pode falar")}
+              {call === "listening" && (rec.state === "speaking" ? "Ouvindo você…" : callFix?.result === "waiting" ? "Tente de novo" : "Pode falar")}
               {call === "thinking" && (
                 <>
                   <Loader2 size={18} className="animate-spin" aria-hidden /> Pensando…
@@ -479,7 +570,25 @@ export function TutorChat({
               {call === "speaking" && `${name} está falando…`}
               {call === "paused" && "Pausado. Toque em continuar quando quiser."}
             </p>
-            {lastReply && (
+            {callFix?.result === "waiting" ? (
+              <div className="mt-5 max-w-md rounded-2xl bg-white/10 px-4 py-3 text-center" role="status">
+                <p className="text-sm text-white/70">Quase! A forma correta é:</p>
+                <p className="mt-1 text-sm text-white/60 line-through" lang="en">{callFix.original}</p>
+                <p className="font-display text-xl font-bold text-boarding" lang="en">{callFix.corrected}</p>
+                <p className="mt-1 text-sm text-white/80">{callFix.explanation_pt}</p>
+                {callFix.heard && <p className="mt-1 text-sm text-white/60">Você tentou: “{callFix.heard}”</p>}
+                <button type="button" onClick={skipCallFix} className="mt-2 text-sm text-white/70 underline">
+                  Pular e continuar a conversa
+                </button>
+              </div>
+            ) : (
+              callFix && (
+                <p className="mt-4 text-sm text-boarding" role="status">
+                  {callFix.result === "good" ? "✓ Você repetiu certo:" : "Forma correta:"} <span lang="en">{callFix.corrected}</span>
+                </p>
+              )
+            )}
+            {lastReply && callFix?.result !== "waiting" && (
               <p className="mt-5 max-w-md rounded-2xl bg-white/10 px-4 py-3 text-center text-lg leading-snug" lang="en">
                 {lastReply}
               </p>
@@ -487,6 +596,10 @@ export function TutorChat({
             {lastHeard && <p className="mt-3 max-w-md text-center text-sm text-white/60">Você disse: “{lastHeard}”</p>}
             {callNotes.length > 0 && <p className="mt-2 text-sm text-boarding">{callNotes.length} {callNotes.length === 1 ? "ponto para melhorar" : "pontos para melhorar"} no resumo</p>}
             {(error || rec.error) && <p className="mt-3 max-w-md text-center text-sm text-[#ffb4ab]">{error ?? rec.error}</p>}
+            <label className="mt-4 flex items-center gap-2 text-sm text-white/80">
+              <input type="checkbox" checked={fixNow} onChange={toggleFixNow} className="size-4 accent-[var(--boarding)]" />
+              Corrigir na hora e pedir para tentar de novo
+            </label>
           </div>
           <div className="flex items-center gap-6">
             <button type="button" onClick={pauseOrResume} className="grid size-16 place-items-center rounded-full bg-white/15 hover:bg-white/25" aria-label={call === "paused" ? "Continuar" : "Pausar"}>
