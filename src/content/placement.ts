@@ -45,9 +45,23 @@ export const PLACEMENT: PlacementQuestion[] = [
   Q("B2", "The project is ___ to be finished by June.", ["supposed", "suppose", "supposing"], 0),
   Q("B2", "Ouça. O que aconteceu?", ["Ela devia ter avisado antes.", "Ela avisou com antecedência.", "Ela vai avisar amanhã."], 0, "She should have told us earlier."),
   Q("B2", "Ouça e escolha o sentido.", ["O preço caiu bastante.", "As vendas se mantiveram estáveis apesar da crise.", "A empresa fechou por causa da crise."], 1, "Despite the crisis, sales remained fairly stable."),
+  // C1
+  Q("C1", "Had I known about the delay, I ___ a later train.", ["would take", "would have taken", "had taken"], 1),
+  Q("C1", "The proposal was turned ___ because it was too expensive.", ["down", "off", "out"], 0),
+  Q("C1", "She's very good at her job, ___ she can be a bit disorganised.", ["despite", "albeit", "although"], 2),
+  Q("C1", "Which word best completes it? \"The results were ___ disappointing, given the effort involved.\"", ["somewhat", "somehow", "someway"], 0),
+  Q("C1", "Ouça. Qual é a ideia?", ["A reunião foi cancelada.", "Vale a pena adiar a decisão até termos os números.", "Os números já estão prontos."], 1, "I'd hold off on making a decision until we've seen the figures."),
+  Q("C1", "Ouça. O que a pessoa sente?", ["Ela está aliviada.", "Ela está irritada com o atraso.", "Ela está surpresa e contente."], 1, "Frankly, I'm fed up with these constant delays."),
+  // C2
+  Q("C2", "Little ___ that the decision would change everything.", ["did they realise", "they realised", "they did realise"], 0),
+  Q("C2", "His argument doesn't hold ___ under close scrutiny.", ["water", "ground", "breath"], 0),
+  Q("C2", "Choose the most natural: \"The report ___ to a number of inconsistencies.\"", ["alludes", "eludes", "elides"], 0),
+  Q("C2", "\"She was, to all intents and purposes, the manager.\" means she was…", ["officially the manager", "the manager in practice, if not in title", "about to become the manager"], 1),
+  Q("C2", "Ouça. O que a pessoa está fazendo?", ["Elogiando a ideia sem ressalvas.", "Discordando de forma educada e indireta.", "Pedindo mais tempo para responder."], 1, "That's certainly one way of looking at it, though I'm not entirely convinced."),
+  Q("C2", "Ouça e escolha o sentido.", ["O plano saiu exatamente como previsto.", "O plano foi um fracasso total.", "Apesar de alguns contratempos, o plano funcionou no geral."], 2, "For all its teething problems, the scheme has, by and large, delivered."),
 ];
 
-export const PLACEMENT_LEVELS: CefrLevel[] = ["A1", "A2", "B1", "B2"];
+export const PLACEMENT_LEVELS: CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 /**
  * Calcula o nível estimado. `answers[i]` é a opção escolhida na questão i (ou -1).
@@ -66,7 +80,27 @@ export function scorePlacement(answers: number[]) {
     else break;
   }
   const order: CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
-  // Começa no nível seguinte ao último dominado (A1 se não dominou nenhum).
-  const estimated: CefrLevel = mastered ? order[order.indexOf(mastered) + 1] : "A1";
-  return { estimated, mastered, byLevel };
+  // Começa no nível seguinte ao último dominado (A1 se não dominou nenhum; C2 se dominou tudo).
+  const estimated: CefrLevel = mastered ? (order[order.indexOf(mastered) + 1] ?? "C2") : "A1";
+  // Resultado por competência: compreensão oral (questões com áudio) × leitura e gramática.
+  // Níveis que o aluno chegou a ver: até o nível estimado (o teste para no primeiro nível que vai mal).
+  const shown = (q: PlacementQuestion) => PLACEMENT_LEVELS.indexOf(q.level) <= PLACEMENT_LEVELS.indexOf(estimated);
+  const part = (audio: boolean) => {
+    const qs = PLACEMENT.map((q, i) => ({ q, i })).filter((x) => Boolean(x.q.audio) === audio && shown(x.q));
+    return { ok: qs.filter((x) => answers[x.i] === x.q.answer).length, total: qs.length };
+  };
+  const bySkill = [
+    { skill: "Leitura e gramática", ...part(false) },
+    { skill: "Compreensão oral", ...part(true) },
+  ];
+  return { estimated, mastered, byLevel, bySkill };
+}
+
+/** O teste para cedo: errou demais um nível (menos de 4 de 6), os seguintes não mudam o resultado. */
+export function placementStopsAfter(answers: number[], index: number): boolean {
+  const q = PLACEMENT[index];
+  const next = PLACEMENT[index + 1];
+  if (!next || next.level === q.level) return false;
+  const qs = PLACEMENT.map((x, i) => ({ x, i })).filter((y) => y.x.level === q.level);
+  return qs.filter((y) => answers[y.i] === y.x.answer).length < 4;
 }

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Volume2 } from "lucide-react";
-import { PLACEMENT } from "@/content/placement";
+import { PLACEMENT, placementStopsAfter } from "@/content/placement";
 import { savePlacement } from "@/app/actions/placement";
 import { unlockAudio, useVoice } from "@/lib/voice";
 import type { CefrLevel } from "@/content/types";
@@ -27,7 +27,7 @@ export function PlacementTest({ current }: { current: CefrLevel }) {
   function choose(opt: number) {
     const next = answers.map((a, k) => (k === i ? opt : a));
     setAnswers(next);
-    if (i + 1 < PLACEMENT.length) {
+    if (i + 1 < PLACEMENT.length && !placementStopsAfter(next, i)) {
       setI(i + 1);
       if (PLACEMENT[i + 1].audio) play(PLACEMENT[i + 1].audio!);
     } else {
@@ -45,7 +45,7 @@ export function PlacementTest({ current }: { current: CefrLevel }) {
       <div className="panel mt-8 p-6 text-center" role="status">
         <p className="text-muted">Seu nível estimado</p>
         <p className="font-display text-6xl font-bold text-atlantic">{result.estimated}</p>
-        <ul className="mt-4 grid grid-cols-4 gap-2 text-sm">
+        <ul className="mt-4 grid grid-cols-3 gap-2 text-sm sm:grid-cols-6">
           {result.byLevel.map((b) => (
             <li key={b.level} className={`rounded-xl p-2 ${b.ok >= 4 ? "bg-correct-bg text-correct" : "bg-surface-2"}`}>
               <span className="block font-bold">{b.level}</span>
@@ -53,6 +53,15 @@ export function PlacementTest({ current }: { current: CefrLevel }) {
             </li>
           ))}
         </ul>
+        <ul className="mt-3 grid grid-cols-2 gap-2 text-sm" aria-label="Resultado por competência">
+          {result.bySkill.map((b) => (
+            <li key={b.skill} className="rounded-xl bg-surface-2 p-2">
+              <span className="block font-bold">{b.skill}</span>
+              {b.ok}/{b.total} acertos
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-xs text-muted">Estimativa com {PLACEMENT.filter((_, k) => answers[k] >= 0).length} respostas — não é certificação. Seu domínio real aparece em Meu progresso conforme você estuda.</p>
         <p className="mt-4">
           {result.start === result.estimated
             ? `Sua trilha agora começa no ${result.start}. As aulas dos níveis anteriores ficam abertas para revisar quando quiser.`

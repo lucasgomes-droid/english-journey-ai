@@ -114,14 +114,25 @@ describe("nivelamento", () => {
     expect(scorePlacement(PLACEMENT.map(() => -1)).estimated).toBe("A1");
     expect(scorePlacement(upTo(["A1"])).estimated).toBe("A2");
     expect(scorePlacement(upTo(["A1", "A2"])).estimated).toBe("B1");
-    expect(scorePlacement(perfect).estimated).toBe("C1");
+    expect(scorePlacement(upTo(["A1", "A2", "B1", "B2"])).estimated).toBe("C1");
+    expect(scorePlacement(perfect).estimated).toBe("C2");
   });
   it("não pula níveis: errar o A2 mantém no A2 mesmo acertando B1", () => {
     expect(scorePlacement(upTo(["A1", "B1"])).estimated).toBe("A2");
   });
   it("respostas certas estão dentro das opções", () => {
     for (const q of PLACEMENT) expect(q.answer).toBeLessThan(q.options.length);
-    expect(PLACEMENT.length).toBe(24);
+    expect(PLACEMENT.length).toBe(36);
+  });
+  it("para cedo quando um nível vai mal e separa leitura × compreensão oral", async () => {
+    const { placementStopsAfter } = await import("../src/content/placement");
+    const lastA1 = PLACEMENT.map((q) => q.level).lastIndexOf("A1");
+    expect(placementStopsAfter(PLACEMENT.map(() => -1), lastA1)).toBe(true);
+    expect(placementStopsAfter(perfect, lastA1)).toBe(false);
+    expect(placementStopsAfter(perfect, 0)).toBe(false);
+    const r = scorePlacement(perfect);
+    expect(r.bySkill.map((b) => b.skill)).toEqual(["Leitura e gramática", "Compreensão oral"]);
+    expect(r.bySkill[1].ok).toBe(PLACEMENT.filter((q) => q.audio).length);
   });
 });
 

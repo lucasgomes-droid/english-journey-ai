@@ -20,7 +20,7 @@ export default async function NivelamentoPage() {
         </Link>
         <h1 className="mt-10 font-display text-4xl font-bold">Teste de nivelamento</h1>
         <p className="mt-3 text-muted">
-          24 questões rápidas, do A1 ao B2, com leitura e escuta. Leva uns 8 minutos. Se não souber, escolha “Não sei”: chutar só atrapalha a estimativa.
+          Até 36 questões rápidas, do A1 ao C2, com leitura e escuta. O teste para sozinho quando chega ao seu limite (uns 5 a 12 minutos). Se não souber, escolha “Não sei”: chutar só atrapalha a estimativa.
         </p>
         <PlacementTest current={profile.current_level} />
       </main>
