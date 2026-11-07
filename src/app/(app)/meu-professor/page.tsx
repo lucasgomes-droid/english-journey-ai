@@ -3,6 +3,8 @@ import { ProgressTabs } from "@/components/progress-tabs";
 import { ArrowRight, Clock, GraduationCap, MessagesSquare, Mic, Sparkles, Target, TriangleAlert, Trophy } from "lucide-react";
 import { getDashboard, getSession } from "@/lib/data";
 import { loadTeacherPanel } from "@/lib/teacher";
+import { loadIndicators } from "@/lib/indicators";
+import { IndicatorsPanel } from "@/components/indicators-panel";
 import { getCategory } from "@/content/error-patterns";
 import { ALL_LESSONS } from "@/content/curriculum";
 
@@ -49,7 +51,7 @@ function Trend({ points, empty }: { points: { week: string; value: number; n: nu
 
 export default async function MyTeacherPage() {
   const { supabase, user, profile } = await getSession();
-  const [d, t] = await Promise.all([getDashboard(), loadTeacherPanel(supabase, user.id, profile!)]);
+  const [d, t, ind] = await Promise.all([getDashboard(), loadTeacherPanel(supabase, user.id, profile!), loadIndicators(supabase, user.id, profile!.current_level)]);
   const measured = t.diag.areas.filter((a) => a.score !== null);
 
   return (
@@ -70,6 +72,8 @@ export default async function MyTeacherPage() {
           {t.recommendation.cta} <ArrowRight size={18} aria-hidden />
         </Link>
       </section>
+
+      <IndicatorsPanel data={ind} />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="panel p-5">
