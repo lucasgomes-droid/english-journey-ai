@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/supabase/server";
 
 /** Tabelas com o progresso do aluno (conversas apagam as mensagens em cascata). */
 const PROGRESS_TABLES = [
+  "production_attempts",
   "practice_plans",
   "recovery_plans",
   "exam_sessions",

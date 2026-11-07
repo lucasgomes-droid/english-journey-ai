@@ -159,3 +159,22 @@ describe("cenários do dia a dia (Fase 2)", () => {
     for (const id of ["cafe", "directions", "supermarket", "airport", "lost-luggage", "coworker", "make-plans", "return-item"]) expect(SCENARIOS.some((s) => s.id === id), id).toBe(true);
   });
 });
+
+describe("leitura por módulo (A1–B1)", async () => {
+  const { READINGS } = await import("@/content/readings");
+  const { ALL_MODULES } = await import("@/content/curriculum");
+  it("todo módulo comum de A1, A2 e B1 tem um texto com 3 perguntas válidas, no fim do teste do módulo", () => {
+    const regular = ALL_MODULES.filter((m) => /^(a1|a2|b1)-m\d$/.test(m.id));
+    expect(regular.length).toBe(24);
+    for (const m of regular) {
+      const r = READINGS.find((x) => x.moduleId === m.id);
+      expect(r, m.id).toBeTruthy();
+      expect(r!.questions.length).toBe(3);
+      for (const q of r!.questions) expect(q.answer).toBeLessThan(q.options.length);
+      const test = m.lessons.find((l) => l.kind === "test")!;
+      const reading = test.exercises.filter((e) => e.skill === "reading" && e.id.startsWith(`${test.id}-r`));
+      expect(reading.length, m.id).toBe(3);
+    }
+  });
+});
+

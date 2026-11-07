@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
+import { ProduceCard } from "@/components/produce-card";
 import { X, CheckCircle2, XCircle, MessagesSquare, Trophy, RotateCcw, Mic, Keyboard, Flag } from "lucide-react";
 import { PronounceCard } from "@/components/pronounce-card";
 import { useVoiceCaps } from "@/lib/voice";
@@ -421,6 +422,10 @@ function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }:
             {server.exam.passed ? "Continuar a prova" : "Ver meu plano"}
           </Link>
         </div>
+      )}
+
+      {lesson.kind === "lesson" && server?.ok && (
+        <ProduceCard lessonId={lesson.id} objective={lesson.objective} hint={lesson.examples[0]?.en ?? lesson.vocabulary[0]?.en ?? ""} />
       )}
 
       {lesson.scenarioId && (

@@ -35,6 +35,8 @@ export interface MultipleChoiceExercise extends ExerciseBase {
   options: string[];
   /** Índice da opção correta. */
   answer: number;
+  /** Leitura: texto exibido acima da pergunta (exercícios de reading). */
+  passage?: { title: string; text: string };
 }
 
 export interface TranslateExercise extends ExerciseBase {

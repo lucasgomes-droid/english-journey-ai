@@ -15,10 +15,11 @@ const SKILL_PT: Record<string, string> = { grammar: "Gramática", vocabulary: "V
 export async function loadIndicators(supabase: SupabaseClient, uid: string, level: CefrLevel) {
   const now = Date.now();
   const since28 = new Date(now - 28 * DAY).toISOString();
-  const [ansRes, actRes, vocabRes] = await Promise.all([
+  const [ansRes, actRes, vocabRes, prodRes] = await Promise.all([
     supabase.from("exercise_answers").select("lesson_id, exercise_id, skill, correct, created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(5000),
     supabase.from("activity_log").select("kind, duration_seconds, local_date, created_at").eq("user_id", uid).gte("created_at", since28).limit(2000),
     supabase.from("review_items").select("repetitions, lapses, interval_days").eq("user_id", uid).eq("item_type", "vocab").not("last_reviewed_at", "is", null).limit(5000),
+    supabase.from("production_attempts").select("lesson_id, score, feedback, created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(1000),
   ]);
   const answers = (ansRes.data ?? []) as { lesson_id: string; exercise_id: string; skill: string; correct: boolean; created_at: string }[];
   const acts = (actRes.data ?? []) as { kind: string; duration_seconds: number | null; local_date: string; created_at: string }[];
@@ -64,6 +65,9 @@ export async function loadIndicators(supabase: SupabaseClient, uid: string, leve
     if (!ex || ex.lessonId.startsWith("mini-")) continue;
     evidence.push({ lessonId: ex.lessonId, correct: a.correct, at: a.created_at, production: isProduction(ex.exercise) });
   }
+  // Produção livre ("Use você mesmo"): evidência forte de que o aluno consegue usar o conteúdo.
+  for (const p of (prodRes.data ?? []) as { lesson_id: string; score: number | null; feedback: { used_target?: boolean } | null; created_at: string }[])
+    evidence.push({ lessonId: p.lesson_id, correct: (p.score ?? 0) >= 70 && p.feedback?.used_target === true, at: p.created_at, production: true });
   const states = objectiveStates(evidence);
   const levelOf = new Map(ALL_LESSONS.map((l) => [l.id, getModule(l.moduleId)?.level]));
   const lessonLevel = (id: string) => levelOf.get(id);

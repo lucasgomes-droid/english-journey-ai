@@ -13,12 +13,38 @@ import { B2_MODULES } from "./b2";
 import { C1_MODULES } from "./c1";
 import { C2_MODULES } from "./c2";
 import { MINI_LESSONS, MINI_MODULES } from "./mini";
-import type { CefrLevel, Lesson, Level, Module, VocabItem } from "./types";
+import { readingFor } from "./readings";
+import type { CefrLevel, Exercise, Lesson, Level, Module, VocabItem } from "./types";
+
+/**
+ * Leitura do módulo: as perguntas do texto entram no fim do teste do módulo, com IDs novos (`-r1…`),
+ * sem mexer nos IDs existentes (o progresso salvo continua valendo).
+ */
+function withReading(m: Module): Module {
+  const r = readingFor(m.id);
+  if (!r) return m;
+  return {
+    ...m,
+    lessons: m.lessons.map((l) =>
+      l.kind !== "test"
+        ? l
+        : {
+            ...l,
+            exercises: [
+              ...l.exercises,
+              ...r.questions.map(
+                (q, i): Exercise => ({ id: `${l.id}-r${i + 1}`, type: "multiple_choice", skill: "reading", prompt: q.q, options: q.options, answer: q.answer, passage: { title: r.title, text: r.text } }),
+              ),
+            ],
+          },
+    ),
+  };
+}
 
 export const LEVELS: Level[] = [
-  { code: "A1", name: "Iniciante", description: "Frases simples do dia a dia, apresentações e informações pessoais.", modules: [a1Module1, a1Module2, a1Module3, a1Module4, a1Module5, a1Module6, a1Module7, a1Module8, a1Final] },
-  { code: "A2", name: "Básico", description: "Passado, planos, compras, direções e situações rotineiras.", modules: A2_MODULES },
-  { code: "B1", name: "Intermediário", description: "Viagens, experiências, opiniões e conversas mais longas.", modules: B1_MODULES },
+  { code: "A1", name: "Iniciante", description: "Frases simples do dia a dia, apresentações e informações pessoais.", modules: [a1Module1, a1Module2, a1Module3, a1Module4, a1Module5, a1Module6, a1Module7, a1Module8, a1Final].map(withReading) },
+  { code: "A2", name: "Básico", description: "Passado, planos, compras, direções e situações rotineiras.", modules: A2_MODULES.map(withReading) },
+  { code: "B1", name: "Intermediário", description: "Viagens, experiências, opiniões e conversas mais longas.", modules: B1_MODULES.map(withReading) },
   { code: "B2", name: "Intermediário avançado", description: "Discussões, argumentação e inglês profissional.", modules: B2_MODULES },
   { code: "C1", name: "Avançado", description: "Linguagem flexível e precisa em contextos acadêmicos e profissionais.", modules: C1_MODULES },
   { code: "C2", name: "Proficiência", description: "Domínio próximo ao de um nativo culto.", modules: C2_MODULES },

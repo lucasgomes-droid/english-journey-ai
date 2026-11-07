@@ -36,8 +36,18 @@ export function ExerciseView(rawProps: Props) {
   return (
     <div className="animate-pop">
       <p className="text-sm font-bold text-muted">
-        {props.speakMode && exercise.type === "translate" ? "Diga em inglês" : props.speakMode && exercise.type === "word_order" ? "Diga a frase em inglês" : TITLES[exercise.type]}
+        {props.speakMode && exercise.type === "translate" ? "Diga em inglês" : props.speakMode && exercise.type === "word_order" ? "Diga a frase em inglês" : exercise.type === "multiple_choice" && exercise.passage ? "Leia o texto e responda" : TITLES[exercise.type]}
       </p>
+      {exercise.type === "multiple_choice" && exercise.passage && (
+        <article className="mt-3 rounded-2xl border border-line bg-surface-2 p-4" aria-label={`Texto: ${exercise.passage.title}`}>
+          <h3 className="font-display text-lg font-bold" lang="en">
+            {exercise.passage.title}
+          </h3>
+          <p className="mt-2 whitespace-pre-line leading-relaxed" lang="en">
+            {exercise.passage.text}
+          </p>
+        </article>
+      )}
       {exercise.type === "multiple_choice" && <Choices {...props} prompt={exercise.prompt} options={exercise.options} answer={exercise.answer} />}
       {exercise.type === "listening" && <Listening {...props} />}
       {exercise.type === "translate" && (
