@@ -64,15 +64,39 @@ const profileSchema = z.object({
   weekly_goal_lessons: z.coerce.number().int().min(1).max(50),
   learning_goal: z.string().trim().max(200).optional(),
 });
+const planSchema = z.object({
+  study_days: z.array(z.coerce.number().int().min(0).max(6)).min(1).max(7),
+  focus_skills: z.array(z.enum(["speaking", "listening", "writing", "vocabulary", "grammar", "reading"])).max(6),
+  target_level: z.enum(["A2", "B1", "B2", "C1", "C2"]).nullable(),
+  target_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+  daily_review_limit: z.coerce.number().int().min(5).max(100),
+});
 
 export async function saveProfile(_: FormState, formData: FormData): Promise<FormState> {
   const parsed = profileSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Confira os campos: nome com 2+ letras e metas dentro dos limites." };
+  // Plano de estudo (dias, foco, meta e prazo). Campos ausentes (ex.: no onboarding) não são alterados.
+  const plan: Record<string, unknown> = {};
+  if (formData.has("study_days")) {
+    const p = planSchema.partial().safeParse({
+      study_days: formData.getAll("study_days"),
+      ...(formData.has("daily_review_limit")
+        ? {
+            focus_skills: formData.getAll("focus_skills"),
+            target_level: (formData.get("target_level") as string) || null,
+            target_date: (formData.get("target_date") as string) || null,
+            daily_review_limit: formData.get("daily_review_limit"),
+          }
+        : {}),
+    });
+    if (!p.success) return { error: "Confira os dias de estudo e a meta." };
+    Object.assign(plan, p.data);
+  }
   const { supabase, user } = await requireUser();
   const finishOnboarding = formData.get("onboarding") === "1";
   const { error } = await supabase
     .from("profiles")
-    .update({ ...parsed.data, ...(finishOnboarding ? { onboarded: true } : {}), updated_at: new Date().toISOString() })
+    .update({ ...parsed.data, ...plan, ...(finishOnboarding ? { onboarded: true } : {}), updated_at: new Date().toISOString() })
     .eq("id", user.id);
   if (error) return { error: `Não foi possível salvar: ${error.message}` };
   revalidatePath("/", "layout");
