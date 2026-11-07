@@ -59,3 +59,24 @@ describe("M2 — correção e memória do professor", async () => {
     expect(r.learner_facts).toEqual([{ kind: "work", value: "works in logistics" }]);
   });
 });
+
+describe("conversa da aula", async () => {
+  const { talkSystemPrompt, parseTalkReview, talkPassed, isGuided } = await import("@/lib/lesson-talk");
+  const { getLesson } = await import("@/content/curriculum");
+  it("A1–A2 guiada, B1+ natural, com o conteúdo da aula no prompt", () => {
+    const l = getLesson("a1-m1-l2")!;
+    const p = talkSystemPrompt(l, "A1", "Lucas");
+    expect(p).toContain("STYLE: GUIDED");
+    expect(p).toContain(l.title);
+    expect(p).toContain(l.vocabulary[0].en);
+    expect(talkSystemPrompt(l, "B1", "Lucas")).toContain("STYLE: NATURAL");
+    expect([isGuided("A2"), isGuided("B1")]).toEqual([true, false]);
+  });
+  it("mini-resultado: só conta para o domínio se comunicou e usou algo da aula", () => {
+    const r = parseTalkReview({ score: 82, used: ["I'm from Brazil", ""], missing: ["Where are you from?"], best_sentence: "x", try_next: "y", feedback_pt: "z" })!;
+    expect(r.used).toEqual(["I'm from Brazil"]);
+    expect(talkPassed(r)).toBe(true);
+    expect(talkPassed({ score: 90, used: [] })).toBe(false);
+    expect(parseTalkReview({ score: "abc" })).toBeNull();
+  });
+});

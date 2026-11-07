@@ -33,6 +33,7 @@ import { BASE, SHOTS, doLesson, signup, sql, uid } from "./helpers";
   await doLesson(page, lesson);
   // "Use você mesmo": produção livre no fim da aula, corrigida pela IA.
   await page.getByRole("heading", { name: "Use você mesmo" }).waitFor();
+  await page.getByRole("radio", { name: "Escrever" }).click();
   await page.getByLabel("Suas frases em inglês").fill("Hello! I'm Lucas and I'm from Brazil. Nice to meet you.");
   await page.getByRole("button", { name: "Corrigir" }).click();
   await page.getByText("Muito bem! Isso conta para o domínio desta aula.").waitFor({ timeout: 30000 });

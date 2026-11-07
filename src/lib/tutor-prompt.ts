@@ -1,6 +1,6 @@
 import type { CefrLevel } from "@/content/types";
 
-const LEVEL_GUIDE: Record<CefrLevel, string> = {
+export const LEVEL_GUIDE: Record<CefrLevel, string> = {
   A1: "Use very short sentences (max 10 words), only present simple and 'to be', the most common 500 words. Speak slowly and simply. Ask one simple question at a time.",
   A2: "Use short sentences, present and past simple, 'going to', common everyday vocabulary (~1000 words).",
   B1: "Use natural everyday English with common phrasal verbs, present perfect and conditionals. Moderate sentence length.",
@@ -38,7 +38,7 @@ export interface TutorContext {
 }
 
 /** Quanto português o professor usa, conforme o nível (o aluno pode sempre pedir explicação em português). */
-const PT_POLICY: Record<CefrLevel, string> = {
+export const PT_POLICY: Record<CefrLevel, string> = {
   A1: "The student is a beginner: Portuguese is welcome. Explanations and tips in Portuguese; you may add a short Portuguese gloss in parentheses after a key English sentence when it helps.",
   A2: "Portuguese is welcome for explanations and tips. Keep the reply itself in simple English, with an occasional short Portuguese gloss when needed.",
   B1: "Reply in English. Use Portuguese only in explanation_pt/tip_pt, or when the student asks. Gently encourage the student to try in English first.",

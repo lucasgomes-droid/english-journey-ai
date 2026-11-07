@@ -18,7 +18,21 @@ interface Feedback {
  * "Use você mesmo": no fim da aula o aluno escreve (ou fala) 2–3 frases sobre a própria vida usando o que aprendeu.
  * A IA corrige; o resultado conta como evidência de domínio (produção livre).
  */
-export function ProduceCard({ lessonId, objective, hint }: { lessonId: string; objective: string; hint: string }) {
+type ProduceProps = { lessonId: string; objective: string; hint: string };
+
+export function ProduceCard(props: ProduceProps) {
+  return (
+    <section className="panel mt-4 p-6 text-left" aria-labelledby="use-voce-mesmo">
+      <h2 id="use-voce-mesmo" className="flex items-center gap-2 font-display text-xl font-bold">
+        <PenLine size={20} aria-hidden /> Use você mesmo
+      </h2>
+      <ProduceBody {...props} />
+    </section>
+  );
+}
+
+/** Conteúdo do "escrever" (sem a moldura), para usar dentro de outro cartão. */
+export function ProduceBody({ lessonId, objective, hint }: ProduceProps) {
   const caps = useVoiceCaps();
   const [text, setText] = useState("");
   const [mode, setMode] = useState<"write" | "speak">("write");
@@ -42,10 +56,7 @@ export function ProduceCard({ lessonId, objective, hint }: { lessonId: string; o
   }
 
   return (
-    <section className="panel mt-4 p-6 text-left" aria-labelledby="use-voce-mesmo">
-      <h2 id="use-voce-mesmo" className="flex items-center gap-2 font-display text-xl font-bold">
-        <PenLine size={20} aria-hidden /> Use você mesmo
-      </h2>
+    <>
       <p className="mt-1 text-muted">
         Escreva ou fale 2 ou 3 frases sobre <strong>a sua vida</strong> usando o que aprendeu: {objective.charAt(0).toLowerCase() + objective.slice(1)}
       </p>
@@ -127,6 +138,6 @@ export function ProduceCard({ lessonId, objective, hint }: { lessonId: string; o
           </button>
         </div>
       )}
-    </section>
+    </>
   );
 }

@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { ProduceCard } from "@/components/produce-card";
-import { X, CheckCircle2, XCircle, MessagesSquare, Trophy, RotateCcw, Mic, Keyboard, Flag } from "lucide-react";
+import { UseItCard } from "@/components/use-it-card";
+import { MODULE_MISSION } from "@/content/module-missions";
+import { getScenario } from "@/content/scenarios";
+import { X, CheckCircle2, XCircle, MessagesSquare, Trophy, RotateCcw, Mic, Keyboard, Flag, Phone } from "lucide-react";
 import { PronounceCard } from "@/components/pronounce-card";
 import { useVoiceCaps } from "@/lib/voice";
 import type { Lesson } from "@/content/types";
@@ -425,7 +427,20 @@ function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }:
       )}
 
       {lesson.kind === "lesson" && server?.ok && (
-        <ProduceCard lessonId={lesson.id} objective={lesson.objective} hint={lesson.examples[0]?.en ?? lesson.vocabulary[0]?.en ?? ""} />
+        <UseItCard lessonId={lesson.id} objective={lesson.objective} hint={lesson.examples[0]?.en ?? lesson.vocabulary[0]?.en ?? ""} />
+      )}
+
+      {lesson.kind === "test" && passed && MODULE_MISSION[lesson.moduleId] && getScenario(MODULE_MISSION[lesson.moduleId]) && (
+        <div className="panel mt-4 flex flex-col items-start gap-3 border-2 border-boarding p-6 text-left sm:flex-row sm:items-center">
+          <Phone className="shrink-0 text-atlantic" aria-hidden />
+          <div className="flex-1">
+            <p className="font-bold">Missão do módulo: {getScenario(MODULE_MISSION[lesson.moduleId])!.title}</p>
+            <p className="text-muted">Use tudo o que estudou neste módulo numa conversa de verdade{["a1", "a2"].includes(lesson.moduleId.slice(0, 2)) ? "." : ", com imprevistos."}</p>
+          </div>
+          <Link href={`/professor?cenario=${MODULE_MISSION[lesson.moduleId]}&nivel=${lesson.moduleId.slice(0, 2).toUpperCase()}&ligar=1`} className="btn-go">
+            Ligar agora
+          </Link>
+        </div>
       )}
 
       {lesson.scenarioId && (

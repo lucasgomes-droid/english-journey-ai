@@ -198,3 +198,13 @@ describe("leitura por módulo (A1–C2)", async () => {
   });
 });
 
+
+describe("missões de módulo", async () => {
+  const { MODULE_MISSION } = await import("@/content/module-missions");
+  const { ALL_MODULES } = await import("@/content/curriculum");
+  it("todo módulo comum tem uma situação real existente como missão final", () => {
+    const regular = ALL_MODULES.filter((m) => /-m\d$/.test(m.id));
+    expect(regular.length).toBe(48);
+    for (const m of regular) expect(getScenario(MODULE_MISSION[m.id] ?? ""), m.id).toBeTruthy();
+  });
+});
