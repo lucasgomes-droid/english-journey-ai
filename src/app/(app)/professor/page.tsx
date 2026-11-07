@@ -93,6 +93,7 @@ export default async function TutorPage({ searchParams }: { searchParams: Promis
             voiceEnabled={isSttConfigured()}
             startInCall={sp.ligar === "1"}
             studentName={firstName}
+            intensity={profile?.correction_intensity ?? "normal"}
           />
         )}
       </section>

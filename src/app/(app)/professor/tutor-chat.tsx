@@ -11,12 +11,13 @@ import { useTranslationPref } from "@/lib/translation";
 import { unlockAudio, useVoice, type VoiceName } from "@/lib/voice";
 import { transcribeWav, useVoiceRecorder } from "@/lib/voice-recorder";
 import { checkRepeat } from "@/components/practice-card";
+import { IntensityPicker, shouldFixNow, type Intensity } from "@/components/intensity-picker";
 
 export interface ChatMsg {
   id: string;
   role: "user" | "assistant";
   content: string;
-  correction: { original: string; corrected: string; explanation_pt: string } | null;
+  correction: { original: string; corrected: string; explanation_pt: string; example?: string | null } | null;
   tip: string | null;
   failed?: boolean;
 }
@@ -29,7 +30,6 @@ interface Reply {
 }
 
 type CallState = "off" | "listening" | "thinking" | "speaking" | "paused";
-const FIX_NOW_KEY = "ej-fix-now-cenario";
 /** Correção na hora, durante a ligação: a forma certa e o resultado da nova tentativa. */
 interface CallFix {
   original: string;
@@ -45,6 +45,7 @@ export function TutorChat({
   lessonId,
   voiceEnabled,
   studentName,
+  intensity: initialIntensity = "normal",
   scenarioId = null,
   customPrompt = null,
   level = null,
@@ -58,6 +59,7 @@ export function TutorChat({
   lessonId: string | null;
   voiceEnabled: boolean;
   studentName: string;
+  intensity?: Intensity;
   scenarioId?: string | null;
   customPrompt?: string | null;
   level?: string | null;
@@ -78,7 +80,8 @@ export function TutorChat({
   const [summary, setSummary] = useState<NonNullable<ChatMsg["correction"]>[] | null>(null);
   const [lastHeard, setLastHeard] = useState("");
   const [lastReply, setLastReply] = useState("");
-  const [fixNow, setFixNow] = useState(true);
+  const [intensity, setIntensity] = useState<Intensity>(initialIntensity);
+  const turnsSinceFix = useRef(99);
   const [callFix, setCallFix] = useState<CallFix | null>(null);
   const skipFix = useRef(false);
   const [report, setReport] = useState<{ report: ReportView; savedPhrases: number } | null>(null);
@@ -99,21 +102,6 @@ export function TutorChat({
     callRef.current = s;
     setCall(s);
   };
-
-  useEffect(() => {
-    try {
-      const f = localStorage.getItem(FIX_NOW_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- preferência salva no aparelho
-      if (f !== null) setFixNow(f === "1");
-    } catch {}
-  }, []);
-  function toggleFixNow() {
-    const v = !fixNow;
-    setFixNow(v);
-    try {
-      localStorage.setItem(FIX_NOW_KEY, v ? "1" : "0");
-    } catch {}
-  }
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -220,7 +208,9 @@ export function TutorChat({
         return;
       }
       if (r.correction) setCallNotes((n) => [...n, r.correction!]);
-      if (r.correction && fixNow) {
+      turnsSinceFix.current++;
+      if (r.correction && shouldFixNow(intensity, turnsSinceFix.current - 1)) {
+        turnsSinceFix.current = 0;
         await correctInCall(r.correction);
         if (callNow() === "off" || callNow() === "paused") return;
       }
@@ -268,6 +258,10 @@ export function TutorChat({
       if (res.verdict === "good") {
         setCallFix((f) => f && { ...f, result: "good" });
         await voice.speak("Isso! Muito bem.", { lang: "pt" });
+        if (c.example && alive()) {
+          await voice.speak("Mais um exemplo:", { lang: "pt" });
+          if (alive()) await voice.speak(c.example);
+        }
         return;
       }
       if (tries >= 2) {
@@ -474,6 +468,11 @@ export function TutorChat({
                   → <strong lang="en">{m.correction.corrected}</strong>
                 </p>
                 <p className="text-muted">{m.correction.explanation_pt}</p>
+                {m.correction.example && (
+                  <p className="mt-1">
+                    Outro exemplo: <span lang="en" className="font-bold">{m.correction.example}</span>
+                  </p>
+                )}
               </div>
             )}
             {m.tip && (
@@ -596,10 +595,9 @@ export function TutorChat({
             {lastHeard && <p className="mt-3 max-w-md text-center text-sm text-white/60">Você disse: “{lastHeard}”</p>}
             {callNotes.length > 0 && <p className="mt-2 text-sm text-boarding">{callNotes.length} {callNotes.length === 1 ? "ponto para melhorar" : "pontos para melhorar"} no resumo</p>}
             {(error || rec.error) && <p className="mt-3 max-w-md text-center text-sm text-[#ffb4ab]">{error ?? rec.error}</p>}
-            <label className="mt-4 flex items-center gap-2 text-sm text-white/80">
-              <input type="checkbox" checked={fixNow} onChange={toggleFixNow} className="size-4 accent-[var(--boarding)]" />
-              Corrigir na hora e pedir para tentar de novo
-            </label>
+            <div className="mt-4 flex items-center gap-2 text-sm text-white/80">
+              Correção <IntensityPicker value={intensity} onChange={setIntensity} tone="dark" />
+            </div>
           </div>
           <div className="flex items-center gap-6">
             <button type="button" onClick={pauseOrResume} className="grid size-16 place-items-center rounded-full bg-white/15 hover:bg-white/25" aria-label={call === "paused" ? "Continuar" : "Pausar"}>

@@ -35,3 +35,27 @@ describe("M0 — modelos, limites e cache de voz", async () => {
     expect(a).toMatch(/^groq\/f1\/[0-9a-f]{40}\.wav$/);
   });
 });
+
+describe("M2 — correção e memória do professor", async () => {
+  const { shouldFixNow } = await import("@/components/intensity-picker");
+  const { parseTutorReply } = await import("@/lib/tutor-prompt");
+
+  it("correção na hora: intensa sempre, normal 1 a cada 3 falas, leve nunca", () => {
+    expect([0, 1, 2, 5].map((n) => shouldFixNow("intensa", n))).toEqual([true, true, true, true]);
+    expect([0, 1, 2, 5].map((n) => shouldFixNow("normal", n))).toEqual([false, false, true, true]);
+    expect([0, 5, 99].map((n) => shouldFixNow("leve", n))).toEqual([false, false, false]);
+  });
+
+  it("lê exemplo extra e fatos do aluno; descarta tipos desconhecidos", () => {
+    const r = parseTutorReply(
+      JSON.stringify({
+        reply: "Nice!",
+        correction: { original: "I have 30 years", corrected: "I'm 30 years old", explanation_pt: "Idade usa to be.", example: "She is 25 years old." },
+        learner_facts: [{ kind: "work", value: "works in logistics." }, { kind: "cpf", value: "123" }, { kind: "interest", value: "x" }],
+        tip_pt: null,
+      }),
+    );
+    expect(r.correction?.example).toBe("She is 25 years old.");
+    expect(r.learner_facts).toEqual([{ kind: "work", value: "works in logistics" }]);
+  });
+});

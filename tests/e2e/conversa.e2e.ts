@@ -81,6 +81,8 @@ let current: Page | null = null;
   writeFileSync(STT, "I'm 30 years old");
   await answer("Repetir a frase", "Enviar a repetição");
   await page.getByText("✓ Você repetiu certo.").waitFor({ timeout: 40000 });
+  await page.getByText("Outro exemplo:").first().waitFor();
+  await page.getByText("My sister is 25 years old.").first().waitFor();
   await page.getByText("That sounds interesting!").first().waitFor({ timeout: 40000 });
   console.log("✓ correção na hora: 'a forma correta é…', tenta de novo, confere e só então o professor continua");
   rmSync(STT, { force: true });
@@ -103,6 +105,17 @@ let current: Page | null = null;
   await page.getByRole("button", { name: "Ouvir de novo" }).first().click();
   await page.getByRole("button", { name: "Responder falando" }).waitFor();
   console.log(`✓ histórico: conversa salva com modo, tempo de resposta (${times} falas) e reaberta`);
+  // Memória do professor e intensidade da correção no Perfil.
+  await page.goto(`${BASE}/perfil`);
+  await page.getByRole("heading", { name: "Professor Alex" }).waitFor();
+  await page.getByText("works in a warehouse").waitFor();
+  await page.getByRole("radio", { name: "Intensa" }).click();
+  await page.waitForTimeout(1500);
+  if (sql(`select correction_intensity from public.profiles where id = ${uid(email)}`) !== "intensa") throw new Error("intensidade não salva");
+  await page.getByRole("button", { name: "Esquecer: works in a warehouse" }).click();
+  await page.waitForTimeout(1500);
+  if (sql(`select count(*) from public.learner_facts where user_id = ${uid(email)}`) !== "0") throw new Error("fato não apagado");
+  console.log("✓ o Alex lembra do seu trabalho (aparece no Perfil e pode ser apagado); intensidade 'Intensa' salva no perfil");
   await browser.close();
 })().catch(async (e) => {
   await current?.screenshot({ path: `${SHOTS}/conversa-falha.png`, fullPage: true }).catch(() => null);

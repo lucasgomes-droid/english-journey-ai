@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   let conversationId = parsed.data.conversationId ?? null;
 
   // Consultas independentes em paralelo (cada ida ao banco custa tempo).
-  const [recentRes, profileRes, convRes, msgsRes, recentMistakes, chatUsed] = await Promise.all([
+  const [recentRes, profileRes, convRes, msgsRes, recentMistakes, chatUsed, factsRes] = await Promise.all([
     supabase
       .from("messages")
       .select("id", { count: "exact", head: true })
@@ -60,6 +60,7 @@ export async function POST(req: Request) {
       : Promise.resolve({ data: [] as { role: string; content: string }[] }),
     getRecentMistakes(supabase, user.id, 6),
     usageToday(supabase, user.id, "chat"),
+    supabase.from("learner_facts").select("kind, value").eq("user_id", user.id).order("last_seen", { ascending: false }).limit(12),
   ]);
 
   // Limite simples de uso: 20 mensagens por minuto por aluno.
@@ -122,10 +123,12 @@ export async function POST(req: Request) {
   if (umErr || !userMsg) return NextResponse.json({ error: `Não foi possível salvar a mensagem: ${umErr?.message}` }, { status: 500 });
 
   const studentName = profile.display_name.split(" ")[0] || "student";
+  const correctionIntensity = profile.correction_intensity ?? "normal";
+  const facts = ((factsRes.data ?? []) as { kind: string; value: string }[]).map((f) => `${f.kind}: ${f.value}`);
   let system: string;
   if (mode === "scenario") {
     const sc = scenario ? { setting: scenario.setting, goals: scenario.goals } : customSetting(customPrompt ?? "");
-    system = scenarioSystemPrompt({ studentName, level, characterName: scenario?.character.name ?? "the person in the scene", setting: sc.setting, goals: sc.goals, recentMistakes, challenges: scenario && !["A1", "A2"].includes(level) ? scenario.challenges : undefined });
+    system = scenarioSystemPrompt({ studentName, level, characterName: scenario?.character.name ?? "the person in the scene", setting: sc.setting, goals: sc.goals, recentMistakes, challenges: scenario && !["A1", "A2"].includes(level) ? scenario.challenges : undefined, correctionIntensity });
   } else {
     system = tutorSystemPrompt({
       studentName,
@@ -137,6 +140,8 @@ export async function POST(req: Request) {
         : null,
       tutorMode,
       memory,
+      correctionIntensity,
+      facts,
     });
   }
   // Preferência "só inglês": explicações em inglês simples (sem entregar o português).
@@ -155,7 +160,7 @@ export async function POST(req: Request) {
   }
 
   // Gravações independentes em paralelo.
-  const [, aMsgRes, , updated] = await Promise.all([
+  const [, aMsgRes, , , updated] = await Promise.all([
     reply.correction
       ? Promise.all([
           // Guarda a categoria do erro (base de "Minhas Dificuldades").
@@ -169,6 +174,7 @@ export async function POST(req: Request) {
       : Promise.resolve(null),
     supabase.from("messages").insert({ conversation_id: conversationId, user_id: user.id, role: "assistant", content: reply.intro_pt ? `${reply.intro_pt}\n${reply.reply}` : reply.reply, tip: reply.tip_pt, practice: reply.practice ?? null }).select("id").single(),
     supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId),
+    saveFacts(supabase, user.id, reply.learner_facts ?? []),
     // XP pela prática de conversação (2 XP por mensagem; cena concluída vale +15).
     recordActivity(supabase, profile, {
       kind: mode === "scenario" ? "scenario" : "chat",
@@ -192,4 +198,17 @@ export async function POST(req: Request) {
     practice: reply.practice ?? null,
     introPt: reply.intro_pt ?? null,
   });
+}
+
+/** Guarda o que o aluno contou de si (o professor usa nas próximas conversas; o aluno vê e apaga no Perfil). */
+async function saveFacts(supabase: Awaited<ReturnType<typeof currentUser>>["supabase"], uid: string, facts: { kind: string; value: string }[]) {
+  if (!facts.length) return;
+  const now = new Date().toISOString();
+  await Promise.all(
+    facts.map(async (f) => {
+      const { data } = await supabase.from("learner_facts").select("id, evidence_count").eq("user_id", uid).eq("kind", f.kind).eq("value", f.value).maybeSingle();
+      if (data) await supabase.from("learner_facts").update({ evidence_count: data.evidence_count + 1, last_seen: now }).eq("id", data.id);
+      else await supabase.from("learner_facts").insert({ user_id: uid, kind: f.kind, value: f.value });
+    }),
+  ).catch(() => null);
 }

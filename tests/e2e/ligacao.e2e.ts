@@ -24,8 +24,8 @@ const STT = "/var/tmp/sb/stt-text";
   await page.goto(`${BASE}/professor?cenario=cafe&nivel=A1&ligar=1`);
   const call = page.getByRole("dialog", { name: /Ligação com/ });
   await call.waitFor({ timeout: 30000 });
-  await call.getByLabel("Corrigir na hora e pedir para tentar de novo").waitFor();
-  if (!(await call.getByLabel("Corrigir na hora e pedir para tentar de novo").isChecked())) throw new Error("correção na hora deveria vir ligada");
+  await call.getByRole("radiogroup", { name: "Intensidade da correção" }).waitFor();
+  if ((await call.getByRole("radio", { name: "Normal" }).getAttribute("aria-checked")) !== "true") throw new Error("intensidade padrão deveria ser Normal");
 
   await call.getByText("Quase! A forma correta é:").waitFor({ timeout: 60000 });
   await call.getByText("My name's Lucas").first().waitFor();
@@ -36,6 +36,7 @@ const STT = "/var/tmp/sb/stt-text";
   writeFileSync(STT, "My name's Lucas");
   await call.getByText("✓ Você repetiu certo:").waitFor({ timeout: 60000 });
   await call.getByText("Nice to meet you, Lucas!").first().waitFor({ timeout: 30000 });
+  await call.getByText("✓ Você repetiu certo:").waitFor();
   console.log("✓ nova tentativa conferida; depois o personagem continua a conversa");
 
   rmSync(STT, { force: true });

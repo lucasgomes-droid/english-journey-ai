@@ -5,6 +5,7 @@ import { ClipboardCheck, Keyboard, Lightbulb, Loader2, Mic, PenLine, Send, Snail
 import { Avatar } from "@/components/avatar";
 import { TranslateInline, NotUnderstood } from "@/components/help";
 import { PracticeCard, checkRepeat, type RepeatResult } from "@/components/practice-card";
+import { IntensityPicker, shouldFixNow, type Intensity } from "@/components/intensity-picker";
 import { ConversationReportSheet, type ReportView } from "@/components/conversation-report";
 import { unlockAudio, useVoice, useVoiceCaps } from "@/lib/voice";
 import { transcribeWav, useVoiceRecorder } from "@/lib/voice-recorder";
@@ -19,7 +20,7 @@ export interface TutorMsg {
   content: string;
   /** Abertura em português (quando o aluno falou em português). */
   intro?: string | null;
-  correction: { original: string; corrected: string; explanation_pt: string } | null;
+  correction: { original: string; corrected: string; explanation_pt: string; example?: string | null } | null;
   tip: string | null;
   practice: { en: string; pt: string; reason: string } | null;
   voice?: boolean;
@@ -42,9 +43,10 @@ interface RepeatTarget {
   id: string;
   en: string;
   kind: "practice" | "fix";
+  /** Outro exemplo com a forma correta (falado depois que o aluno acerta). */
+  example?: string | null;
 }
 const practiceOf = (a: TutorMsg): RepeatTarget | null => (a.practice ? { id: a.id, en: a.practice.en, kind: "practice" } : null);
-const FIX_KEY = (mode: string) => `ej-fix-now-${mode}`;
 
 const MODE_LABEL: Record<TutorMode, string> = { livre: "Livre", professor: "Professor", imersao: "Imersão" };
 const HANDS_FREE_KEY = "ej-hands-free";
@@ -61,12 +63,14 @@ export function VoiceTutor({
   mode,
   level,
   studentName,
+  intensity: initialIntensity = "normal",
 }: {
   initial: TutorMsg[];
   conversationId: string | null;
   mode: TutorMode;
   level: string;
   studentName: string;
+  intensity?: Intensity;
 }) {
   const caps = useVoiceCaps();
   const voice = useVoice();
@@ -100,7 +104,9 @@ export function VoiceTutor({
   const pendingReply = useRef<TutorMsg | null>(null);
   /** A resposta guardada só aparece na legenda quando o professor for falá-la. */
   const [heldId, setHeldId] = useState<string | null>(null);
-  const [fixNow, setFixNow] = useState(mode === "professor");
+  const [intensity, setIntensity] = useState<Intensity>(initialIntensity);
+  /** Falas desde a última correção na hora (no modo normal, no máximo 1 a cada 3 falas). */
+  const turnsSinceFix = useRef(99);
   const repeatTries = useRef(0);
   const readyAt = useRef<number>(0);
   const speechAt = useRef<number | null>(null);
@@ -117,8 +123,6 @@ export function VoiceTutor({
     try {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- preferência salva no aparelho
       setHandsFree(localStorage.getItem(HANDS_FREE_KEY) === "1");
-      const f = localStorage.getItem(FIX_KEY(mode));
-      if (f !== null) setFixNow(f === "1");
     } catch {}
   }, [mode]);
   // A legenda rola sozinha DENTRO da área da conversa (a página não se mexe).
@@ -200,7 +204,8 @@ export function VoiceTutor({
   async function correctFirst(r: { a: TutorMsg; userId: string; fix: NonNullable<TutorMsg["correction"]> }) {
     pendingReply.current = r.a;
     setHeldId(r.a.id);
-    setPractice({ id: r.userId, en: r.fix.corrected, kind: "fix" });
+    setPractice({ id: r.userId, en: r.fix.corrected, kind: "fix", example: r.fix.example });
+    turnsSinceFix.current = 0;
     repeatTries.current = 0;
     await coach("Quase! A forma correta é:", "Almost! The correct way is:");
     if (statusRef.current === "speaking") await say(r.fix.corrected);
@@ -219,7 +224,8 @@ export function VoiceTutor({
 
   async function handleAnswer(r: Awaited<ReturnType<typeof send>>) {
     if (!r) return set("turn");
-    if (r.fix && fixNow) return correctFirst({ ...r, fix: r.fix });
+    turnsSinceFix.current++;
+    if (r.fix && shouldFixNow(intensity, turnsSinceFix.current - 1)) return correctFirst({ ...r, fix: r.fix });
     await reply(r.a);
   }
 
@@ -272,6 +278,10 @@ export function VoiceTutor({
       setPractice(null);
       if (fix) {
         await (r.verdict === "good" ? coach("Isso! Muito bem.", "Yes! Well done.") : coach("Boa tentativa. A gente treina de novo depois.", "Good effort. We'll practise it again later."));
+        if (t.example && statusRef.current !== "idle") {
+          await coach("Mais um exemplo:", "One more example:");
+          await say(t.example);
+        }
         return continueAfterFix();
       }
       await say(r.verdict === "good" ? (r.score === 100 ? "Perfect! Your turn now." : "Great job! Your turn now.") : "Good effort. We'll practise that again later. Your turn!");
@@ -354,14 +364,6 @@ export function VoiceTutor({
     if (statusRef.current === "recording" || statusRef.current === "repeating") cancelRecording();
     if (m.intro && !slow) await voice.speak(m.intro, { lang: "pt" });
     await voice.speak(m.content, { rate: slow ? 0.7 : rate });
-  }
-
-  function toggleFixNow() {
-    const v = !fixNow;
-    setFixNow(v);
-    try {
-      localStorage.setItem(FIX_KEY(mode), v ? "1" : "0");
-    } catch {}
   }
 
   function toggleHandsFree() {
@@ -456,6 +458,11 @@ export function VoiceTutor({
                   → <strong lang="en">{m.correction.corrected}</strong>
                 </p>
                 <p className="text-muted">{m.correction.explanation_pt}</p>
+                {m.correction.example && (
+                  <p className="mt-1">
+                    Outro exemplo: <span lang="en" className="font-bold">{m.correction.example}</span>
+                  </p>
+                )}
                 {repeats[m.id] && (
                   <p className="mt-1 font-bold" role="status">
                     {repeats[m.id].some((r) => r.verdict === "good")
@@ -545,10 +552,9 @@ export function VoiceTutor({
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-muted">
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={fixNow} onChange={toggleFixNow} className="size-4 accent-[var(--atlantic)]" />
-            Corrigir na hora e pedir para tentar de novo
-          </label>
+          <span className="flex items-center gap-2">
+            Correção <IntensityPicker value={intensity} onChange={setIntensity} />
+          </span>
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={handsFree} onChange={toggleHandsFree} className="size-4 accent-[var(--atlantic)]" />
             Mãos livres

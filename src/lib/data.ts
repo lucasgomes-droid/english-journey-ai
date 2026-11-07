@@ -22,6 +22,14 @@ export interface Profile {
   onboarded: boolean;
   /** Fase 3: mostrar tradução em português (padrão: sim). */
   show_translation?: boolean;
+  /** Quanto o professor corrige. */
+  correction_intensity?: "leve" | "normal" | "intensa";
+  /** Plano de estudo: dias da semana (0 = domingo), nível e data-alvo, limite diário de revisões, competências em foco. */
+  study_days?: number[];
+  target_level?: CefrLevel | null;
+  target_date?: string | null;
+  daily_review_limit?: number;
+  focus_skills?: string[];
 }
 
 export const getSession = cache(async () => {

@@ -65,7 +65,7 @@ export default async function ConversaPage({ searchParams }: { searchParams: Pro
         </p>
 
         {isAiConfigured() ? (
-          <VoiceTutor key={conv?.id ?? `new-${mode}`} initial={initial} conversationId={conv?.id ?? null} mode={mode} level={level} studentName={profile?.display_name.split(" ")[0] ?? ""} />
+          <VoiceTutor key={conv?.id ?? `new-${mode}`} initial={initial} conversationId={conv?.id ?? null} mode={mode} level={level} studentName={profile?.display_name.split(" ")[0] ?? ""} intensity={profile?.correction_intensity ?? "normal"} />
         ) : (
           <p className="panel p-6">O professor de IA ainda não foi ativado no servidor (AI_API_KEY).</p>
         )}

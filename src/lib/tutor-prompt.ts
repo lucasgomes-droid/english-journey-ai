@@ -10,7 +10,19 @@ const LEVEL_GUIDE: Record<CefrLevel, string> = {
 };
 
 export type TutorMode = "livre" | "professor" | "imersao";
+export type CorrectionIntensity = "leve" | "normal" | "intensa";
+export const FACT_KINDS = ["work", "interest", "goal", "family", "place", "routine", "preference"] as const;
+export type FactKind = (typeof FACT_KINDS)[number];
 
+/** Quanto o professor corrige (escolha do aluno no Perfil ou na conversa). */
+export const INTENSITY_RULE: Record<CorrectionIntensity, string> = {
+  leve: "CORRECTION INTENSITY: LIGHT. Correct only mistakes that would confuse a listener or change the meaning. Ignore small slips (articles, prepositions, minor tense issues): correction null. The end-of-conversation report covers the rest.",
+  normal: "CORRECTION INTENSITY: NORMAL. Correct clear grammar and word-choice mistakes; ignore tiny slips that do not affect meaning.",
+  intensa: "CORRECTION INTENSITY: INTENSIVE. Correct every mistake in the student's last message, including small ones (articles, prepositions, word order, unnatural phrasing). Still never invent mistakes.",
+};
+
+const FACTS_RULE = `- MEMORY: if the student's LAST message reveals a NEW personal fact worth remembering for future conversations (their work, interests, goals, family, where they live, routine, preferences), add it to "learner_facts" as a short English phrase in third person (e.g. {"kind":"work","value":"works in a warehouse in logistics"}). Otherwise "learner_facts": []. Never store sensitive data (health, religion, politics, documents, addresses, phone numbers).`;
+const FACTS_JSON = `"learner_facts": [] or [{"kind": "work" | "interest" | "goal" | "family" | "place" | "routine" | "preference", "value": "short fact"}]`;
 export interface TutorContext {
   studentName: string;
   level: CefrLevel;
@@ -20,6 +32,9 @@ export interface TutorContext {
   /** Professor particular (aba Conversa): modo da conversa e memória do aluno. */
   tutorMode?: TutorMode | null;
   memory?: string | null;
+  correctionIntensity?: CorrectionIntensity;
+  /** Fatos que o aluno contou em conversas anteriores (memória persistente). */
+  facts?: string[];
 }
 
 /** Quanto português o professor usa, conforme o nível (o aluno pode sempre pedir explicação em português). */
@@ -71,6 +86,8 @@ function privateTeacherPrompt(ctx: TutorContext & { tutorMode: TutorMode }): str
 Student CEFR level: ${ctx.level}. ${LEVEL_GUIDE[ctx.level]}
 ${ctx.learningGoal ? `The student is learning English for: ${ctx.learningGoal}.` : ""}
 ${MODE_RULES[ctx.tutorMode]}
+${INTENSITY_RULE[ctx.correctionIntensity ?? "normal"]}
+${FACTS_RULE}
 ${ctx.tutorMode === "imersao" ? "" : `LANGUAGE: you understand Portuguese and English and the student may mix both, even in the same sentence. ${PT_POLICY[ctx.level]}`}
 
 How to behave:
@@ -83,13 +100,15 @@ ${ctx.tutorMode === "imersao" ? "" : `- When the student WROTE IN PORTUGUESE (fu
 - SPEECH RECOGNITION: the student's message usually comes from automatic speech recognition. A strange or out-of-place word is more likely a recognition error than a grammar or pronunciation error: never correct it as a mistake. If you cannot tell what they meant, ask them naturally to repeat or rephrase (correction null).
 - PRONUNCIATION: you cannot hear the audio. If the recognized text suggests a likely mispronunciation of a common hard sound for Brazilians (e.g. "sink" where "think" fits, "tree" for "three", "rouse" for "house"), do NOT assume: put the intended phrase in "practice" with reason "pronunciation" and ask them to repeat it; the app checks the repetition.
 - Give a practice phrase at most once every two or three turns${ctx.tutorMode === "professor" ? " (more often is fine in teacher mode)" : ""}.
+${ctx.facts?.length ? `\nWHO THE STUDENT IS (from earlier conversations; use it to personalise topics and examples, do not recite it):\n- ${ctx.facts.join("\n- ")}` : ""}
 ${ctx.memory ? `\nWHAT YOU REMEMBER ABOUT THIS STUDENT (work on these points naturally in the conversation, without lecturing):\n${ctx.memory}` : ""}
 ${ctx.recentMistakes.length ? `\nRecent mistakes: ${ctx.recentMistakes.slice(0, 5).join(" | ")}` : ""}
 
 Respond ONLY with a JSON object, no markdown:
 {${ctx.tutorMode === "imersao" ? "" : `"intro_pt": null or "short Portuguese lead-in (only when the student wrote in Portuguese)",
  `}"reply": "what you say (English, following the language rules)",
- "correction": null or {"original": "student's phrase with the mistake", "corrected": "natural correct version", "explanation_pt": "${ctx.tutorMode === "imersao" ? "short explanation in simple English" : "explicação curta"}"},
+ "correction": null or {"original": "student's phrase with the mistake", "corrected": "natural correct version", "explanation_pt": "${ctx.tutorMode === "imersao" ? "short explanation in simple English" : "explicação curta"}", "example": "one more short example sentence using the corrected form"},
+ ${FACTS_JSON},
  "tip_pt": null or "short tip about an expression",
  "practice": null or {"en": "the exact English phrase to repeat (max 12 words)", "pt": "Portuguese translation", "reason": "teach" or "pronunciation" or "correction"}}`;
 }
@@ -106,8 +125,9 @@ export interface TutorReply {
   practice?: TutorPractice | null;
   reply: string;
   scene_complete?: boolean;
-  correction: { original: string; corrected: string; explanation_pt: string } | null;
+  correction: { original: string; corrected: string; explanation_pt: string; example?: string | null } | null;
   tip_pt: string | null;
+  learner_facts?: { kind: FactKind; value: string }[];
 }
 
 /** Interpreta a resposta do modelo de forma tolerante (alguns modelos envolvem o JSON em texto). */
@@ -120,7 +140,12 @@ export function parseTutorReply(raw: string): TutorReply {
         const c = obj.correction;
         const correction =
           c && typeof c === "object" && typeof c.corrected === "string" && c.corrected.trim() && c.corrected.trim() !== (c.original ?? "").trim()
-            ? { original: String(c.original ?? ""), corrected: c.corrected, explanation_pt: String(c.explanation_pt ?? "") }
+            ? {
+                original: String(c.original ?? ""),
+                corrected: c.corrected,
+                explanation_pt: String(c.explanation_pt ?? ""),
+                example: typeof c.example === "string" && c.example.trim() && c.example.trim().length <= 140 && c.example.trim() !== c.corrected.trim() ? c.example.trim() : null,
+              }
             : null;
         const p = (obj as { practice?: Partial<TutorPractice> | null }).practice;
         const practice =
@@ -128,6 +153,12 @@ export function parseTutorReply(raw: string): TutorReply {
             ? { en: p.en.trim(), pt: String(p.pt ?? "").trim(), reason: (["teach", "pronunciation", "correction"].includes(String(p.reason)) ? p.reason : "teach") as TutorPractice["reason"] }
             : null;
         const intro = (obj as { intro_pt?: unknown }).intro_pt;
+        const rawFacts = (obj as { learner_facts?: unknown }).learner_facts;
+        const learner_facts = (Array.isArray(rawFacts) ? rawFacts : [])
+          .map((f) => f as { kind?: unknown; value?: unknown })
+          .filter((f) => FACT_KINDS.includes(f.kind as FactKind) && typeof f.value === "string" && f.value.trim().length >= 2)
+          .slice(0, 3)
+          .map((f) => ({ kind: f.kind as FactKind, value: String(f.value).trim().replace(/\.$/, "").slice(0, 120) }));
         return {
           intro_pt: typeof intro === "string" && intro.trim() ? intro.trim().slice(0, 200) : null,
           practice,
@@ -135,6 +166,7 @@ export function parseTutorReply(raw: string): TutorReply {
           correction,
           tip_pt: typeof obj.tip_pt === "string" && obj.tip_pt.trim() ? obj.tip_pt.trim() : null,
           scene_complete: obj.scene_complete === true,
+          learner_facts,
         };
       }
     } catch {
@@ -153,6 +185,7 @@ export interface ScenarioContext {
   recentMistakes: string[];
   /** Complicações reais (só a partir do B1). */
   challenges?: string[];
+  correctionIntensity?: CorrectionIntensity;
 }
 
 /** Role-play: a IA assume um personagem numa situação real, no nível escolhido. */
@@ -173,10 +206,11 @@ ${ctx.challenges?.length
 - When the student has completed all goals, wrap up the scene naturally (as the character would) and set "scene_complete" to true.
 - Correct mistakes ONLY in the student's LAST message (grammar, vocabulary, unnatural phrasing). Ignore capitalization and missing final punctuation. If it is correct and natural, correction must be null. Explanations are in Brazilian Portuguese, short and friendly.
 ${ctx.recentMistakes.length ? `- The student often struggles with: ${ctx.recentMistakes.slice(0, 4).join(" | ")}. Create natural chances to practice these.` : ""}
+- ${INTENSITY_RULE[ctx.correctionIntensity ?? "normal"]}
 
 Respond ONLY with a JSON object, no markdown:
 {"reply": "what ${ctx.characterName} says, in English",
- "correction": null or {"original": "...", "corrected": "...", "explanation_pt": "..."},
+ "correction": null or {"original": "...", "corrected": "...", "explanation_pt": "...", "example": "one more short example with the corrected form"},
  "tip_pt": null or "dica curta em português",
  "scene_complete": false}`;
 }

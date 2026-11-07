@@ -7,12 +7,17 @@ import { ACHIEVEMENTS } from "@/lib/achievements";
 import { AchievementIcon } from "@/components/achievement-icon";
 import { ResetProgress } from "@/components/reset-progress";
 import { ThemeChoice } from "@/components/theme-choice";
+import { IntensityPicker } from "@/components/intensity-picker";
+import { TeacherMemory } from "@/components/teacher-memory";
 
 export const metadata = { title: "Perfil" };
 
 export default async function ProfilePage() {
   const { supabase, user, profile } = await getSession();
-  const { data } = await supabase.from("achievements").select("code, earned_at").eq("user_id", user.id);
+  const [{ data }, factsRes] = await Promise.all([
+    supabase.from("achievements").select("code, earned_at").eq("user_id", user.id),
+    supabase.from("learner_facts").select("id, kind, value").eq("user_id", user.id).order("last_seen", { ascending: false }).limit(40),
+  ]);
   const earned = new Map((data ?? []).map((a) => [a.code as string, a.earned_at as string]));
 
   return (
@@ -73,6 +78,22 @@ export default async function ProfilePage() {
             Rotina e metas
           </h2>
           <ProfileForm profile={profile} />
+        </section>
+      )}
+
+      {profile && (
+        <section className="panel space-y-5 p-6" aria-labelledby="professor-prefs">
+          <h2 id="professor-prefs" className="font-display text-2xl font-bold">
+            Professor Alex
+          </h2>
+          <div>
+            <h3 className="mb-2 font-bold">Quanto ele corrige</h3>
+            <IntensityPicker value={profile.correction_intensity ?? "normal"} showHint />
+          </div>
+          <div>
+            <h3 className="mb-2 font-bold">O que ele lembra sobre você</h3>
+            <TeacherMemory facts={(factsRes.data ?? []) as { id: number; kind: string; value: string }[]} />
+          </div>
         </section>
       )}
 
