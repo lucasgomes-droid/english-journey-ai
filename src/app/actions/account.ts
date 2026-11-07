@@ -103,3 +103,17 @@ export async function saveProfile(_: FormState, formData: FormData): Promise<For
   if (finishOnboarding) redirect("/");
   return { message: "Preferências salvas." };
 }
+
+const DELETE_WORD = "EXCLUIR";
+
+/** LGPD — exclusão: apaga gravações, a conta e (em cascata) todos os dados. Irreversível. */
+export async function deleteAccount(confirmation: string): Promise<{ error: string } | void> {
+  if (confirmation.trim().toUpperCase() !== DELETE_WORD) return { error: `Digite ${DELETE_WORD} para confirmar.` };
+  const { supabase, user } = await requireUser();
+  const { data: files } = await supabase.storage.from("recordings").list(user.id, { limit: 1000 });
+  if (files?.length) await supabase.storage.from("recordings").remove(files.map((f) => `${user.id}/${f.name}`));
+  const { error } = await supabase.rpc("delete_my_account");
+  if (error) return { error: `Não foi possível excluir a conta: ${error.message}` };
+  await supabase.auth.signOut();
+  redirect("/login?conta=excluida");
+}

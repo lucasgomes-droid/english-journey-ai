@@ -80,11 +80,13 @@ export interface Highlight {
 const delta = (a: number | null, b: number | null) => (a === null || b === null ? null : a - b);
 
 /** Destaques do relatório: o que melhorou, o que piorou e o que fazer, só com dados reais. */
-export function weeklyHighlights(cur: WeekStats, prev: WeekStats, label: (c: ErrorCategory) => string): Highlight[] {
+export function weeklyHighlights(cur: WeekStats, prev: WeekStats, label: (c: ErrorCategory) => string, period: "week" | "month" = "week"): Highlight[] {
   const h: Highlight[] = [];
-  if (cur.minutes === 0 && cur.answers === 0 && cur.messages === 0) return [{ tone: "info", text: "Nenhuma atividade nesta semana. Comece com 10 minutos: uma aula e uma revisão." }];
+  const thisP = period === "month" ? "neste mês" : "nesta semana";
+  const lastP = period === "month" ? "no mês passado" : "na semana passada";
+  if (cur.minutes === 0 && cur.answers === 0 && cur.messages === 0) return [{ tone: "info", text: `Nenhuma atividade ${thisP}. Comece com 10 minutos: uma aula e uma revisão.` }];
   const dm = cur.minutes - prev.minutes;
-  if (prev.minutes > 0 && Math.abs(dm) >= 10) h.push({ tone: dm > 0 ? "good" : "bad", text: dm > 0 ? `Você estudou ${dm} min a mais que na semana passada.` : `Você estudou ${-dm} min a menos que na semana passada.` });
+  if (prev.minutes > 0 && Math.abs(dm) >= 10) h.push({ tone: dm > 0 ? "good" : "bad", text: dm > 0 ? `Você estudou ${dm} min a mais que ${lastP}.` : `Você estudou ${-dm} min a menos que ${lastP}.` });
   const da = delta(cur.accuracy, prev.accuracy);
   if (da !== null && Math.abs(da) >= 5) h.push({ tone: da > 0 ? "good" : "bad", text: `Acerto nos exercícios: ${prev.accuracy}% → ${cur.accuracy}%.` });
   const dc = delta(cur.cleanMessages, prev.cleanMessages);
@@ -100,6 +102,34 @@ export function weeklyHighlights(cur: WeekStats, prev: WeekStats, label: (c: Err
     if (b >= 3 && a <= b / 2) h.push({ tone: "good", text: `Menos erros de ${label(c).toLowerCase()}: ${b} → ${a}.` });
     else if (a >= 3 && a >= b * 2 && a - b >= 3) h.push({ tone: "bad", text: `Mais erros de ${label(c).toLowerCase()}: ${b} → ${a}. Vale fazer o plano de recuperação.` });
   }
-  if (cur.messages < 5) h.push({ tone: "info", text: "Converse mais: pelo menos 3 conversas por semana fazem diferença na fluência." });
+  if (cur.messages < (period === "month" ? 20 : 5)) h.push({ tone: "info", text: "Converse mais: pelo menos 3 conversas por semana fazem diferença na fluência." });
   return h.slice(0, 6);
+}
+
+
+export interface Recommendation {
+  text: string;
+  href: string;
+  cta: string;
+}
+
+/**
+ * Recomendações do professor para o próximo período, por regras sobre os números reais
+ * (sem IA: previsível, testável e sem gastar cota).
+ */
+export function periodRecommendations(
+  cur: WeekStats,
+  prev: WeekStats,
+  ctx: { plannedMinutes: number; label: (c: ErrorCategory) => string },
+): Recommendation[] {
+  const out: Recommendation[] = [];
+  if (ctx.plannedMinutes > 0 && cur.minutes < ctx.plannedMinutes * 0.6)
+    out.push({ text: `Você estudou ${cur.minutes} de ${ctx.plannedMinutes} min planejados. Constância vale mais que sessões longas: faça o Treino de hoje, mesmo que curto.`, href: "/praticar", cta: "Treino de hoje" });
+  const top = (Object.entries(cur.errorsByCategory) as [ErrorCategory, number][]).sort((a, b) => b[1] - a[1])[0];
+  if (top && top[1] >= 3) out.push({ text: `Seu erro mais frequente foi ${ctx.label(top[0]).toLowerCase()} (${top[1]} vezes). Um plano curto resolve isso.`, href: `/dificuldades/${top[0]}`, cta: "Fazer o plano" });
+  const da = cur.accuracy !== null && prev.accuracy !== null ? cur.accuracy - prev.accuracy : null;
+  if (da !== null && da <= -10) out.push({ text: `O acerto caiu de ${prev.accuracy}% para ${cur.accuracy}%. Antes de avançar, revise o que venceu.`, href: "/revisao", cta: "Revisar" });
+  if (cur.messages < 5) out.push({ text: "Pouca conversa no período. Falar é o que mais destrava: 5 minutos de ligação com o Alex já ajudam.", href: "/conversa", cta: "Ligar para o Alex" });
+  if (cur.listeningAccuracy === null || cur.listeningAccuracy < 60) out.push({ text: "Treine o ouvido: um áudio curto por dia, primeiro sem texto.", href: "/listening", cta: "Listening" });
+  return out.slice(0, 3);
 }

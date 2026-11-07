@@ -9,6 +9,7 @@ import { ResetProgress } from "@/components/reset-progress";
 import { ThemeChoice } from "@/components/theme-choice";
 import { IntensityPicker } from "@/components/intensity-picker";
 import { TeacherMemory } from "@/components/teacher-memory";
+import { MyData } from "@/components/my-data";
 
 export const metadata = { title: "Perfil" };
 
@@ -100,6 +101,8 @@ export default async function ProfilePage() {
       <ThemeChoice />
 
       <ResetProgress />
+
+      <MyData />
 
       <form action={signOut}>
         <button type="submit" className="btn-ghost">

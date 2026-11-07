@@ -40,3 +40,19 @@ describe("aprendizagem adaptativa", () => {
     expect(weeklyHighlights({ ...base, minutes: 0, answers: 0, messages: 0 }, base, (c) => c)[0].tone).toBe("info");
   });
 });
+
+import { periodRecommendations } from "@/lib/adaptive";
+describe("recomendações do período", () => {
+  const empty = { minutes: 0, xp: 0, lessons: 0, answers: 0, accuracy: null, messages: 0, cleanMessages: null, reportAvg: null, pairAccuracy: null, listeningAccuracy: null, reviews: 0, errorsByCategory: {} };
+  it("pouca constância, erro recorrente e queda de acerto viram ações concretas (máx. 3)", () => {
+    const cur = { ...empty, minutes: 20, accuracy: 55, messages: 10, listeningAccuracy: 80, errorsByCategory: { articles: 5 } };
+    const prev = { ...empty, minutes: 90, accuracy: 80 };
+    const r = periodRecommendations(cur as never, prev as never, { plannedMinutes: 105, label: (c) => (c === "articles" ? "Artigos" : c) });
+    expect(r.map((x) => x.href)).toEqual(["/praticar", "/dificuldades/articles", "/revisao"]);
+    expect(r[1].text).toContain("artigos (5 vezes)");
+  });
+  it("sem problemas, sem recomendação inventada", () => {
+    const good = { ...empty, minutes: 200, accuracy: 85, messages: 30, listeningAccuracy: 80 };
+    expect(periodRecommendations(good as never, good as never, { plannedMinutes: 105, label: String })).toEqual([]);
+  });
+});

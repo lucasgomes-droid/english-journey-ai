@@ -7,7 +7,7 @@ const TABS = [
   { href: "/meu-professor", label: "Visão geral" },
   { href: "/dificuldades", label: "Dificuldades" },
   { href: "/avaliacoes", label: "Avaliações" },
-  { href: "/relatorio", label: "Relatório semanal" },
+  { href: "/relatorio", label: "Relatórios" },
 ];
 
 /** Abas de "Meu progresso": tudo sobre a sua evolução num só lugar. */

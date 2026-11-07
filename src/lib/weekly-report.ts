@@ -7,8 +7,12 @@ import type { WeekStats } from "@/lib/adaptive";
 const pct = (ok: number, n: number, min = 3) => (n >= min ? Math.round((ok / n) * 100) : null);
 
 /** Números reais de duas semanas (últimos 7 dias × 7 dias anteriores). */
-export async function loadWeeks(supabase: SupabaseClient, uid: string, now = Date.now()) {
-  const start = new Date(now - 14 * 86_400_000).toISOString();
+export const loadWeeks = (supabase: SupabaseClient, uid: string, now = Date.now()) => loadPeriods(supabase, uid, 7, now);
+
+/** Números reais de dois períodos seguidos de `days` dias (semana = 7, mês = 30). */
+export async function loadPeriods(supabase: SupabaseClient, uid: string, days: number, now = Date.now()) {
+  const D = days * 86_400_000;
+  const start = new Date(now - 2 * D).toISOString();
   const [act, ans, msgs, convs, pairs, lis, events] = await Promise.all([
     supabase.from("activity_log").select("kind, xp, duration_seconds, created_at").eq("user_id", uid).gte("created_at", start).limit(3000),
     supabase.from("exercise_answers").select("correct, created_at").eq("user_id", uid).gte("created_at", start).limit(5000),
@@ -46,5 +50,5 @@ export async function loadWeeks(supabase: SupabaseClient, uid: string, now = Dat
       errorsByCategory,
     };
   };
-  return { cur: week(now - 7 * 86_400_000, now + 1), prev: week(now - 14 * 86_400_000, now - 7 * 86_400_000) };
+  return { cur: week(now - D, now + 1), prev: week(now - 2 * D, now - D) };
 }

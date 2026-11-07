@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ProgressTabs } from "@/components/progress-tabs";
 import { ArrowDown, ArrowUp, Info } from "lucide-react";
 import { getSession } from "@/lib/data";
-import { loadWeeks } from "@/lib/weekly-report";
-import { weeklyHighlights, type WeekStats } from "@/lib/adaptive";
+import { loadPeriods } from "@/lib/weekly-report";
+import { periodRecommendations, weeklyHighlights, type WeekStats } from "@/lib/adaptive";
 import { getCategory, type ErrorCategory } from "@/content/error-patterns";
 
-export const metadata = { title: "Relatório semanal" };
+export const metadata = { title: "Relatório" };
 
 const ROWS: { key: keyof WeekStats; label: string; unit?: string; better?: "up" | "down" }[] = [
   { key: "minutes", label: "Tempo de estudo", unit: " min", better: "up" },
@@ -22,10 +22,15 @@ const ROWS: { key: keyof WeekStats; label: string; unit?: string; better?: "up" 
   { key: "reviews", label: "Revisões feitas", better: "up" },
 ];
 
-export default async function WeeklyReportPage() {
-  const { supabase, user } = await getSession();
-  const { cur, prev } = await loadWeeks(supabase, user.id);
-  const highlights = weeklyHighlights(cur, prev, (c) => getCategory(c)!.label);
+export default async function WeeklyReportPage({ searchParams }: { searchParams: Promise<{ periodo?: string }> }) {
+  const month = (await searchParams).periodo === "mes";
+  const { supabase, user, profile } = await getSession();
+  const days = month ? 30 : 7;
+  const { cur, prev } = await loadPeriods(supabase, user.id, days);
+  const label = (c: ErrorCategory) => getCategory(c)!.label;
+  const highlights = weeklyHighlights(cur, prev, label, month ? "month" : "week");
+  const studyDays = profile?.study_days?.length ?? 7;
+  const recs = periodRecommendations(cur, prev, { plannedMinutes: Math.round((profile?.daily_minutes ?? 15) * studyDays * (days / 7)), label });
   const cats = Array.from(new Set([...Object.keys(cur.errorsByCategory), ...Object.keys(prev.errorsByCategory)])) as ErrorCategory[];
   const fmt = (v: unknown, unit = "") => (v === null || v === undefined ? "—" : `${v}${unit}`);
 
@@ -33,13 +38,39 @@ export default async function WeeklyReportPage() {
     <main className="mx-auto max-w-3xl space-y-6">
       <ProgressTabs />
       <header>
-        <h1 className="font-display text-3xl font-bold">Relatório semanal</h1>
-        <p className="mt-2 text-muted">Últimos 7 dias comparados com os 7 dias anteriores. “—” quando ainda não há dados suficientes para medir.</p>
+        <h1 className="font-display text-3xl font-bold">{month ? "Relatório mensal" : "Relatório semanal"}</h1>
+        <p className="mt-2 text-muted">Últimos {days} dias comparados com os {days} dias anteriores. “—” quando ainda não há dados suficientes para medir.</p>
+        <nav aria-label="Período do relatório" className="mt-3 inline-flex rounded-full bg-surface-2 p-1">
+          <Link href="/relatorio" aria-current={!month ? "page" : undefined} className={`rounded-full px-4 py-1.5 text-sm font-bold ${!month ? "bg-atlantic text-surface" : ""}`}>
+            Semana
+          </Link>
+          <Link href="/relatorio?periodo=mes" aria-current={month ? "page" : undefined} className={`rounded-full px-4 py-1.5 text-sm font-bold ${month ? "bg-atlantic text-surface" : ""}`}>
+            Mês
+          </Link>
+        </nav>
       </header>
+
+      {recs.length > 0 && (
+        <section className="panel border-2 border-boarding p-5" aria-labelledby="recomendacoes">
+          <h2 id="recomendacoes" className="font-display text-xl font-bold">
+            O Alex recomenda {month ? "para o próximo mês" : "para a próxima semana"}
+          </h2>
+          <ul className="mt-3 space-y-3">
+            {recs.map((r) => (
+              <li key={r.href} className="flex flex-wrap items-center justify-between gap-3">
+                <span className="min-w-0 flex-1">{r.text}</span>
+                <Link href={r.href} className="btn-ghost text-sm">
+                  {r.cta}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="panel p-5" aria-labelledby="destaques">
         <h2 id="destaques" className="font-display text-xl font-bold">
-          Destaques da semana
+          {month ? "Destaques do mês" : "Destaques da semana"}
         </h2>
         <ul className="mt-3 space-y-2">
           {highlights.length ? (
@@ -63,7 +94,7 @@ export default async function WeeklyReportPage() {
           <thead>
             <tr className="text-muted">
               <th className="py-2 font-bold">Indicador</th>
-              <th className="py-2 text-right font-bold">Esta semana</th>
+              <th className="py-2 text-right font-bold">{month ? "Últimos 30 dias" : "Esta semana"}</th>
               <th className="py-2 text-right font-bold">Anterior</th>
             </tr>
           </thead>

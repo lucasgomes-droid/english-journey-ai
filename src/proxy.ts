@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/env";
 
-const PUBLIC_PATHS = ["/login", "/cadastro", "/auth", "/configuracao", "/offline"];
+const PUBLIC_PATHS = ["/login", "/cadastro", "/auth", "/configuracao", "/offline", "/privacidade"];
 
 export async function proxy(request: NextRequest) {
   const url = SUPABASE_URL;
