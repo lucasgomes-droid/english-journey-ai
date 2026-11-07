@@ -257,7 +257,110 @@ const NEW: BaseScenario[] = [
   }),
 ];
 
-export const SCENARIOS: Scenario[] = [...BASE, ...NEW].map((s) => ({ ...s, ...EXTRA[s.id] }));
+/** Situações do dia a dia (inglês para a vida toda, não só trabalho). */
+const EVERYDAY: BaseScenario[] = [
+  S({
+    id: "bus-metro", title: "No ônibus ou metrô", category: "Vida cotidiana",
+    character: { name: "Rosa", role: "passageira", voice: "f2", look: { skin: "#c68642", hair: "#2b2b2b", hairStyle: "bun", shirt: "#3d5a80", bg: "#e0fbfc" } },
+    setting: "You are Rosa, a friendly local on the subway platform in New York. The student asks which train to take, where to buy or top up a card, how many stops, and where to change lines.",
+    goals: ["Perguntar qual linha pegar", "Perguntar como comprar ou recarregar o cartão", "Confirmar onde descer ou fazer baldeação"],
+    opener: "You look a bit lost. Can I help you?",
+  }),
+  S({
+    id: "bank", title: "No banco", category: "Vida cotidiana",
+    character: { name: "Mr. Clarke", role: "atendente do banco", voice: "m3", look: { skin: "#f1c27d", hair: "#5c4033", hairStyle: "short", shirt: "#1d3557", bg: "#a8dadc", accessory: "tie" } },
+    setting: "You are Mr. Clarke, a bank clerk in London helping a newcomer open a basic current account: explain the documents needed (ID, proof of address), the debit card, monthly fees and online banking. NEVER ask for passwords, PINs or full card numbers; if the student offers them, tell them never to share those.",
+    goals: ["Dizer que quer abrir uma conta", "Perguntar quais documentos são necessários", "Perguntar sobre taxas e o cartão"],
+    opener: "Good morning. How can I help you today?",
+  }),
+  S({
+    id: "post-office", title: "Nos correios", category: "Vida cotidiana",
+    character: { name: "Linda", role: "atendente dos correios", voice: "f1", look: { skin: "#ffdbac", hair: "#c0c0c0", hairStyle: "short", shirt: "#e63946", bg: "#f1faee", accessory: "glasses" } },
+    setting: "You are Linda at a post office in Toronto. The student wants to send a parcel to Brazil: ask what's inside, weigh it, explain options (standard or express), prices, delivery time and tracking, and the customs form.",
+    goals: ["Dizer o que quer enviar e para onde", "Escolher o tipo de envio", "Perguntar prazo e rastreamento"],
+    opener: "Next, please! What can I do for you?",
+  }),
+  S({
+    id: "gym", title: "Na academia", category: "Vida cotidiana",
+    character: { name: "Marcus", role: "recepcionista da academia", voice: "m2", look: { skin: "#8d5524", hair: "#1b1b1b", hairStyle: "buzz", shirt: "#2a9d8f", bg: "#e9f5db" } },
+    setting: "You are Marcus at the front desk of a gym in Sydney. A new person wants to join: explain membership plans, opening hours, classes (yoga, spinning), a free trial and what to bring.",
+    goals: ["Perguntar sobre planos e preços", "Perguntar horários e aulas", "Pedir uma aula experimental"],
+    opener: "Hey, welcome to FitLife! Are you interested in joining?",
+  }),
+  S({
+    id: "hairdresser", title: "No cabeleireiro ou barbeiro", category: "Vida cotidiana",
+    character: { name: "Tony", role: "cabeleireiro", voice: "m1", look: { skin: "#e8beac", hair: "#2d2d2d", hairStyle: "curly", shirt: "#ffb703", bg: "#fff1e6", accessory: "apron" } },
+    setting: "You are Tony, a chatty hairdresser in Chicago. Ask how the student wants their hair (shorter, just a trim, sides, fringe), confirm details, make small talk and say the price.",
+    goals: ["Explicar o corte que quer", "Responder ao small talk", "Confirmar o resultado e pagar"],
+    opener: "Hi! Take a seat. So, what are we doing today?",
+  }),
+  S({
+    id: "neighbour", title: "Conversa com o vizinho", category: "Rua e social",
+    character: { name: "Mrs. Patel", role: "vizinha", voice: "f3", look: { skin: "#a0673f", hair: "#3b3b3b", hairStyle: "long", shirt: "#9d4edd", bg: "#ffe5ec" } },
+    setting: "You are Mrs. Patel, the student's friendly new neighbour in Dublin. Chat in the hallway: introductions, the building, rubbish collection day, the noise from a party last night, and offer help.",
+    goals: ["Apresentar-se", "Perguntar sobre o prédio e o bairro", "Resolver com educação um assunto de barulho"],
+    opener: "Oh, hello! You must be the new neighbour. I'm Mrs. Patel from 4B.",
+  }),
+  S({
+    id: "party", title: "Numa festa de aniversário", category: "Rua e social",
+    character: { name: "Olivia", role: "convidada da festa", voice: "f1", look: { skin: "#ffe0bd", hair: "#d4a373", hairStyle: "ponytail", shirt: "#ff006e", bg: "#fff3b0" } },
+    setting: "You are Olivia, a guest at a friend's birthday party in Austin. Make small talk with the student: how they know the host, what they do, hobbies, food and music. Keep it light and fun.",
+    goals: ["Puxar conversa", "Dizer como conhece o aniversariante", "Falar de hobbies", "Despedir-se com naturalidade"],
+    opener: "Hi! Great party, right? How do you know Sam?",
+  }),
+  S({
+    id: "complaint-call", title: "Reclamar com o atendimento (telefone)", category: "Vida cotidiana",
+    character: { name: "Kevin", role: "atendente de telefone", voice: "m2", look: { skin: "#f3d2b3", hair: "#6c4f3d", hairStyle: "short", shirt: "#457b9d", bg: "#edf6f9", accessory: "headset" } },
+    setting: "You are Kevin, a customer service agent for an internet provider. The student calls because the internet has been down for two days. Ask for the account name and address (never passwords or card numbers), run simple checks and offer a technician visit or a discount.",
+    goals: ["Explicar o problema", "Dizer há quanto tempo acontece", "Pedir uma solução e combinar o próximo passo"],
+    opener: "Thank you for calling NetFast, this is Kevin. How can I help you today?",
+  }),
+  S({
+    id: "lost-wallet", title: "Perdi minha carteira", category: "Rua e social",
+    character: { name: "Officer Diaz", role: "policial", voice: "f2", look: { skin: "#c68642", hair: "#1b1b1b", hairStyle: "bun", shirt: "#14213d", bg: "#e5e5e5", accessory: "cap" } },
+    setting: "You are Officer Diaz at a police station in Miami. The student lost their wallet. Ask when and where it happened, what was inside, a description of the wallet and contact details; explain how to get a report number. Never ask for card numbers or passwords.",
+    goals: ["Explicar o que aconteceu", "Descrever a carteira e o que havia nela", "Pedir o número do boletim"],
+    opener: "Hi, how can I help you?",
+  }),
+  S({
+    id: "dentist", title: "No dentista", category: "Saúde",
+    character: { name: "Dr. Kim", role: "dentista", voice: "f3", look: { skin: "#ffe0bd", hair: "#1b1b1b", hairStyle: "bun", shirt: "#90e0ef", bg: "#caf0f8", accessory: "scrubs" } },
+    setting: "You are Dr. Kim, a dentist in Vancouver. Ask where it hurts, since when, if it hurts with cold or hot food, explain simply what you will do and when to come back.",
+    goals: ["Explicar onde dói e desde quando", "Responder às perguntas da dentista", "Entender o tratamento e marcar o retorno"],
+    opener: "Hello, have a seat. What brings you in today?",
+  }),
+  S({
+    id: "delivery", title: "Pedido de delivery errado", category: "Cafés e restaurantes",
+    character: { name: "Sam", role: "atendente do restaurante", voice: "m1", look: { skin: "#f1c27d", hair: "#e76f51", hairStyle: "short", shirt: "#f4a261", bg: "#fefae0" } },
+    setting: "You are Sam, answering the phone at a pizza place in Boston. The student's delivery arrived wrong or incomplete. Apologise, ask what's missing, and offer to send the right order or a refund.",
+    goals: ["Explicar o que veio errado", "Pedir o pedido certo ou reembolso", "Confirmar o tempo de entrega"],
+    opener: "Tony's Pizza, Sam speaking. How can I help?",
+  }),
+  S({
+    id: "small-talk", title: "Small talk no elevador", category: "Rua e social",
+    character: { name: "Daniel", role: "vizinho de trabalho", voice: "m3", look: { skin: "#8d5524", hair: "#2b2b2b", hairStyle: "short", shirt: "#6a994e", bg: "#f2e8cf", accessory: "glasses" } },
+    setting: "You are Daniel, someone the student often meets in the building's lift in Melbourne. Make short, natural small talk: the weather, the weekend, a local event. Keep replies short like real lift conversations.",
+    goals: ["Cumprimentar", "Comentar algo do dia (tempo, fim de semana)", "Encerrar com naturalidade"],
+    opener: "Morning! Crazy weather today, isn't it?",
+  }),
+];
+
+const EVERYDAY_EXTRA: Record<string, Extra> = {
+  "bus-metro": X("Vida cotidiana", "street", "Você está numa estação de metrô em Nova York. Seu objetivo é descobrir qual linha pegar, como comprar o cartão e onde descer.", "A linha está em obras e você precisa de um caminho alternativo.", ["the line is closed for maintenance this weekend", "the student needs to change lines twice"]),
+  bank: X("Vida cotidiana", "office", "Você está num banco em Londres. Seu objetivo é abrir uma conta: perguntar documentos, taxas e como funciona o cartão.", "Falta um comprovante de endereço e você precisa entender a alternativa.", ["the student doesn't have proof of address yet", "there is a monthly fee unless the student deposits a minimum amount"]),
+  "post-office": X("Vida cotidiana", "store", "Você está nos correios em Toronto. Seu objetivo é mandar um pacote para o Brasil, escolher o tipo de envio e entender prazo e rastreamento.", "O pacote passa do peso e há itens que não podem ir.", ["the parcel is over the weight limit for the cheaper option", "one item cannot be sent abroad (e.g. a battery)"]),
+  gym: X("Vida cotidiana", "store", "Você está na recepção de uma academia em Sydney. Seu objetivo é entender planos, horários e marcar uma aula experimental.", "O plano mais barato tem restrição de horário e há taxa de matrícula.", ["the cheapest plan only allows off-peak hours", "there is a joining fee this month"]),
+  hairdresser: X("Vida cotidiana", "store", "Você está num salão em Chicago. Seu objetivo é explicar o corte que quer, conversar um pouco e pagar.", "O cabeleireiro entende errado o comprimento e você precisa corrigir com educação.", ["the hairdresser starts cutting shorter than the student wanted", "the price is higher than the sign"]),
+  neighbour: X("Rua e social", "home", "Você encontra a vizinha no corredor do prédio em Dublin. Seu objetivo é se apresentar, perguntar sobre o prédio e resolver um assunto de barulho.", "A vizinha reclama de barulho e você precisa se desculpar ou explicar.", ["the neighbour complains about noise from the student's flat", "the neighbour asks a favour (receiving a parcel)"]),
+  party: X("Rua e social", "home", "Você está numa festa de aniversário em Austin. Seu objetivo é puxar conversa, contar como conhece o aniversariante e falar de hobbies.", "A conversa muda rápido de assunto e aparecem expressões informais.", ["Olivia uses an idiom the student may not know", "someone interrupts and the student has to join a group conversation"]),
+  "complaint-call": X("Vida cotidiana", "home", "Você liga para a operadora de internet. Seu objetivo é explicar o problema, há quanto tempo acontece e conseguir uma solução.", "O atendente tenta encerrar sem resolver e você precisa insistir com educação.", ["the agent suggests restarting the router for the third time", "the technician can only come next week"]),
+  "lost-wallet": X("Rua e social", "street", "Você está numa delegacia em Miami. Seu objetivo é explicar que perdeu a carteira, descrevê-la e pedir o número do boletim.", "A policial faz perguntas detalhadas de horário e lugar.", ["the officer asks for the exact time and place", "the student needs to explain what documents were inside"]),
+  dentist: X("Saúde", "hospital", "Você está no dentista em Vancouver. Seu objetivo é explicar a dor e entender o tratamento.", "A dentista usa termos técnicos e fala de custos.", ["the dentist uses a term like 'filling' or 'root canal'", "the treatment needs two appointments"]),
+  delivery: X("Cafés e restaurantes", "home", "Seu delivery chegou errado. Seu objetivo é ligar, explicar o que veio errado e conseguir o pedido certo ou reembolso.", "O restaurante quer dar só um cupom e você negocia.", ["the restaurant offers only a coupon instead of a refund", "the new delivery will take an hour"]),
+  "small-talk": X("Rua e social", "office", "Você encontra o Daniel no elevador em Melbourne. Seu objetivo é fazer small talk rápido e natural.", "O Daniel puxa um assunto inesperado e o elevador é rápido: respostas curtas.", ["Daniel mentions a local event the student hasn't heard of", "Daniel asks about the student's weekend plans"]),
+};
+
+export const SCENARIOS: Scenario[] = [...BASE, ...NEW, ...EVERYDAY].map((s) => ({ ...s, ...(EXTRA[s.id] ?? EVERYDAY_EXTRA[s.id]) }));
 
 /** Missão adaptada ao nível: no A1–A2 a cena é simples; do B1 em diante surgem complicações reais. */
 export function missionFor(s: Scenario, level: string): { mission: string; challenge: string | null } {

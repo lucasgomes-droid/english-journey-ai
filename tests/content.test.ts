@@ -103,7 +103,15 @@ describe("mini-aulas e conversas", () => {
     for (const s of SCENARIOS) {
       expect(s.goals.length).toBeGreaterThan(0);
       expect(s.opener.length).toBeGreaterThan(5);
+      expect(s.mission_pt, s.id).toBeTruthy();
+      expect(s.place, s.id).toBeTruthy();
+      expect(s.challenges.length, s.id).toBeGreaterThan(0);
     }
+  });
+
+  it("situações do dia a dia (não só trabalho)", () => {
+    for (const id of ["bus-metro", "bank", "post-office", "gym", "hairdresser", "neighbour", "party", "complaint-call", "lost-wallet", "dentist", "delivery", "small-talk"]) expect(getScenario(id), id).toBeTruthy();
+    expect(SCENARIOS.length).toBeGreaterThanOrEqual(37);
   });
 });
 
