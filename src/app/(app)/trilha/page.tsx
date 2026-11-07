@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Award, Check, Flag, Lock } from "lucide-react";
+import { Award, Check, ChevronDown, Flag, Lock } from "lucide-react";
 import { LEVELS, LEVEL_ORDER, isLessonUnlocked, nextLessonFor } from "@/content/curriculum";
 import { getCompletedLessons, getSession } from "@/lib/data";
 import { StudyRail } from "@/components/study-rail";
@@ -66,10 +66,25 @@ export default async function TrailPage({ searchParams }: { searchParams: Promis
             </p>
           )}
 
-          <div className="mt-6 space-y-8">
-            {level.modules.map((m) => (
-              <div key={m.id}>
-                <h3 className="font-display text-lg font-bold">{m.title}</h3>
+          <div className="mt-6 space-y-4">
+            {level.modules.map((m) => {
+              const mDone = m.lessons.filter((l) => completed.has(l.id)).length;
+              const hasNext = m.lessons.some((l) => l.id === next?.id);
+              const complete = mDone === m.lessons.length;
+              const locked = !hasNext && !complete && !m.lessons.some((l) => completed.has(l.id) || isLessonUnlocked(l.id, completed, current));
+              // Só o módulo atual fica aberto: a trilha mostra o que fazer agora, sem uma lista enorme.
+              return (
+              <details key={m.id} open={hasNext || (!next && m === level.modules[0])} className="group/mod">
+                <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl py-1 [&::-webkit-details-marker]:hidden">
+                  <span className="min-w-0 flex-1">
+                    <span className="font-display text-lg font-bold">{m.title}</span>
+                    <span className="ml-2 text-sm text-muted">
+                      {complete ? "concluído" : locked ? "bloqueado" : `${mDone} de ${m.lessons.length}`}
+                    </span>
+                  </span>
+                  {complete ? <Check size={18} className="shrink-0 text-gold" aria-hidden /> : locked ? <Lock size={16} className="shrink-0 text-muted" aria-hidden /> : null}
+                  <ChevronDown size={18} className="shrink-0 text-muted transition group-open/mod:rotate-180" aria-hidden />
+                </summary>
                 <ol className="relative mt-3">
                   {m.lessons.map((l, i) => {
                     const isDone = completed.has(l.id);
@@ -102,8 +117,9 @@ export default async function TrailPage({ searchParams }: { searchParams: Promis
                     );
                   })}
                 </ol>
-              </div>
-            ))}
+              </details>
+              );
+            })}
 
             <Link href={`/prova/${level.code}`} className={`flex items-center gap-4 rounded-2xl border-2 p-4 ${examPassed(level.code) === 3 ? "border-gold bg-boarding/15" : "border-dashed border-line hover:border-gold"}`}>
               <span className="grid size-[54px] shrink-0 place-items-center rounded-full bg-gold text-white">
@@ -120,7 +136,7 @@ export default async function TrailPage({ searchParams }: { searchParams: Promis
         </section>
       </main>
 
-      <aside aria-label="Rotina e semana">
+      <aside aria-label="Rotina e semana" className="hidden xl:block">
         <StudyRail />
       </aside>
     </div>

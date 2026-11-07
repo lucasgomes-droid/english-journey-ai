@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ProgressTabs } from "@/components/progress-tabs";
-import { ArrowRight, Clock, GraduationCap, MessagesSquare, Mic, Sparkles, Target, TriangleAlert, Trophy } from "lucide-react";
+import { ArrowRight, Clock, MessagesSquare, Mic, Sparkles, Target, TriangleAlert } from "lucide-react";
 import { getDashboard, getSession } from "@/lib/data";
 import { loadTeacherPanel } from "@/lib/teacher";
 import { loadIndicators } from "@/lib/indicators";
@@ -75,32 +75,13 @@ export default async function MyTeacherPage() {
 
       <IndicatorsPanel data={ind} />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="panel p-5">
-          <p className="flex items-center gap-2 text-sm font-bold text-muted">
-            <GraduationCap size={16} aria-hidden /> Nível atual
-          </p>
-          <p className="mt-1 font-display text-4xl font-bold">{t.level}</p>
-          <p className="text-sm text-muted">{d.levelProgress}% das aulas do nível</p>
-        </div>
-        <div className="panel p-5">
-          <p className="flex items-center gap-2 text-sm font-bold text-muted">
-            <Trophy size={16} aria-hidden /> Evolução geral
-          </p>
-          <p className="mt-1 font-display text-4xl font-bold">
-            {d.overallLessonsDone}
-            <span className="text-lg text-muted">/{ALL_LESSONS.length}</span>
-          </p>
-          <p className="text-sm text-muted">aulas e avaliações concluídas · {d.wordsLearned} palavras</p>
-        </div>
-        <div className="panel p-5">
-          <p className="flex items-center gap-2 text-sm font-bold text-muted">
-            <Clock size={16} aria-hidden /> Tempo de estudo
-          </p>
-          <p className="mt-1 font-display text-4xl font-bold">{d.totalMinutes} min</p>
-          <p className="text-sm text-muted">{t.dueReviews} itens para revisar hoje</p>
-        </div>
-      </div>
+      <p className="text-sm text-muted">
+        Nível <strong className="text-ink">{t.level}</strong> · {d.levelProgress}% das aulas do nível · {d.overallLessonsDone} de {ALL_LESSONS.length} aulas e avaliações · {d.wordsLearned} palavras · {d.totalMinutes} min de estudo no total
+      </p>
+
+      <details className="space-y-6" id="detalhes">
+        <summary className="cursor-pointer rounded-2xl bg-surface-2 px-5 py-3 font-bold">Ver detalhes: competências, pronúncia, conversa, erros e próximos objetivos</summary>
+        <div className="mt-6 space-y-6">
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="panel p-5">
@@ -276,6 +257,8 @@ export default async function MyTeacherPage() {
           <li>Conversar pelo menos 3 vezes nesta semana e ver o relatório de cada conversa.</li>
         </ol>
       </section>
+        </div>
+      </details>
     </main>
   );
 }

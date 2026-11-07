@@ -19,7 +19,7 @@ export async function StudyRail() {
       <section className="panel p-5" aria-labelledby="rotina">
         <div className="flex items-baseline justify-between gap-2">
           <h2 id="rotina" className="font-display text-lg font-bold">
-            Rotina de hoje
+            Treino de hoje
           </h2>
           <span className="text-xs font-bold text-muted">XP</span>
         </div>

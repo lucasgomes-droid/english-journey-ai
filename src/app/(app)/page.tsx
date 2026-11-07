@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, TriangleAlert } from "lucide-react";
+import { Sparkles, TriangleAlert } from "lucide-react";
 import { getDashboard, getSession } from "@/lib/data";
 import { loadHomeCoach } from "@/lib/teacher";
 import { getCategory } from "@/content/error-patterns";
 import { getModule } from "@/content/curriculum";
 import { StudyRail } from "@/components/study-rail";
-import { TalkingPeople } from "@/components/illustrations";
 
 export const metadata = { title: "Início" };
 
@@ -88,66 +87,40 @@ export default async function Dashboard() {
           </div>
         </section>
 
-        <div className="grid gap-5 md:grid-cols-[1.4fr_1fr] [&>*]:min-w-0">
-          {/* Prática recomendada pelo professor IA */}
-          <section className="panel flex gap-4 overflow-hidden p-6" aria-labelledby="recomendada">
-            <div className="flex min-w-0 flex-1 flex-col">
+        {/* Um único foco além da aula: a maior dificuldade, ou a recomendação do professor (quando não é a padrão). */}
+        {coach.patterns[0] ? (
+          <section className="panel flex flex-wrap items-center gap-4 p-5" aria-labelledby="foco">
+            <div className="min-w-0 flex-1">
               <p className="flex items-center gap-1.5 text-sm font-bold text-muted">
-                <Sparkles size={16} className="text-gold" aria-hidden /> Prática recomendada
+                <TriangleAlert size={16} className="text-wrong" aria-hidden /> Sua maior dificuldade agora
               </p>
-              <h2 id="recomendada" className="mt-1 font-display text-2xl font-bold">
-                {coach.recommendation.title}
+              <h2 id="foco" className="mt-1 font-display text-xl font-bold">
+                {getCategory(coach.patterns[0].category)!.label}
               </h2>
-              <p className="mt-1 text-sm text-muted">{coach.recommendation.why}</p>
-              <div className="mt-auto pt-4">
-                <Link href={coach.recommendation.href} className="btn-primary rounded-full px-6">
-                  {coach.recommendation.cta}
-                </Link>
-              </div>
+              <p className="mt-1 text-sm text-muted">{coach.patterns[0].recent} erros nas últimas 2 semanas. Um plano curto resolve.</p>
             </div>
-            <TalkingPeople className="hidden h-36 w-36 shrink-0 self-end sm:block" />
+            <Link href={`/dificuldades/${coach.patterns[0].category}`} className="btn-primary rounded-full px-6">
+              Resolver agora
+            </Link>
           </section>
-
-          {/* Conversa ou dificuldade principal */}
-          <section className="panel flex flex-col p-6" aria-labelledby="foco">
-            {coach.patterns[0] ? (
-              <>
+        ) : (
+          coach.recommendation.href !== "/conversar" && (
+            <section className="panel flex flex-wrap items-center gap-4 p-5" aria-labelledby="foco">
+              <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-1.5 text-sm font-bold text-muted">
-                  <TriangleAlert size={16} className="text-wrong" aria-hidden /> Sua maior dificuldade
+                  <Sparkles size={16} className="text-gold" aria-hidden /> O professor recomenda
                 </p>
                 <h2 id="foco" className="mt-1 font-display text-xl font-bold">
-                  {getCategory(coach.patterns[0].category)!.label}
+                  {coach.recommendation.title}
                 </h2>
-                <p className="mt-1 text-sm text-muted">
-                  {coach.patterns[0].recent} erros nas últimas 2 semanas. O professor monta um plano curto para resolver.
-                </p>
-                <div className="mt-auto pt-4">
-                  <Link href={`/dificuldades/${coach.patterns[0].category}`} className="btn-primary rounded-full px-6">
-                    Resolver agora
-                  </Link>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-bold text-muted">Conversa com o professor</p>
-                <h2 id="foco" className="mt-1 font-display text-xl font-bold">
-                  Fale sobre qualquer assunto
-                </h2>
-                <p className="mt-1 text-sm text-muted">Por voz, em inglês ou português. Ele corrige sua pronúncia e acompanha sua evolução.</p>
-                <div className="mt-auto pt-4">
-                  <Link href="/conversa" className="btn-primary rounded-full px-6">
-                    Conversar
-                  </Link>
-                </div>
-              </>
-            )}
-          </section>
-        </div>
-
-        <Link href="/meu-professor" className="flex items-center justify-between gap-3 rounded-3xl border border-dashed border-line px-6 py-4 font-bold text-muted hover:border-atlantic hover:text-ink">
-          Ver meu progresso: acerto por habilidade, pronúncia, conversação e avaliações
-          <ArrowRight size={18} aria-hidden />
-        </Link>
+                <p className="mt-1 text-sm text-muted">{coach.recommendation.why}</p>
+              </div>
+              <Link href={coach.recommendation.href} className="btn-primary rounded-full px-6">
+                {coach.recommendation.cta}
+              </Link>
+            </section>
+          )
+        )}
       </main>
 
       <aside aria-label="Rotina e semana">

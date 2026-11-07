@@ -84,6 +84,7 @@ let current: Page | null = null;
 
   // Painel do professor.
   await page.goto(`${BASE}/meu-professor`);
+  await page.getByText(/^Ver detalhes:/).click();
   for (const t of ["O professor recomenda agora", "Taxa de acerto por competência", "Pontos fortes e dificuldades", "Evolução da pronúncia", "Evolução da conversação", "Tempo para responder", "Histórico de erros", "Próximos objetivos"])
     await page.getByText(t).first().waitFor();
   await page.getByText("Where do you live?").first().waitFor();

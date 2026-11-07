@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Plus } from "lucide-react";
 import { getSession } from "@/lib/data";
@@ -12,6 +13,8 @@ const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 export default async function TutorPage({ searchParams }: { searchParams: Promise<{ c?: string; aula?: string; cenario?: string; nivel?: string; cena?: string; ligar?: string }> }) {
   const sp = await searchParams;
+  // O chat livre antigo foi substituído pela Conversa (ligação com o Alex): sem aula, cena ou conversa salva, vai para lá.
+  if (!sp.c && !sp.aula && !sp.cenario && !sp.cena) redirect("/conversa");
   const { supabase, user, profile } = await getSession();
 
   const [{ data: convs }, convRes, msgsRes] = await Promise.all([
