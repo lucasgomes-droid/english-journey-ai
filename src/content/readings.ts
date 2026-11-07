@@ -3,6 +3,8 @@
  * Entram no fim do teste de cada módulo (skill "reading"), com IDs novos (`<teste>-r1…r3`),
  * sem mudar os IDs que já existem. A1: ~70 palavras · A2: ~110 · B1: ~160.
  */
+import { READINGS_ADVANCED } from "./readings-advanced";
+
 export interface ReadingQuestion {
   q: string;
   options: string[];
@@ -261,4 +263,4 @@ export const READINGS: Reading[] = [
   },
 ];
 
-export const readingFor = (moduleId: string) => READINGS.find((r) => r.moduleId === moduleId);
+export const readingFor = (moduleId: string) => READINGS.find((r) => r.moduleId === moduleId) ?? READINGS_ADVANCED.find((r) => r.moduleId === moduleId);

@@ -20,6 +20,16 @@ export function VoiceCapsProvider({ caps, children }: { caps: VoiceCaps; childre
 export const useVoiceCaps = () => useContext(VoiceCapsContext);
 
 export type VoiceName = "f1" | "f2" | "f3" | "m1" | "m2" | "m3";
+/** Sotaque de uma fala: a voz natural do servidor é americana; britânico e australiano usam a voz do aparelho, se houver. */
+export type Accent = "us" | "gb" | "au";
+const ACCENT_LANG: Record<Exclude<Accent, "us">, string> = { gb: "en-gb", au: "en-au" };
+
+/** O aparelho tem voz com esse sotaque? (as vozes do sistema variam por celular/computador) */
+export function accentAvailable(accent: Accent): boolean {
+  if (accent === "us") return true;
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
+  return window.speechSynthesis.getVoices().some((v) => v.lang?.toLowerCase().replace("_", "-").startsWith(ACCENT_LANG[accent]));
+}
 
 // Um único <audio> compartilhado: desbloqueado no primeiro toque (exigência do iPhone).
 let sharedAudio: HTMLAudioElement | null = null;
@@ -226,13 +236,14 @@ export function useVoice() {
         if (lang !== "en") return; // sem voz em português: só mostra o texto
         setAudioIssue("no-voice");
       }
-      const v = en.find((x) => x.lang.toLowerCase().replace("_", "-") === (lang === "en" ? "en-us" : "pt-br")) ?? en[0] ?? null;
+      const want = lang === "en" ? "en-us" : lang === "pt" ? "pt-br" : lang;
+      const v = en.find((x) => x.lang.toLowerCase().replace("_", "-") === want) ?? en[0] ?? null;
       const my = token.current;
       for (const part of chunkText(text, 160)) {
         if (my !== token.current) return;
         const ok = await new Promise<boolean>((resolve) => {
           const u = new SpeechSynthesisUtterance(part);
-          u.lang = v?.lang ?? (lang === "en" ? "en-US" : "pt-BR");
+          u.lang = v?.lang ?? (lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : lang);
           if (v) u.voice = v;
           u.rate = rate;
           let started = false;
@@ -265,7 +276,7 @@ export function useVoice() {
   );
 
   const speak = useCallback(
-    async (text: string, opts: { voice?: VoiceName; rate?: number; lang?: "en" | "pt" } = {}) => {
+    async (text: string, opts: { voice?: VoiceName; rate?: number; lang?: "en" | "pt"; accent?: Accent } = {}) => {
       halt();
       const my = ++token.current;
       const rate = opts.rate ?? 1;
@@ -275,6 +286,11 @@ export function useVoice() {
         // Português: a voz natural do servidor é só em inglês, então usa a voz do aparelho.
         if (opts.lang === "pt") {
           await browserSpeak(text, rate, "pt");
+          return;
+        }
+        // Sotaque britânico/australiano: voz do aparelho com esse sotaque (quando existe).
+        if (opts.accent && opts.accent !== "us" && accentAvailable(opts.accent)) {
+          await browserSpeak(text, rate * 0.95, ACCENT_LANG[opts.accent]);
           return;
         }
         const chunks = caps.neural ? chunkText(text) : [];
@@ -336,14 +352,14 @@ export function useVoice() {
 
   /** Lê um diálogo com uma voz por personagem. */
   const speakLines = useCallback(
-    async (lines: { speaker: string; text: string }[], opts: { rate?: number; onLine?: (i: number) => void } = {}) => {
+    async (lines: { speaker: string; text: string; accent?: Accent }[], opts: { rate?: number; onLine?: (i: number) => void } = {}) => {
       const speakers = Array.from(new Set(lines.map((l) => l.speaker)));
       const palette: VoiceName[] = ["f1", "m1", "f2", "m2", "f3", "m3"];
       const run = ++lineRun.current;
       for (let i = 0; i < lines.length; i++) {
         if (lineRun.current !== run) return; // interrompido
         opts.onLine?.(i);
-        await speak(lines[i].text, { voice: palette[speakers.indexOf(lines[i].speaker) % palette.length], rate: opts.rate });
+        await speak(lines[i].text, { voice: palette[speakers.indexOf(lines[i].speaker) % palette.length], rate: opts.rate, accent: lines[i].accent });
       }
       if (lineRun.current === run) opts.onLine?.(-1);
     },

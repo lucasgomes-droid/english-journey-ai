@@ -4,6 +4,7 @@
  */
 import type { CefrLevel } from "./types";
 import { LISTENING_EXTRA } from "./listening-extra";
+import { LISTENING_MORE } from "./listening-more";
 
 export interface ListeningQuestion {
   prompt: string;
@@ -17,7 +18,7 @@ export interface ListeningItem {
   title: string;
   topic: string;
   kind: "dialogue" | "monologue";
-  lines: { speaker: string; text: string }[];
+  lines: { speaker: string; text: string; accent?: "us" | "gb" | "au" }[];
   questions: ListeningQuestion[];
   /** Frase do áudio para ditado (escreva o que ouviu). */
   dictation: string;
@@ -283,6 +284,6 @@ const BASE: ListeningItem[] = [
 
 const ORDER: CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
 /** Todos os áudios, em ordem de nível. */
-export const LISTENING: ListeningItem[] = [...BASE, ...LISTENING_EXTRA].sort((a, b) => ORDER.indexOf(a.level) - ORDER.indexOf(b.level));
+export const LISTENING: ListeningItem[] = [...BASE, ...LISTENING_EXTRA, ...LISTENING_MORE].sort((a, b) => ORDER.indexOf(a.level) - ORDER.indexOf(b.level));
 
 export const getListening = (id: string) => LISTENING.find((l) => l.id === id);

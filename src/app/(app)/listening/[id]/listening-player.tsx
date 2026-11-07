@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowLeft, Pause, Play, Snail, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, Pause, Play, Rabbit, Snail, CheckCircle2, XCircle } from "lucide-react";
 import type { ListeningItem } from "@/content/listening";
-import { unlockAudio, useVoice } from "@/lib/voice";
+import { accentAvailable, unlockAudio, useVoice } from "@/lib/voice";
 import { submitListening } from "@/app/actions/practice";
 
 type Result = Awaited<ReturnType<typeof submitListening>>;
@@ -26,7 +26,8 @@ export function ListeningPlayer({ item, rate }: { item: ListeningItem; rate: num
     return () => stop();
   }, [stop]);
 
-  const play = (slow = false) => {
+  /** Velocidade: devagar (0,75×), normal ou rápida (1,2× — como nativos falando entre si). */
+  const play = (speed: "slow" | "normal" | "fast" = "normal") => {
     if (speaking) {
       stop();
       setLine(null);
@@ -35,8 +36,19 @@ export function ListeningPlayer({ item, rate }: { item: ListeningItem; rate: num
     unlockAudio();
     setPlays((p) => p + 1);
     setLine(0);
-    speakLines(item.lines, { rate: slow ? rate * 0.75 : rate, onLine: (i) => setLine(i < 0 ? null : i) });
+    speakLines(item.lines, { rate: speed === "slow" ? rate * 0.75 : speed === "fast" ? Math.min(1.5, rate * 1.2) : rate, onLine: (i) => setLine(i < 0 ? null : i) });
   };
+
+  const accents = Array.from(new Set(item.lines.map((l) => l.accent).filter((a): a is "gb" | "au" => a === "gb" || a === "au")));
+  const [missingAccent, setMissingAccent] = useState(false);
+  useEffect(() => {
+    const check = () => setMissingAccent(accents.some((a) => !accentAvailable(a)));
+    check();
+    // As vozes do aparelho carregam depois da página em alguns navegadores.
+    window.speechSynthesis?.addEventListener?.("voiceschanged", check);
+    return () => window.speechSynthesis?.removeEventListener?.("voiceschanged", check);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id]);
 
   const done = result?.ok;
   const canSubmit = answers.every((a) => a >= 0) && dictation.trim().length > 0 && !done;
@@ -50,6 +62,12 @@ export function ListeningPlayer({ item, rate }: { item: ListeningItem; rate: num
       <p className="text-muted">
         {item.topic} · {item.kind === "dialogue" ? `diálogo entre ${Array.from(new Set(item.lines.map((l) => l.speaker))).join(" e ")}` : "monólogo"}
       </p>
+      {accents.length > 0 && (
+        <p className="mt-1 text-sm text-muted">
+          Sotaque {accents.map((a) => (a === "gb" ? "britânico" : "australiano")).join(" e ")} em algumas falas
+          {missingAccent ? " — seu aparelho não tem essa voz instalada, então elas tocam com a voz americana." : "."}
+        </p>
+      )}
 
       {/* Player */}
       <section className="mt-6 rounded-3xl bg-hero p-6 text-white">
@@ -59,14 +77,17 @@ export function ListeningPlayer({ item, rate }: { item: ListeningItem; rate: num
           <div className="flex flex-wrap items-center gap-4">
             <button
               type="button"
-              onClick={() => play(false)}
+              onClick={() => play("normal")}
               className="grid size-20 place-items-center rounded-full bg-boarding text-boarding-ink transition-transform active:scale-95"
               aria-label={speaking ? "Parar" : "Ouvir o áudio"}
             >
               {speaking ? <Pause size={34} aria-hidden /> : <Play size={34} className="translate-x-0.5" aria-hidden />}
             </button>
-            <button type="button" onClick={() => play(true)} className="btn border border-white/30 text-white hover:bg-white/10" disabled={speaking}>
+            <button type="button" onClick={() => play("slow")} className="btn border border-white/30 text-white hover:bg-white/10" disabled={speaking}>
               <Snail size={18} aria-hidden /> Mais devagar
+            </button>
+            <button type="button" onClick={() => play("fast")} className="btn border border-white/30 text-white hover:bg-white/10" disabled={speaking}>
+              <Rabbit size={18} aria-hidden /> Mais rápido
             </button>
             <div className="text-sm text-white/80">
               <p>{plays === 0 ? "Ouça primeiro sem ler. Pode repetir quantas vezes quiser." : `Ouvido ${plays}× ${speaking && line !== null ? `· falando: ${item.lines[line].speaker}` : ""}`}</p>

@@ -93,10 +93,10 @@ export default async function PronunciaPage() {
       <p className="mt-1 max-w-2xl text-sm text-muted">Repita cada frase logo depois do áudio, imitando ritmo e entonação. É o treino que mais aproxima a sua fala da de um nativo.</p>
       <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {LISTENING.map((l) => (
-          <li key={l.id}>
+          <li key={l.id} className="min-w-0">
             <Link href={`/pronuncia/shadowing/${l.id}`} className="panel flex items-center gap-3 p-3 transition-colors hover:border-atlantic">
               <span className="chip shrink-0">{l.level}</span>
-              <span className="min-w-0">
+              <span className="min-w-0 flex-1 overflow-hidden">
                 <span className="block truncate font-bold">{l.title}</span>
                 <span className="text-xs text-muted">{l.lines.length} frases</span>
               </span>

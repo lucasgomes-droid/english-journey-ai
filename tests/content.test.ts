@@ -168,8 +168,20 @@ describe("cenários do dia a dia (Fase 2)", () => {
   });
 });
 
-describe("leitura por módulo (A1–B1)", async () => {
+describe("leitura por módulo (A1–C2)", async () => {
   const { READINGS } = await import("@/content/readings");
+  const { READINGS_ADVANCED } = await import("@/content/readings-advanced");
+  it("B2, C1 e C2 também têm leitura em todos os módulos comuns", () => {
+    const adv = ALL_MODULES.filter((m) => /^(b2|c1|c2)-m\d$/.test(m.id));
+    expect(adv.length).toBe(24);
+    for (const m of adv) {
+      const r = READINGS_ADVANCED.find((x) => x.moduleId === m.id);
+      expect(r, m.id).toBeTruthy();
+      expect(r!.text.split(/\s+/).length, m.id).toBeGreaterThanOrEqual(110);
+      for (const q of r!.questions) expect(q.answer).toBeLessThan(q.options.length);
+      expect(m.lessons.find((l) => l.kind === "test")!.exercises.filter((e) => e.id.includes("-test-r")).length, m.id).toBe(3);
+    }
+  });
   const { ALL_MODULES } = await import("@/content/curriculum");
   it("todo módulo comum de A1, A2 e B1 tem um texto com 3 perguntas válidas, no fim do teste do módulo", () => {
     const regular = ALL_MODULES.filter((m) => /^(a1|a2|b1)-m\d$/.test(m.id));
