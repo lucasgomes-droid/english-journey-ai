@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentUser } from "@/lib/supabase/server";
 import { AiError } from "@/lib/ai";
+import { canUse, LIMIT_MESSAGE, recordUsage } from "@/lib/ai-budget";
 import { getScenario } from "@/content/scenarios";
 import { getLesson } from "@/content/curriculum";
 import { conversationReport } from "@/lib/conversation-report";
@@ -32,8 +33,10 @@ export async function POST(req: Request) {
   const lesson = conv.lesson_id ? getLesson(conv.lesson_id) : undefined;
   const scene = scenario ? `${scenario.title} — ${scenario.setting}` : conv.custom_prompt ? `Custom scene: ${conv.custom_prompt}` : lesson ? `Lesson practice: ${lesson.title}` : "Free conversation with the teacher";
 
+  if (!(await canUse(supabase, user.id, "heavy"))) return NextResponse.json({ error: LIMIT_MESSAGE.heavy, limit: true }, { status: 429 });
   let report;
   try {
+    void recordUsage(supabase, "heavy");
     report = await conversationReport({ level: conv.level_code, scene, goals: scenario?.goals ?? [], turns });
   } catch (e) {
     return NextResponse.json({ error: e instanceof AiError ? e.message : "Não foi possível gerar o relatório agora." }, { status: 502 });

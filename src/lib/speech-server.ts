@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { aiConfig } from "@/lib/ai";
 
 /**
@@ -46,6 +47,19 @@ export class SpeechError extends Error {
   }
 }
 
+/** Caminho do áudio no cache compartilhado: mesmo texto (espaços normalizados) + mesma voz = mesmo arquivo. */
+export const ttsCachePath = (provider: string, voice: string, text: string) =>
+  `${provider}/${voice}/${createHash("sha256").update(text.trim().replace(/\s+/g, " ")).digest("hex").slice(0, 40)}.${provider === "azure" ? "mp3" : "wav"}`;
+
+/** "retry-after" em segundos ou data HTTP; padrão de 10 minutos. */
+export function retryAfterMs(h: string | null): number {
+  if (!h) return 10 * 60_000;
+  const n = Number(h);
+  if (Number.isFinite(n)) return n * 1000;
+  const t = Date.parse(h);
+  return Number.isFinite(t) ? t - Date.now() : 10 * 60_000;
+}
+
 /** Gera áudio para um trecho de até ~200 caracteres. Retorna bytes + content-type. */
 export async function synthesize(text: string, voice: VoiceId): Promise<{ body: ArrayBuffer; type: string }> {
   const provider = ttsProvider();
@@ -77,6 +91,8 @@ export async function synthesize(text: string, voice: VoiceId): Promise<{ body: 
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
       if (res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) groqBlockedUntil = Date.now() + 5 * 60_000;
+      // Cota esgotada: não insiste a cada frase (cada tentativa também conta). Respeita o retry-after quando vier.
+      if (res.status === 429) groqBlockedUntil = Date.now() + Math.min(60 * 60_000, Math.max(60_000, retryAfterMs(res.headers.get("retry-after"))));
       throw new SpeechError(`Groq TTS ${res.status}: ${detail.slice(0, 160)}`, res.status === 429 ? 429 : 502);
     }
     return { body: await res.arrayBuffer(), type: "audio/wav" };

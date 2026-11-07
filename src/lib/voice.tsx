@@ -132,16 +132,49 @@ export function chunkText(text: string, max = 190): string[] {
   return out;
 }
 
-async function fetchTts(text: string, voice: VoiceName): Promise<string> {
+const DEVICE_CACHE = "ej-tts-v1";
+const cacheKey = (voice: VoiceName, text: string) => `/__tts/${voice}/${encodeURIComponent(text.trim().replace(/\s+/g, " "))}`;
+
+/** Áudio guardado NESTE aparelho (Cache Storage): toca de novo sem internet e sem gastar a cota de voz. */
+async function deviceCached(text: string, voice: VoiceName): Promise<string | null> {
+  try {
+    if (typeof caches === "undefined") return null;
+    const hit = await (await caches.open(DEVICE_CACHE)).match(cacheKey(voice, text));
+    return hit ? URL.createObjectURL(await hit.blob()) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Busca a voz natural: memória → aparelho → servidor (que tem o próprio cache compartilhado). */
+async function fetchTts(text: string, voice: VoiceName, cachedOnly = false): Promise<string> {
   const key = `${voice}|${text}`;
   const hit = audioCache.get(key);
   if (hit) return hit;
+  const local = await deviceCached(text, voice);
+  if (local) {
+    audioCache.set(key, local);
+    return local;
+  }
+  if (cachedOnly) throw new Error("tts not cached");
   // Sem resposta em 12 s: desiste da voz natural e usa a do aparelho (não trava a conversa).
   const res = await fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, voice }), signal: AbortSignal.timeout(12_000) });
   if (!res.ok) throw new Error(`tts ${res.status}`);
-  const url = URL.createObjectURL(await res.blob());
+  const blob = await res.blob();
+  try {
+    if (typeof caches !== "undefined") await (await caches.open(DEVICE_CACHE)).put(cacheKey(voice, text), new Response(blob, { headers: { "Content-Type": blob.type } }));
+  } catch {
+    /* sem espaço ou modo privado: segue sem guardar */
+  }
+  const url = URL.createObjectURL(blob);
   audioCache.set(key, url);
   return url;
+}
+
+/** Com a voz natural indisponível, ainda dá para usá-la se TODOS os trechos já estiverem guardados no aparelho. */
+async function allCached(chunks: string[], voice: VoiceName) {
+  for (const c of chunks) if (!audioCache.has(`${voice}|${c}`) && !(await deviceCached(c, voice))) return false;
+  return true;
 }
 
 /**
@@ -244,12 +277,14 @@ export function useVoice() {
           await browserSpeak(text, rate, "pt");
           return;
         }
-        if (caps.neural && !neuralBroken) {
-          const chunks = chunkText(text);
-          let next: Promise<string> | null = fetchTts(chunks[0], voice);
+        const chunks = caps.neural ? chunkText(text) : [];
+        const cachedOnly = neuralBroken && chunks.length > 0 && (await allCached(chunks, voice));
+        if (my !== token.current) return;
+        if (caps.neural && (!neuralBroken || cachedOnly)) {
+          let next: Promise<string> | null = fetchTts(chunks[0], voice, cachedOnly);
           for (let i = 0; i < chunks.length; i++) {
             const url = await next!;
-            next = i + 1 < chunks.length ? fetchTts(chunks[i + 1], voice) : null; // pré-carrega o próximo
+            next = i + 1 < chunks.length ? fetchTts(chunks[i + 1], voice, cachedOnly) : null; // pré-carrega o próximo
             if (my !== token.current) return;
             const a = getAudio()!;
             a.src = url;

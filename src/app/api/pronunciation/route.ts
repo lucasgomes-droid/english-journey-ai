@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/supabase/server";
 import { AiError, transcribe } from "@/lib/ai";
+import { canUse, LIMIT_MESSAGE, recordUsage } from "@/lib/ai-budget";
 import { assessPronunciation, isAzureConfigured, SpeechError, type PronunciationResult } from "@/lib/speech-server";
 import { wordCheck } from "@/lib/word-check";
 import { recordActivity } from "@/lib/progress";
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
   if (!(audio instanceof Blob) || !audio.size || !text) return NextResponse.json({ error: "Áudio ou frase ausente." }, { status: 400 });
   if (audio.size > MAX_BYTES) return NextResponse.json({ error: "Gravação longa demais (máx. 30 s)." }, { status: 413 });
 
+  if (!isAzureConfigured() && !(await canUse(supabase, user.id, "stt"))) return NextResponse.json({ error: LIMIT_MESSAGE.stt, limit: true }, { status: 429 });
   let result: PronunciationResult;
   try {
     if (isAzureConfigured()) {
@@ -27,6 +29,7 @@ export async function POST(req: Request) {
     } else {
       // Sem análise fonética: confere só se as palavras foram reconhecidas.
       const recognized = await transcribe(audio, "speech.wav");
+      void recordUsage(supabase, "stt", { audioSeconds: audio.size / 32000 });
       const check = wordCheck(text, recognized);
       result = { method: "words", recognized, overall: null, accuracy: null, fluency: null, completeness: check.completeness, prosody: null, words: check.words };
     }

@@ -30,7 +30,7 @@ Use empty arrays when there is nothing worth explaining. At most 3 expressions a
       },
       { role: "user", content: text.slice(0, 800) },
     ],
-    { json: true, temperature: 0.2, maxTokens: 900 },
+    { json: true, purpose: "turn", temperature: 0.2, maxTokens: 900 },
   );
   const o = parseJsonObject(raw);
   if (!o || !str(o.translation_pt)) return null;

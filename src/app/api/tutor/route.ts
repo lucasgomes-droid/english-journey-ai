@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentUser } from "@/lib/supabase/server";
 import { AiError, chatCompletion, type ChatMessage } from "@/lib/ai";
+import { LIMIT_MESSAGE, recordUsage, underLimit, usageToday } from "@/lib/ai-budget";
 import { customSetting, parseTutorReply, scenarioSystemPrompt, tutorSystemPrompt, type TutorMode } from "@/lib/tutor-prompt";
 import { buildTutorMemory } from "@/lib/tutor-memory";
 import { getRecentMistakes, type Profile } from "@/lib/data";
@@ -29,7 +30,9 @@ const bodySchema = z.object({
   responseMs: z.number().int().min(0).max(600_000).optional(),
 });
 
-const HISTORY_LIMIT = 24; // mensagens anteriores enviadas ao modelo (mantém o contexto)
+// Mensagens anteriores enviadas ao modelo. Menos histórico = menos tokens por fala (a cota é por minuto);
+// a memória do aluno (erros, frases, relatório) vai à parte, então 14 mensagens bastam para o contexto.
+const HISTORY_LIMIT = 14;
 
 export async function POST(req: Request) {
   const { supabase, user } = await currentUser();
@@ -41,7 +44,7 @@ export async function POST(req: Request) {
   let conversationId = parsed.data.conversationId ?? null;
 
   // Consultas independentes em paralelo (cada ida ao banco custa tempo).
-  const [recentRes, profileRes, convRes, msgsRes, recentMistakes] = await Promise.all([
+  const [recentRes, profileRes, convRes, msgsRes, recentMistakes, chatUsed] = await Promise.all([
     supabase
       .from("messages")
       .select("id", { count: "exact", head: true })
@@ -56,10 +59,13 @@ export async function POST(req: Request) {
       ? supabase.from("messages").select("role, content").eq("conversation_id", conversationId).order("id", { ascending: false }).limit(HISTORY_LIMIT)
       : Promise.resolve({ data: [] as { role: string; content: string }[] }),
     getRecentMistakes(supabase, user.id, 6),
+    usageToday(supabase, user.id, "chat"),
   ]);
 
   // Limite simples de uso: 20 mensagens por minuto por aluno.
   if ((recentRes.count ?? 0) >= 20) return NextResponse.json({ error: "Muitas mensagens em sequência. Aguarde um minuto." }, { status: 429 });
+  // Limite diário por aluno (as cotas gratuitas são divididas por todos).
+  if (!underLimit(chatUsed, "chat")) return NextResponse.json({ error: LIMIT_MESSAGE.chat, limit: true }, { status: 429 });
   const profile = profileRes.data;
   if (!profile) return NextResponse.json({ error: "Perfil não encontrado." }, { status: 500 });
 
@@ -140,7 +146,9 @@ export async function POST(req: Request) {
 
   let reply;
   try {
-    reply = parseTutorReply(await chatCompletion(messages, { json: true }));
+    let tokens = 0;
+    reply = parseTutorReply(await chatCompletion(messages, { json: true, purpose: "turn", onUsage: (t) => (tokens = t) }));
+    void recordUsage(supabase, "chat", { tokens });
   } catch (e) {
     const err = e instanceof AiError ? e : new AiError("Falha ao falar com a IA. Tente de novo.");
     return NextResponse.json({ error: err.message, conversationId, userMessageId: userMsg.id }, { status: err.status });

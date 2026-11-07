@@ -10,6 +10,18 @@ export const aiConfig = {
   model: process.env.AI_MODEL || "openai/gpt-oss-120b",
 };
 
+/**
+ * Dois modelos com cotas separadas no Groq: o menor responde cada fala da conversa (rápido e barato);
+ * o maior fica para relatórios, provas e explicações. Se um esgotar a cota (429), o outro assume.
+ */
+export const chatModel = () => process.env.AI_CHAT_MODEL || (aiConfig.baseUrl.includes("groq.com") ? "openai/gpt-oss-20b" : aiConfig.model);
+export type AiPurpose = "turn" | "heavy";
+export const modelsFor = (purpose: AiPurpose) => {
+  const main = purpose === "turn" ? chatModel() : aiConfig.model;
+  const other = purpose === "turn" ? aiConfig.model : chatModel();
+  return main === other ? [main] : [main, other];
+};
+
 export const sttConfig = {
   apiKey: process.env.STT_API_KEY || process.env.AI_API_KEY || "",
   baseUrl: (process.env.STT_BASE_URL || process.env.AI_BASE_URL || "https://api.groq.com/openai/v1").replace(/\/$/, ""),
@@ -33,15 +45,39 @@ export class AiError extends Error {
   }
 }
 
-export async function chatCompletion(messages: ChatMessage[], opts: { json?: boolean; temperature?: number; maxTokens?: number } = {}) {
+export interface ChatOptions {
+  json?: boolean;
+  temperature?: number;
+  maxTokens?: number;
+  /** "turn" = fala da conversa (modelo menor); "heavy" = relatório, prova, explicação (padrão). */
+  purpose?: AiPurpose;
+  /** Recebe o total de tokens gasto (para o controle de uso). */
+  onUsage?: (tokens: number, model: string) => void;
+}
+
+export async function chatCompletion(messages: ChatMessage[], opts: ChatOptions = {}) {
   if (!isAiConfigured()) throw new AiError("Professor de IA não configurado: defina AI_API_KEY no servidor.", 503);
-  const isReasoning = /gpt-oss|^o\d|qwen3/i.test(aiConfig.model);
+  const models = modelsFor(opts.purpose ?? "heavy");
+  for (let i = 0; i < models.length; i++) {
+    try {
+      return await completeWith(models[i], messages, opts);
+    } catch (e) {
+      // Cota esgotada (ou modelo fora do ar): tenta o outro modelo, que tem cota própria.
+      const retry = e instanceof AiError && (e.status === 429 || e.status === 503) && i + 1 < models.length;
+      if (!retry) throw e;
+    }
+  }
+  throw new AiError("Falha ao falar com a IA. Tente de novo.");
+}
+
+async function completeWith(model: string, messages: ChatMessage[], opts: ChatOptions) {
+  const isReasoning = /gpt-oss|^o\d|qwen3/i.test(model);
   const call = (json: boolean) =>
     fetch(`${aiConfig.baseUrl}/chat/completions`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${aiConfig.apiKey}` },
       body: JSON.stringify({
-        model: aiConfig.model,
+        model,
         messages,
         temperature: opts.temperature ?? 0.7,
         // Modelos de raciocínio gastam tokens pensando: damos mais folga e pedimos raciocínio curto.
@@ -62,10 +98,12 @@ export async function chatCompletion(messages: ChatMessage[], opts: { json?: boo
     const body = await res.text().catch(() => "");
     if (res.status === 401) throw new AiError("A chave da API de IA foi recusada (401). Confira AI_API_KEY.", 502);
     if (res.status === 429) throw new AiError("Limite de uso da API de IA atingido. Aguarde um pouco e tente de novo.", 429);
-    if (res.status === 404 || /model/i.test(body)) throw new AiError(`Modelo de IA indisponível (${aiConfig.model}). Ajuste AI_MODEL. Detalhe: ${body.slice(0, 160)}`, 502);
+    if (res.status === 503) throw new AiError("A IA está sobrecarregada agora. Tente de novo em instantes.", 503);
+    if (res.status === 404 || /model/i.test(body)) throw new AiError(`Modelo de IA indisponível (${model}). Ajuste AI_MODEL/AI_CHAT_MODEL. Detalhe: ${body.slice(0, 160)}`, 502);
     throw new AiError(`A API de IA respondeu com erro ${res.status}. ${body.slice(0, 200)}`, 502);
   }
-  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[]; usage?: { total_tokens?: number } };
+  opts.onUsage?.(data.usage?.total_tokens ?? 0, model);
   return data.choices?.[0]?.message?.content ?? "";
 }
 
