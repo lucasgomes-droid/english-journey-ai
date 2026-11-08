@@ -103,7 +103,7 @@ export const c1Module4: Module = {
         { type: "fill_blank", skill: "vocabulary", sentence: "He's so ___. He never shares anything. (pão-duro)", accepted: ["stingy", "mean", "cheap"] },
         { type: "translate", skill: "writing", prompt: "Ela é teimosa, mas muito talentosa.", accepted: ["She's stubborn, but very talented.", "She is stubborn, but very talented.", "She's stubborn but very talented."] },
         { type: "listening", skill: "listening", prompt: "Ouça. A descrição é positiva ou negativa?", audio: "The salesman was incredibly pushy.", options: ["Negativa.", "Positiva.", "Neutra."], answer: 0 },
-        { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "It's small but cozy.", accepted: ["it's small but cozy", "it is small but cozy", "it's small but cosy"] },
+        { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "It's small but cozy.", accepted: ["it's small but cozy", "it is small but cozy", "it's small but cozy"] },
       ],
       conversation: {
         goal: "Descreva a mesma pessoa ou lugar duas vezes: como um amigo (positivo) e como um crítico (negativo).",

@@ -224,7 +224,7 @@ export const b1Module7: Module = {
       vocabulary: [],
       examples: [],
       exercises: [
-        { type: "multiple_choice", skill: "grammar", prompt: "\"It was ___ boring film.\"", options: ["so a", "such a", "too a"], answer: 1 },
+        { type: "multiple_choice", skill: "grammar", prompt: "\"It was ___ boring movie.\"", options: ["so a", "such a", "too a"], answer: 1 },
         { type: "fill_blank", skill: "grammar", sentence: "The room isn't big ___ for ten people.", accepted: ["enough"] },
         { type: "multiple_choice", skill: "grammar", prompt: "Escolha a correta.", options: ["It was very freezing.", "It was absolutely freezing.", "It was absolutely cold."], answer: 1 },
         { type: "fill_blank", skill: "grammar", sentence: "We were ___ to meet at 7, but she forgot.", accepted: ["supposed"] },

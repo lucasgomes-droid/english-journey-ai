@@ -185,7 +185,7 @@ export const a1Module6: Module = {
       exercises: [
         { type: "multiple_choice", skill: "vocabulary", prompt: "\"For here or to go?\" significa:", options: ["Aqui ou lá?", "Comer aqui ou levar?", "Pagar aqui ou no caixa?"], answer: 1 },
         { type: "multiple_choice", skill: "grammar", prompt: "Pedido mais natural:", options: ["Give me a tea.", "Can I have a tea, please?", "I want tea now."], answer: 1 },
-        { type: "translate", skill: "writing", prompt: "Pode me trazer a conta, por favor?", accepted: ["Can I have the bill, please?", "Can I have the check, please?", "Could I have the bill, please?", "Could I have the check, please?", "The bill, please.", "The check, please."] },
+        { type: "translate", skill: "writing", prompt: "Pode me trazer a conta, por favor?", accepted: ["Can I have the check, please?", "Can I have the check, please?", "Could I have the check, please?", "Could I have the check, please?", "The bill, please.", "The check, please."] },
         { type: "fill_blank", skill: "grammar", sentence: "___ you like some sugar?", accepted: ["Would", "would"] },
         { type: "listening", skill: "listening", prompt: "O que o cliente pediu?", audio: "Can I have a tea and a cheese sandwich, please?", options: ["Café e bolo", "Chá e sanduíche de queijo", "Chá e bolo"], answer: 1 },
         { type: "listening", skill: "listening", prompt: "Qual é a resposta adequada?", audio: "Anything else?", options: ["No, that's all, thanks.", "Yes, I'm fine.", "To go, please."], answer: 0 },
@@ -193,7 +193,7 @@ export const a1Module6: Module = {
         { type: "match_pairs", skill: "vocabulary", prompt: "Ligue as palavras.", pairs: [["menu", "cardápio"], ["bill", "conta"], ["sugar", "açúcar"], ["cake", "bolo"]] },
       ],
       conversation: { goal: "Faça um pedido completo num café: bebida, comida, para levar e pagar.", starter: "Hi there! What can I get for you today?" },
-      review: ["Can I have...? / I'd like...", "For here or to go?", "Can I have the bill/check?"],
+      review: ["Can I have...? / I'd like...", "For here or to go?", "Can I have the check?"],
     }),
 
     buildLesson("a1-m6-test", M, 5, {

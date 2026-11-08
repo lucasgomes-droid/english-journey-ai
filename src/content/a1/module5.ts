@@ -94,7 +94,7 @@ export const a1Module5: Module = {
         { type: "fill_blank", skill: "grammar", sentence: "She enjoys ___ (swim).", accepted: ["swimming"] },
         { type: "multiple_choice", skill: "grammar", prompt: "Qual verbo combina? \"___ yoga\"", options: ["play", "go", "do"], answer: 2 },
         { type: "multiple_choice", skill: "grammar", prompt: "Qual verbo combina? \"___ tennis\"", options: ["play", "go", "do"], answer: 0 },
-        { type: "translate", skill: "writing", prompt: "Eu gosto de viajar.", accepted: ["I like traveling.", "I like travelling.", "I like to travel.", "I love traveling."] },
+        { type: "translate", skill: "writing", prompt: "Eu gosto de viajar.", accepted: ["I like traveling.", "I like traveling.", "I like to travel.", "I love traveling."] },
         { type: "listening", skill: "listening", prompt: "Do que ele não gosta?", audio: "I like reading, but I hate running.", options: ["Ler", "Correr", "Nadar"], answer: 1 },
         { type: "word_order", skill: "grammar", prompt: "Nós jogamos videogame no fim de semana.", answer: "We play video games on the weekend.", distractors: ["playing"] },
         { type: "listening", skill: "listening", prompt: "Escreva o que ouviu.", audio: "What do you do in your free time?", accepted: ["what do you do in your free time"] },

@@ -72,7 +72,7 @@ const a1: Lesson[] = [
       { type: "word_order", skill: "grammar", prompt: "Eu gostaria do frango, por favor.", answer: "I'd like the chicken, please." },
       { type: "listening", skill: "listening", prompt: "O que o cliente pediu?", audio: "I'd like the pasta and a glass of red wine, please.", options: ["Massa e vinho tinto", "Peixe e vinho branco", "Massa e água"], answer: 0 },
       { type: "match_pairs", skill: "vocabulary", prompt: "Ligue.", pairs: [["starter", "entrada"], ["main course", "prato principal"], ["tip", "gorjeta"], ["check", "conta"]] },
-      { type: "translate", skill: "writing", prompt: "Pode trazer a conta, por favor?", accepted: ["Can I have the check, please?", "Can I have the bill, please?", "Could I have the check, please?", "Could I have the bill, please?", "Can we have the check, please?", "Can we have the bill, please?"] },
+      { type: "translate", skill: "writing", prompt: "Pode trazer a conta, por favor?", accepted: ["Can I have the check, please?", "Can I have the check, please?", "Could I have the check, please?", "Could I have the check, please?", "Can we have the check, please?", "Can we have the check, please?"] },
     ],
   }),
   mini("mini-daily-life", A1, 3, "daily-life", {

@@ -1,6 +1,6 @@
 /**
  * Listening ampliado: 10 áudios por nível (avisos, recados, notícias, podcasts, conversas naturais),
- * velocidades devagar / normal / rápida e falas com sotaque britânico ou australiano.
+ * velocidades devagar / normal / rápida; só inglês americano (sem falas com outro sotaque).
  * Uso (ambiente local com IA simulada): npx tsx tests/e2e/listening.e2e.ts
  */
 import { chromium } from "playwright";
@@ -17,7 +17,7 @@ import { BASE, signup, sql, uid } from "./helpers";
   sql(`update public.profiles set current_level = 'A2' where id = ${uid(email)}`);
   await page.goto(`${BASE}/listening/${item.id}`);
   await page.getByRole("heading", { name: item.title }).waitFor();
-  await page.getByText(/Sotaque britânico em algumas falas/).waitFor();
+  if (await page.getByText(/Sotaque (britânico|australiano)/).count()) throw new Error("só inglês americano: não deveria haver aviso de sotaque");
   await page.getByRole("button", { name: "Mais rápido" }).waitFor();
   await page.getByRole("button", { name: "Mais devagar" }).waitFor();
   await page.getByRole("button", { name: "Ouvir o áudio" }).click();
@@ -27,7 +27,7 @@ import { BASE, signup, sql, uid } from "./helpers";
   await page.getByPlaceholder("Escreva o que ouviu").fill(item.dictation);
   await page.getByRole("button", { name: "Verificar respostas" }).click();
   await page.getByText("Perfeito!").waitFor({ timeout: 15000 });
-  console.log("✓ 10 áudios por nível; aviso de estação com sotaque britânico, velocidades devagar/rápida, perguntas e ditado conferidos");
+  console.log("✓ 10 áudios por nível; aviso de estação em inglês americano, velocidades devagar/rápida, perguntas e ditado conferidos");
   await browser.close();
 })().catch((e) => {
   console.error("FALHOU:", e);

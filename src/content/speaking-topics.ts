@@ -38,7 +38,7 @@ export const FLUENCY_TOPICS: SpeakingTopic[] = [
   T("b2-social", "B2", "Are social networks good or bad for society?", "Redes sociais são boas ou ruins para a sociedade?", ["It depends on…", "Some people argue that…", "Personally, I think…"]),
   T("b2-decision", "B2", "Talk about an important decision you made.", "Fale de uma decisão importante que você tomou.", ["I had to decide whether…", "Looking back…", "If I had…"]),
   T("b2-education", "B2", "How would you improve education in your country?", "Como você melhoraria a educação no seu país?", ["First of all…", "It would help if…", "In the long run…"]),
-  T("b2-travel", "B2", "What can people learn from travelling?", "O que as pessoas aprendem viajando?", ["Travelling teaches you…", "For example…", "That's why…"]),
+  T("b2-travel", "B2", "What can people learn from traveling?", "O que as pessoas aprendem viajando?", ["Traveling teaches you…", "For example…", "That's why…"]),
   T("b2-money", "B2", "Does money bring happiness?", "Dinheiro traz felicidade?", ["To some extent…", "Studies suggest…", "At the end of the day…"]),
   T("c1-ai", "C1", "How will AI change the job market?", "Como a IA vai mudar o mercado de trabalho?", ["It's likely that…", "That said…", "What concerns me is…"]),
   T("c1-cities", "C1", "What makes a city a good place to live?", "O que torna uma cidade boa para viver?", ["Arguably…", "A key factor is…", "Take … for instance."]),

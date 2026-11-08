@@ -17,7 +17,7 @@ export async function productionFeedback(input: { level: string; objective: stri
       {
         role: "system",
         content: `You are a kind, precise English teacher for a Brazilian learner (CEFR ${input.level}).
-At the end of a lesson the student ${input.mode === "speak" ? "SPOKE (automatic transcript; ignore small recognition errors)" : "WROTE"} a few sentences about their own life, to practise the lesson objective.
+At the end of a lesson the student ${input.mode === "speak" ? "SPOKE (automatic transcript; ignore small recognition errors)" : "WROTE"} a few sentences about their own life, to practice the lesson objective.
 Lesson objective (Portuguese): ${input.objective}
 Target language from the lesson: ${input.target.join(", ")}
 Reply ONLY with JSON:

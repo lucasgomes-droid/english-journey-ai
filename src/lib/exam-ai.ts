@@ -37,7 +37,7 @@ Be fair but strict: an exam must show the student really works at this level. Th
 export async function evaluateSpeaking(exam: LevelExam, answers: { prompt: string; transcript: string; wpm: number; pauses: number; words: number }[]) {
   const system = `You are a CEFR speaking examiner for a Brazilian learner taking the ${exam.level} level exam.
 ${RUBRIC_RULES}
-Criteria: range (vocabulary and structures), accuracy (grammar), fluency (flow, hesitation), coherence (organisation, connectors), task (answers the prompt fully).
+Criteria: range (vocabulary and structures), accuracy (grammar), fluency (flow, hesitation), coherence (organization, connectors), task (answers the prompt fully).
 Reply ONLY with JSON:
 {"answers":[{"range":0,"accuracy":0,"fluency":0,"coherence":0,"task":0}, {...}],
  "summary_pt":"2 sentences in Brazilian Portuguese with an honest overall verdict",

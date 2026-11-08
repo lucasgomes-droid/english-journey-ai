@@ -144,7 +144,7 @@ export const BUILD_SITUATIONS: BuildSituation[] = [
     "B1",
     "Conte uma experiência que mudou sua forma de pensar.",
     "present perfect + past simple",
-    "I've worked abroad once. When I lived in Dublin, I learnt to be more independent.",
+    "I've worked abroad once. When I lived in Dublin, I learned to be more independent.",
   ),
   S(
     "b-b1-2",
@@ -186,7 +186,7 @@ export const BUILD_SITUATIONS: BuildSituation[] = [
     "B1",
     "Diga o que você vai fazer se chover amanhã.",
     "first conditional",
-    "If it rains tomorrow, I'll stay at home and watch a film.",
+    "If it rains tomorrow, I'll stay at home and watch a movie.",
   ),
   S(
     "b-b1-8",
@@ -272,7 +272,7 @@ export const BUILD_SITUATIONS: BuildSituation[] = [
     "C1",
     "Comece uma frase com ênfase usando inversão.",
     "inversion (Never have I… / Not only…)",
-    "Never have I seen such a well-organised team.",
+    "Never have I seen such a well-organized team.",
   ),
   S(
     "c-c1-4",

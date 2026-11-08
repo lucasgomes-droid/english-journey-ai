@@ -20,7 +20,7 @@ export const b2Module2: Module = {
         },
         {
           title: "Variações",
-          body: "**could have** (poderia ter) e **might have** (talvez tivesse): **If we had left earlier, we could have caught the train.** · Negativa: **If it hadn't rained, we wouldn't have cancelled.**",
+          body: "**could have** (poderia ter) e **might have** (talvez tivesse): **If we had left earlier, we could have caught the train.** · Negativa: **If it hadn't rained, we wouldn't have canceled.**",
         },
         {
           title: "Pronúncia",

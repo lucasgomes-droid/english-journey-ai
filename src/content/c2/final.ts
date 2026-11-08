@@ -30,7 +30,7 @@ export const c2Final: Module = {
         { type: "multiple_choice", skill: "grammar", prompt: "\"Ainda bem que saímos cedo.\"", options: ["It's just as well we left early.", "It's good as we left early."], answer: 0 },
         { type: "multiple_choice", skill: "writing", prompt: "Correta:", options: ["It was raining, we stayed in.", "It was raining; we stayed in."], answer: 1 },
         { type: "fill_blank", skill: "writing", sentence: "The claim holds only ___ as the data are reliable.", accepted: ["insofar", "in so far"] },
-        { type: "multiple_choice", skill: "writing", prompt: "Mais conciso:", options: ["Due to the fact that it rained, we cancelled.", "Because it rained, we cancelled."], answer: 1 },
+        { type: "multiple_choice", skill: "writing", prompt: "Mais conciso:", options: ["Due to the fact that it rained, we canceled.", "Because it rained, we canceled."], answer: 1 },
         { type: "fill_blank", skill: "vocabulary", sentence: "I'd take ___ with the premise of your argument.", accepted: ["issue"] },
         { type: "multiple_choice", skill: "vocabulary", prompt: "\"Exacerbate\":", options: ["Agravar", "Atenuar"], answer: 0 },
         { type: "multiple_choice", skill: "vocabulary", prompt: "\"A blessing in disguise\":", options: ["Algo ruim que acabou sendo bom.", "Um presente embrulhado."], answer: 0 },

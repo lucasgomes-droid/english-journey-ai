@@ -182,7 +182,7 @@ export const b2Module1: Module = {
         { en: "nag", pt: "encher o saco / reclamar", say: "NÉG" },
         { en: "get on my nerves", pt: "me irritar", say: "guét on mái NÂRVZ" },
         { en: "routine", pt: "rotina", say: "ru-TÍIN" },
-        { en: "summer holidays", pt: "férias de verão", say: "SÂ-mer RÓ-li-dêiz" },
+        { en: "summer vacation", pt: "férias de verão", say: "SÂ-mer RÓ-li-dêiz" },
       ],
       examples: [
         { en: "When I was a kid, my dad would read to us every night.", pt: "Quando eu era criança, meu pai lia para nós toda noite." },
@@ -201,7 +201,7 @@ export const b2Module1: Module = {
       ],
       conversation: {
         goal: "Descreva hábitos da sua infância com would e reclame (com humor) de hábitos irritantes de alguém com 'always'.",
-        starter: "What would you do on summer holidays as a child? And does anyone you live with have an annoying habit?",
+        starter: "What would you do on summer vacation as a child? And does anyone you live with have an annoying habit?",
       },
       review: ["will: comportamento típico.", "would: ações repetidas no passado (não estados).", "be always + -ing: hábito irritante."],
     }),

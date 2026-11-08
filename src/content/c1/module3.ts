@@ -65,7 +65,7 @@ export const c1Module3: Module = {
         },
         {
           title: "Descrevendo dados com nuance",
-          body: "**rose steadily / fluctuated / plummeted** (despencou) / **soared** (disparou) / **levelled off** (estabilizou) · **a marginal increase / a twofold increase** (dobrou) · **accounted for 40% of** (representou 40%).",
+          body: "**rose steadily / fluctuated / plummeted** (despencou) / **soared** (disparou) / **leveled off** (estabilizou) · **a marginal increase / a twofold increase** (dobrou) · **accounted for 40% of** (representou 40%).",
         },
       ],
       vocabulary: [
@@ -81,7 +81,7 @@ export const c1Module3: Module = {
       ],
       examples: [
         { en: "To put this into perspective, that's the population of a small city.", pt: "Para colocar em perspectiva, é a população de uma cidade pequena." },
-        { en: "Online sales soared in 2020 and have since levelled off.", pt: "As vendas online dispararam em 2020 e desde então se estabilizaram." },
+        { en: "Online sales soared in 2020 and have since leveled off.", pt: "As vendas online dispararam em 2020 e desde então se estabilizaram." },
         { en: "Exports accounted for 40% of total revenue.", pt: "As exportações representaram 40% da receita total." },
       ],
       exercises: [

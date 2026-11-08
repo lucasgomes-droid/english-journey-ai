@@ -31,8 +31,8 @@ export const READINGS: Reading[] = [
   },
   {
     moduleId: "a1-m1",
-    title: "A new neighbour",
-    text: "Hi! My name is Carla. I'm 28 years old and I'm from Recife, in Brazil. I live in Toronto now. I'm a nurse. My new neighbour is Tom. He is from Canada. He is very friendly. Every morning he says, \"Good morning, Carla! How are you?\" and I say, \"I'm fine, thanks. And you?\"",
+    title: "A new neighbor",
+    text: "Hi! My name is Carla. I'm 28 years old and I'm from Recife, in Brazil. I live in Chicago now. I'm a nurse. My new neighbor is Tom. He is from Canada. He is very friendly. Every morning he says, \"Good morning, Carla! How are you?\" and I say, \"I'm fine, thanks. And you?\"",
     questions: [
       { q: "De onde é a Carla?", options: ["Do Canadá", "Do Brasil", "De Portugal"], answer: 1 },
       { q: "Qual é a profissão dela?", options: ["Professora", "Enfermeira", "Médica"], answer: 1 },
@@ -62,7 +62,7 @@ export const READINGS: Reading[] = [
   {
     moduleId: "a1-m6",
     title: "Where is the pharmacy?",
-    text: "I live on Green Street. There is a big park near my house. There is a bakery next to the bank, and the pharmacy is opposite the bakery. There isn't a supermarket on my street, but there is one on the corner of Green Street and Main Street. The bus stop is in front of the park.",
+    text: "I live on Green Street. There is a big park near my house. There is a bakery next to the bank, and the pharmacy is across from the bakery. There isn't a supermarket on my street, but there is one on the corner of Green Street and Main Street. The bus stop is in front of the park.",
     questions: [
       { q: "Onde fica a farmácia?", options: ["Ao lado do banco", "Em frente à padaria", "Na esquina"], answer: 1 },
       { q: "Tem supermercado na Green Street?", options: ["Sim, ao lado do parque", "Não, fica na esquina com a Main Street", "Não tem supermercado no bairro"], answer: 1 },
@@ -102,7 +102,7 @@ export const READINGS: Reading[] = [
   {
     moduleId: "a1-m8",
     title: "Last Saturday",
-    text: "Last Saturday was a great day. In the morning I visited my grandmother. We had lunch together and she told me stories about her childhood. In the afternoon I went to the beach with my friends. The weather was hot and sunny. We played volleyball. In the evening I was very tired, so I stayed home and watched a film.",
+    text: "Last Saturday was a great day. In the morning I visited my grandmother. We had lunch together and she told me stories about her childhood. In the afternoon I went to the beach with my friends. The weather was hot and sunny. We played volleyball. In the evening I was very tired, so I stayed home and watched a movie.",
     questions: [
       { q: "Quem a pessoa visitou de manhã?", options: ["A avó", "Os amigos", "A tia"], answer: 0 },
       { q: "Como estava o tempo à tarde?", options: ["Chuvoso", "Quente e ensolarado", "Frio"], answer: 1 },
@@ -123,7 +123,7 @@ export const READINGS: Reading[] = [
   {
     moduleId: "a2-m2",
     title: "Weekend plans",
-    text: "Next weekend is going to be busy. On Friday evening I'm meeting my cousins at a new Italian restaurant. We've booked a table for eight o'clock. On Saturday I'm going to clean the flat in the morning, because my parents are arriving in the afternoon. They're staying with me until Monday. I think it will rain on Sunday, so we're probably going to visit a museum instead of the park.",
+    text: "Next weekend is going to be busy. On Friday evening I'm meeting my cousins at a new Italian restaurant. We've booked a table for eight o'clock. On Saturday I'm going to clean the apartment in the morning, because my parents are arriving in the afternoon. They're staying with me until Monday. I think it will rain on Sunday, so we're probably going to visit a museum instead of the park.",
     questions: [
       { q: "Com quem a pessoa vai jantar na sexta?", options: ["Com os pais", "Com os primos", "Com colegas de trabalho"], answer: 1 },
       { q: "Por que ela vai limpar o apartamento no sábado?", options: ["Os pais chegam à tarde", "Vai dar uma festa", "Vai se mudar"], answer: 0 },
@@ -163,7 +163,7 @@ export const READINGS: Reading[] = [
   {
     moduleId: "a2-m6",
     title: "Studying at night",
-    text: "Renata works in an office from nine to five, and three evenings a week she studies English online. It isn't easy, because she is often tired after work. She has found some tricks: she studies for only twenty minutes before dinner, she listens to podcasts on the bus, and she practises speaking with a colleague at lunch. Her goal is to get a job at an international company next year.",
+    text: "Renata works in an office from nine to five, and three evenings a week she studies English online. It isn't easy, because she is often tired after work. She has found some tricks: she studies for only twenty minutes before dinner, she listens to podcasts on the bus, and she practices speaking with a colleague at lunch. Her goal is to get a job at an international company next year.",
     questions: [
       { q: "Quantas noites por semana a Renata estuda?", options: ["Duas", "Três", "Todas"], answer: 1 },
       { q: "Onde ela ouve podcasts?", options: ["No ônibus", "Na academia", "No escritório"], answer: 0 },
@@ -183,7 +183,7 @@ export const READINGS: Reading[] = [
   {
     moduleId: "a2-m8",
     title: "Local news",
-    text: "A new bike lane opened in the city centre yesterday. The lane is four kilometres long and connects the train station to the university. The mayor said that more people will cycle to work and the air will be cleaner. Some shop owners are worried because there are fewer parking spaces now. A survey says that 60% of residents support the project.",
+    text: "A new bike lane opened in the city center yesterday. The lane is four kilometers long and connects the train station to the university. The mayor said that more people will cycle to work and the air will be cleaner. Some shop owners are worried because there are fewer parking spaces now. A survey says that 60% of residents support the project.",
     questions: [
       { q: "O que foi inaugurado?", options: ["Uma estação de trem", "Uma ciclovia", "Um estacionamento"], answer: 1 },
       { q: "Por que alguns comerciantes estão preocupados?", options: ["Há menos vagas para estacionar", "As lojas vão fechar", "O trânsito aumentou"], answer: 0 },
@@ -194,10 +194,10 @@ export const READINGS: Reading[] = [
   {
     moduleId: "b1-m1",
     title: "The day I missed my flight",
-    text: "I had been planning the trip for months, so I was really excited. On the morning of the flight, I woke up late because my phone had died during the night. I jumped into a taxi, but there was an accident on the motorway and we were stuck for forty minutes. By the time I got to the airport, the gate had already closed. I was furious with myself. Luckily, the woman at the information desk was incredibly kind: she found me a seat on an evening flight for a small fee. While I was waiting, I met another traveller who had missed the same flight, and we ended up having dinner together. Looking back, it was one of the best days of the trip.",
+    text: "I had been planning the trip for months, so I was really excited. On the morning of the flight, I woke up late because my phone had died during the night. I jumped into a taxi, but there was an accident on the highway and we were stuck for forty minutes. By the time I got to the airport, the gate had already closed. I was furious with myself. Luckily, the woman at the information desk was incredibly kind: she found me a seat on an evening flight for a small fee. While I was waiting, I met another traveler who had missed the same flight, and we ended up having dinner together. Looking back, it was one of the best days of the trip.",
     questions: [
       { q: "Why did the writer wake up late?", options: ["The alarm was off", "The phone battery had died", "They went to bed very late"], answer: 1 },
-      { q: "Why was the taxi delayed?", options: ["There was an accident on the motorway", "The driver got lost", "It was raining heavily"], answer: 0 },
+      { q: "Why was the taxi delayed?", options: ["There was an accident on the highway", "The driver got lost", "It was raining heavily"], answer: 0 },
       { q: "How does the writer feel about that day now?", options: ["It was a disaster", "It was one of the best days of the trip", "They still feel angry"], answer: 1 },
     ],
   },
@@ -214,7 +214,7 @@ export const READINGS: Reading[] = [
   {
     moduleId: "b1-m3",
     title: "Should phones be banned in schools?",
-    text: "Several countries have banned mobile phones in classrooms, and the debate is growing. Supporters say that students concentrate better and talk to each other more during breaks. Some teachers also report fewer cases of online bullying during the school day. On the other hand, many parents want to be able to contact their children, especially in an emergency. Some students argue that phones can be useful learning tools, for example to look up information or record lessons. In my opinion, a total ban is too extreme. I think schools should keep phones away during lessons but allow them in specific activities, when the teacher decides they are useful.",
+    text: "Several countries have banned cell phones in classrooms, and the debate is growing. Supporters say that students concentrate better and talk to each other more during breaks. Some teachers also report fewer cases of online bullying during the school day. On the other hand, many parents want to be able to contact their children, especially in an emergency. Some students argue that phones can be useful learning tools, for example to look up information or record lessons. In my opinion, a total ban is too extreme. I think schools should keep phones away during lessons but allow them in specific activities, when the teacher decides they are useful.",
     questions: [
       { q: "What is one argument FOR the ban?", options: ["Students concentrate better", "Parents can contact children", "Phones help to record lessons"], answer: 0 },
       { q: "Why do many parents disagree with a ban?", options: ["Phones are expensive", "They want to contact their children in emergencies", "Teachers use phones too"], answer: 1 },
@@ -224,21 +224,21 @@ export const READINGS: Reading[] = [
   {
     moduleId: "b1-m4",
     title: "An email to a manager",
-    text: "Dear Ms Taylor,\nI'm writing about the delivery schedule for next week. Unfortunately, two of our drivers will be on holiday from Monday to Wednesday, so we won't be able to deliver all the orders on time. I'd like to suggest two options: we could hire a temporary driver for three days, or we could ask some customers if they would accept their deliveries on Thursday. I've already checked, and the temporary driver would cost around $450. Could you let me know which option you prefer by Friday? I'm happy to discuss it in a call if that's easier.\nBest regards,\nRafael",
+    text: "Dear Ms. Taylor,\nI'm writing about the delivery schedule for next week. Unfortunately, two of our drivers will be on vacation from Monday to Wednesday, so we won't be able to deliver all the orders on time. I'd like to suggest two options: we could hire a temporary driver for three days, or we could ask some customers if they would accept their deliveries on Thursday. I've already checked, and the temporary driver would cost around $450. Could you let me know which option you prefer by Friday? I'm happy to discuss it in a call if that's easier.\nBest regards,\nRafael",
     questions: [
-      { q: "What is the problem?", options: ["A truck has broken down", "Two drivers will be on holiday", "Customers cancelled orders"], answer: 1 },
+      { q: "What is the problem?", options: ["A truck has broken down", "Two drivers will be on vacation", "Customers canceled orders"], answer: 1 },
       { q: "Which is one of Rafael's suggestions?", options: ["Hire a temporary driver", "Cancel all the orders", "Deliver everything on Monday"], answer: 0 },
-      { q: "What does Rafael ask Ms Taylor to do?", options: ["Call the customers", "Choose an option by Friday", "Pay the driver"], answer: 1 },
+      { q: "What does Rafael ask Ms. Taylor to do?", options: ["Call the customers", "Choose an option by Friday", "Pay the driver"], answer: 1 },
     ],
   },
   {
     moduleId: "b1-m5",
     title: "Volunteering",
-    text: "When I moved to Dublin, I didn't know anyone, so I decided to volunteer at a food bank on Saturday mornings. At first I was nervous because my English wasn't very good, but the other volunteers were patient and helped me with new words. We sort donations, pack boxes and give them to families who need them. After six months, I've made real friends, my English has improved a lot and I understand the city much better. I've also realised how many people struggle to pay for basic things, even in a rich country. I'd recommend volunteering to anyone who has just moved abroad.",
+    text: "When I moved to Boston, I didn't know anyone, so I decided to volunteer at a food bank on Saturday mornings. At first I was nervous because my English wasn't very good, but the other volunteers were patient and helped me with new words. We sort donations, pack boxes and give them to families who need them. After six months, I've made real friends, my English has improved a lot and I understand the city much better. I've also realized how many people struggle to pay for basic things, even in a rich country. I'd recommend volunteering to anyone who has just moved abroad.",
     questions: [
       { q: "Why did the writer start volunteering?", options: ["To find a job", "Because they didn't know anyone", "Because the university required it"], answer: 1 },
-      { q: "How did the other volunteers help?", options: ["They paid for English classes", "They helped with new words", "They found a flat for the writer"], answer: 1 },
-      { q: "What did the writer realise?", options: ["Many people struggle to pay for basic things", "Dublin is a cheap city", "Volunteering is boring"], answer: 0 },
+      { q: "How did the other volunteers help?", options: ["They paid for English classes", "They helped with new words", "They found an apartment for the writer"], answer: 1 },
+      { q: "What did the writer realize?", options: ["Many people struggle to pay for basic things", "Boston is a cheap city", "Volunteering is boring"], answer: 0 },
     ],
   },
   {
@@ -253,21 +253,21 @@ export const READINGS: Reading[] = [
   },
   {
     moduleId: "b1-m7",
-    title: "A film review",
-    text: "I didn't expect much from \"The Last Summer\", but it turned out to be one of the best films I've seen this year. It tells the story of three friends who spend their final holiday together before going to different universities. The acting is natural, and the dialogue feels like real conversations between young people. The photography of the small fishing village is beautiful. My only criticism is that the second half is a bit slow, and one of the characters isn't developed enough. Even so, I'd definitely recommend it, especially if you enjoy quiet, emotional stories rather than action.",
+    title: "A movie review",
+    text: "I didn't expect much from \"The Last Summer\", but it turned out to be one of the best movies I've seen this year. It tells the story of three friends who spend their final vacation together before going to different universities. The acting is natural, and the dialogue feels like real conversations between young people. The photography of the small fishing village is beautiful. My only criticism is that the second half is a bit slow, and one of the characters isn't developed enough. Even so, I'd definitely recommend it, especially if you enjoy quiet, emotional stories rather than action.",
     questions: [
-      { q: "What is the film about?", options: ["Three friends' last holiday together", "A fishing competition", "A university professor"], answer: 0 },
-      { q: "What did the reviewer criticise?", options: ["The acting", "The photography", "The slow second half"], answer: 2 },
-      { q: "Who would enjoy the film most?", options: ["People who love action films", "People who like quiet, emotional stories", "Children"], answer: 1 },
+      { q: "What is the movie about?", options: ["Three friends' last vacation together", "A fishing competition", "A university professor"], answer: 0 },
+      { q: "What did the reviewer criticize?", options: ["The acting", "The photography", "The slow second half"], answer: 2 },
+      { q: "Who would enjoy the movie most?", options: ["People who love action movies", "People who like quiet, emotional stories", "Children"], answer: 1 },
     ],
   },
   {
     moduleId: "b1-m8",
-    title: "Renting a flat abroad",
-    text: "Renting a flat in another country can be stressful, so here are some tips. First, never send money before you've seen the flat, either in person or on a live video call: fake adverts are common. Ask what the rent includes; in some places, bills such as electricity and internet are extra. Read the contract carefully and check how much notice you have to give before leaving. Take photos of everything on the day you move in, so you can prove what condition the flat was in. Finally, find out if you need a local guarantor, because many landlords ask for one from foreigners.",
+    title: "Renting an apartment abroad",
+    text: "Renting an apartment in another country can be stressful, so here are some tips. First, never send money before you've seen the apartment, either in person or on a live video call: fake adverts are common. Ask what the rent includes; in some places, bills such as electricity and internet are extra. Read the contract carefully and check how much notice you have to give before leaving. Take photos of everything on the day you move in, so you can prove what condition the apartment was in. Finally, find out if you need a local guarantor, because many landlords ask for one from foreigners.",
     questions: [
-      { q: "Why shouldn't you send money before seeing the flat?", options: ["Because fake adverts are common", "Because it's illegal", "Because prices change"], answer: 0 },
-      { q: "Why should you take photos when you move in?", options: ["To post on social media", "To prove the condition of the flat", "To show your family"], answer: 1 },
+      { q: "Why shouldn't you send money before seeing the apartment?", options: ["Because fake adverts are common", "Because it's illegal", "Because prices change"], answer: 0 },
+      { q: "Why should you take photos when you move in?", options: ["To post on social media", "To prove the condition of the apartment", "To show your family"], answer: 1 },
       { q: "What do many landlords ask foreigners for?", options: ["A local guarantor", "A year of rent in advance", "A job contract"], answer: 0 },
     ],
   },

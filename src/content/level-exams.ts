@@ -82,7 +82,7 @@ export const LEVEL_EXAMS: LevelExam[] = [
     ],
     speaking: [
       { en: "Tell me about your last weekend. What did you do?", pt: "Conte como foi seu último fim de semana. O que você fez?" },
-      { en: "What are your plans for your next holiday?", pt: "Quais são seus planos para as próximas férias?" },
+      { en: "What are your plans for your next vacation?", pt: "Quais são seus planos para as próximas férias?" },
     ],
     speakingSeconds: 50,
     minWords: 25,
@@ -114,7 +114,7 @@ export const LEVEL_EXAMS: LevelExam[] = [
       title: "Reclamação na loja",
       setting_pt: "Você comprou um fone de ouvido que parou de funcionar e volta à loja.",
       goal_pt: "Explique o problema, negocie uma solução (troca ou reembolso) e chegue a um acordo.",
-      examiner: "You are a shop assistant. The student bought headphones two weeks ago that stopped working. Ask what happened, ask for the receipt, first offer only a repair that takes three weeks, and negotiate. Use natural B1 English.",
+      examiner: "You are a sales associate. The student bought headphones two weeks ago that stopped working. Ask what happened, ask for the receipt, first offer only a repair that takes three weeks, and negotiate. Use natural B1 English.",
       opener: "Hi there, how can I help you today?",
     },
     turns: 6,
@@ -178,7 +178,7 @@ export const LEVEL_EXAMS: LevelExam[] = [
     ],
     speaking: [
       { en: "'Progress is impossible without change.' Discuss, with examples from history or your own experience.", pt: "\"Não há progresso sem mudança.\" Discuta, com exemplos da história ou da sua experiência." },
-      { en: "Summarise both sides of a debate you care about and say where you stand, and why.", pt: "Resuma os dois lados de um debate que importa para você e diga sua posição, e por quê." },
+      { en: "Summarize both sides of a debate you care about and say where you stand, and why.", pt: "Resuma os dois lados de um debate que importa para você e diga sua posição, e por quê." },
     ],
     speakingSeconds: 100,
     minWords: 110,

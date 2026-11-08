@@ -25,15 +25,15 @@ export const LISTENING_EXTRA: ListeningItem[] = [
   {
     id: "l-a1-weather", level: "A1", title: "Como está o tempo?", topic: "Tempo", kind: "dialogue",
     lines: [
-      { speaker: "Mia", text: "Hi, Dad! How's the weather in Toronto?" },
+      { speaker: "Mia", text: "Hi, Dad! How's the weather in Chicago?" },
       { speaker: "Dad", text: "It's very cold today. It's snowing!" },
       { speaker: "Mia", text: "Wow! Here in Rio it's hot and sunny." },
       { speaker: "Dad", text: "Lucky you! Are you at the beach?" },
       { speaker: "Mia", text: "Yes, I'm at the beach with my friends." },
     ],
     questions: [
-      Q("Como está o tempo em Toronto?", ["Quente e ensolarado", "Muito frio, nevando", "Chovendo"], 1),
-      Q("Onde está a Mia?", ["Em Toronto", "Em casa", "Na praia, no Rio"], 2),
+      Q("Como está o tempo em Chicago?", ["Quente e ensolarado", "Muito frio, nevando", "Chovendo"], 1),
+      Q("Onde está a Mia?", ["Em Chicago", "Em casa", "Na praia, no Rio"], 2),
       Q("Com quem ela está?", ["Com amigos", "Com a mãe", "Sozinha"], 0),
     ],
     dictation: "It's very cold today.",
@@ -107,7 +107,7 @@ export const LISTENING_EXTRA: ListeningItem[] = [
       { speaker: "Customer", text: "I ordered a laptop two weeks ago, and it still hasn't arrived. The website says it was delivered on Monday, but I never received it." },
       { speaker: "Agent", text: "I'm really sorry about that. Could you give me your order number?" },
       { speaker: "Customer", text: "Sure, it's 4-7-2-9-1." },
-      { speaker: "Agent", text: "Thank you. It looks like it was left with a neighbour by mistake. I'll open an investigation, and if we can't find it in forty-eight hours, we'll send you a new one." },
+      { speaker: "Agent", text: "Thank you. It looks like it was left with a neighbor by mistake. I'll open an investigation, and if we can't find it in forty-eight hours, we'll send you a new one." },
     ],
     questions: [
       Q("Qual é o problema?", ["O notebook chegou quebrado", "O notebook não chegou", "O preço estava errado"], 1),
@@ -207,7 +207,7 @@ export const LISTENING_EXTRA: ListeningItem[] = [
   {
     id: "l-c1-sleep", level: "C1", title: "Radio: the science of sleep", topic: "Ciência", kind: "dialogue",
     lines: [
-      { speaker: "Host", text: "So is it true that we can catch up on lost sleep at the weekend?" },
+      { speaker: "Host", text: "So is it true that we can catch up on lost sleep on the weekend?" },
       { speaker: "Scientist", text: "Only partially, I'm afraid. A long lie-in can reduce the immediate tiredness, but research suggests it doesn't fully reverse the effects on concentration or metabolism. What matters most is consistency: going to bed and waking up at roughly the same time, even on Sundays." },
       { speaker: "Host", text: "That's going to be unpopular with our listeners!" },
       { speaker: "Scientist", text: "I know. But the body clock thrives on routine, arguably more than on the total number of hours." },
@@ -247,7 +247,7 @@ export const LISTENING_EXTRA: ListeningItem[] = [
   {
     id: "l-c2-satire", level: "C2", title: "A satirical column", topic: "Humor", kind: "monologue",
     lines: [
-      { speaker: "Columnist", text: "In a bold move to tackle the housing crisis, the council has announced that rents will henceforth be measured not in pounds but in personal sacrifices. A one-bedroom flat will cost roughly one hobby, two friendships and any lingering hope of owning a dog. Officials insist this is a great deal, pointing out that tenants will finally have something to talk about at dinner parties they can no longer afford to attend." },
+      { speaker: "Columnist", text: "In a bold move to tackle the housing crisis, the city has announced that rents will henceforth be measured not in dollars but in personal sacrifices. A one-bedroom apartment will cost roughly one hobby, two friendships and any lingering hope of owning a dog. Officials insist this is a great deal, pointing out that tenants will finally have something to talk about at dinner parties they can no longer afford to attend." },
     ],
     questions: [
       Q("Qual é o tom do texto?", ["Notícia séria", "Sátira", "Anúncio publicitário"], 1),

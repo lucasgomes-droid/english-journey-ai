@@ -45,7 +45,7 @@ export const c2Module5: Module = {
         { type: "fill_blank", skill: "vocabulary", sentence: "The description ___ a sense of nostalgia. (evoca)", accepted: ["evokes", "creates", "conveys"] },
         { type: "fill_blank", skill: "vocabulary", sentence: "The tone ___ from hopeful to bitter.", accepted: ["shifts", "changes", "moves"] },
         { type: "multiple_choice", skill: "vocabulary", prompt: "\"The ambiguity invites multiple readings.\"", options: ["A ambiguidade permite várias interpretações.", "O texto é muito claro.", "O livro tem muitos leitores."], answer: 0 },
-        { type: "translate", skill: "writing", prompt: "O autor usa ironia para criticar a sociedade.", accepted: ["The author uses irony to criticize society.", "The author employs irony to criticize society.", "The author uses irony to criticise society.", "The author employs irony to criticise society."] },
+        { type: "translate", skill: "writing", prompt: "O autor usa ironia para criticar a sociedade.", accepted: ["The author uses irony to criticize society.", "The author employs irony to criticize society.", "The author uses irony to criticize society.", "The author employs irony to criticize society."] },
         { type: "listening", skill: "listening", prompt: "Ouça o trecho e escolha o recurso.", audio: "My thoughts raced: the keys, the door, had I locked it, Mother would be furious, the bus, the bus was late again.", options: ["Fluxo de consciência.", "Aliteração.", "Comparação."], answer: 0 },
         { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "The passage foreshadows the ending.", accepted: ["the passage foreshadows the ending"] },
       ],
@@ -182,7 +182,7 @@ export const c2Module5: Module = {
         { type: "fill_blank", skill: "vocabulary", sentence: "You need to read between the ___.", accepted: ["lines"] },
         { type: "fill_blank", skill: "vocabulary", sentence: "He's currently between ___. (desempregado, eufemismo)", accepted: ["jobs"] },
         { type: "translate", skill: "writing", prompt: "Qual é o subtexto aqui?", accepted: ["What's the subtext here?", "What is the subtext here?"] },
-        { type: "listening", skill: "listening", prompt: "Ouça. O que a pessoa realmente quer dizer?", audio: "Well, it's certainly a bold choice of colour for the office.", options: ["Provavelmente não gostou da cor.", "Adorou a cor.", "Não reparou na cor."], answer: 0 },
+        { type: "listening", skill: "listening", prompt: "Ouça. O que a pessoa realmente quer dizer?", audio: "Well, it's certainly a bold choice of color for the office.", options: ["Provavelmente não gostou da cor.", "Adorou a cor.", "Não reparou na cor."], answer: 0 },
         { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "That's an interesting choice.", accepted: ["that's an interesting choice", "that is an interesting choice"] },
       ],
       conversation: {

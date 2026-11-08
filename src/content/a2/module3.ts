@@ -240,7 +240,7 @@ export const a2Module3: Module = {
         { type: "fill_blank", skill: "grammar", sentence: "Trains are ___ (fast) than buses.", accepted: ["faster"] },
         { type: "fill_blank", skill: "grammar", sentence: "It's the ___ (good) coffee in town.", accepted: ["best"] },
         { type: "multiple_choice", skill: "grammar", prompt: "Escolha a correta.", options: ["She is more taller than me.", "She is taller than me.", "She is tall than me."], answer: 1 },
-        { type: "translate", skill: "writing", prompt: "Este é o filme mais engraçado que eu já vi.", accepted: ["This is the funniest movie I've ever seen.", "This is the funniest film I've ever seen.", "This is the funniest movie I have ever seen."] },
+        { type: "translate", skill: "writing", prompt: "Este é o filme mais engraçado que eu já vi.", accepted: ["This is the funniest movie I've ever seen.", "This is the funniest movie I've ever seen.", "This is the funniest movie I have ever seen."] },
         { type: "fill_blank", skill: "grammar", sentence: "The exam wasn't as difficult ___ I expected.", accepted: ["as"] },
         { type: "multiple_choice", skill: "grammar", prompt: "\"What's your teacher like?\" Resposta adequada:", options: ["She likes pizza.", "She's patient and funny.", "She looks like her sister."], answer: 1 },
         { type: "word_order", skill: "grammar", prompt: "Meu apartamento é muito menor que o seu.", answer: "My apartment is much smaller than yours." },

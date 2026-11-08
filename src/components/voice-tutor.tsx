@@ -278,14 +278,14 @@ export function VoiceTutor({
     if (r.verdict === "good" || repeatTries.current >= 2) {
       setPractice(null);
       if (fix) {
-        await (r.verdict === "good" ? coach("Isso! Muito bem.", "Yes! Well done.") : coach("Boa tentativa. A gente treina de novo depois.", "Good effort. We'll practise it again later."));
+        await (r.verdict === "good" ? coach("Isso! Muito bem.", "Yes! Well done.") : coach("Boa tentativa. A gente treina de novo depois.", "Good effort. We'll practice it again later."));
         if (t.example && statusRef.current !== "idle") {
           await coach("Mais um exemplo:", "One more example:");
           await say(t.example);
         }
         return continueAfterFix();
       }
-      await say(r.verdict === "good" ? (r.score === 100 ? "Perfect! Your turn now." : "Great job! Your turn now.") : "Good effort. We'll practise that again later. Your turn!");
+      await say(r.verdict === "good" ? (r.score === 100 ? "Perfect! Your turn now." : "Great job! Your turn now.") : "Good effort. We'll practice that again later. Your turn!");
       return yourTurn();
     }
     if (fix) {

@@ -28,7 +28,7 @@ export const c1Module1: Module = {
         },
         {
           title: "Outras inversões de ênfase",
-          body: "**Only then did I realize...** · **Not until the results came out did we celebrate.** · **So severe was the storm that flights were cancelled.** · **Such was the demand that the site crashed.**",
+          body: "**Only then did I realize...** · **Not until the results came out did we celebrate.** · **So severe was the storm that flights were canceled.** · **Such was the demand that the site crashed.**",
         },
       ],
       vocabulary: [
@@ -195,7 +195,7 @@ export const c1Module1: Module = {
         { en: "I don't eat meat. — Neither do I.", pt: "Não como carne. — Eu também não." },
       ],
       exercises: [
-        { type: "multiple_choice", skill: "grammar", prompt: "\"Will the meeting be cancelled?\" — \"I hope ___.\" (espero que não)", options: ["no", "not", "don't"], answer: 1 },
+        { type: "multiple_choice", skill: "grammar", prompt: "\"Will the meeting be canceled?\" — \"I hope ___.\" (espero que não)", options: ["no", "not", "don't"], answer: 1 },
         { type: "fill_blank", skill: "grammar", sentence: "Is she coming? — I think ___.", accepted: ["so"] },
         { type: "fill_blank", skill: "grammar", sentence: "I love jazz. — So ___ I.", accepted: ["do"] },
         { type: "fill_blank", skill: "grammar", sentence: "I can't swim. — Neither ___ I.", accepted: ["can"] },
@@ -224,7 +224,7 @@ export const c1Module1: Module = {
         { type: "fill_blank", skill: "grammar", sentence: "He must ___ left early. His car is gone.", accepted: ["have"] },
         { type: "multiple_choice", skill: "grammar", prompt: "Você cozinhou para 10 e só vieram 3: \"I ___ so much food.\"", options: ["needn't have cooked", "didn't need to cook"], answer: 0 },
         { type: "fill_blank", skill: "grammar", sentence: "Is it going to be expensive? — I'm afraid ___.", accepted: ["so"] },
-        { type: "translate", skill: "writing", prompt: "Só então percebi o erro. (com inversão)", accepted: ["Only then did I realize the mistake.", "Only then did I realise the mistake.", "Only then did I notice the mistake.", "Only then did I realize my mistake."] },
+        { type: "translate", skill: "writing", prompt: "Só então percebi o erro. (com inversão)", accepted: ["Only then did I realize the mistake.", "Only then did I realize the mistake.", "Only then did I notice the mistake.", "Only then did I realize my mistake."] },
         { type: "word_order", skill: "grammar", prompt: "Recomendamos que ele não viaje sozinho.", answer: "We recommend that he not travel alone." },
         { type: "multiple_choice", skill: "grammar", prompt: "\"Had we known\" equivale a:", options: ["If we had known", "If we knew", "When we know"], answer: 0 },
         { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "Were the plan to fail, we would lose everything.", options: ["Se o plano falhasse, perderíamos tudo.", "O plano falhou e perdemos tudo.", "O plano vai funcionar."], answer: 0 },

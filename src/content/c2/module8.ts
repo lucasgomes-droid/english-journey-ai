@@ -132,7 +132,7 @@ export const c2Module8: Module = {
       exercises: [
         { type: "multiple_choice", skill: "vocabulary", prompt: "Para falar sem roteiro, memorize:", options: ["A estrutura e os dados-chave.", "O texto palavra por palavra.", "Nada."], answer: 0 },
         { type: "multiple_choice", skill: "vocabulary", prompt: "Pergunta cuja resposta você não sabe:", options: ["Invente um número.", "I don't have that figure to hand, but I'll follow up."], answer: 1 },
-        { type: "fill_blank", skill: "vocabulary", sentence: "I ___ the presentation three times. (ensaiei)", accepted: ["rehearsed", "practiced", "practised"] },
+        { type: "fill_blank", skill: "vocabulary", sentence: "I ___ the presentation three times. (ensaiei)", accepted: ["rehearsed", "practiced", "practiced"] },
         { type: "fill_blank", skill: "vocabulary", sentence: "That's outside the ___ of this talk. (escopo)", accepted: ["scope"] },
         { type: "multiple_choice", skill: "vocabulary", prompt: "\"Q&A\":", options: ["Sessão de perguntas e respostas.", "Controle de qualidade.", "Questionário anual."], answer: 0 },
         { type: "translate", skill: "writing", prompt: "Deixa eu confirmar se entendi a pergunta.", accepted: ["Let me make sure I understand the question.", "Let me make sure I've understood the question.", "Let me check I understand the question."] },
@@ -203,7 +203,7 @@ export const c2Module8: Module = {
         { type: "fill_blank", skill: "vocabulary", sentence: "There's a clear ___ in the literature. (lacuna)", accepted: ["gap"] },
         { type: "multiple_choice", skill: "writing", prompt: "Ordem do processo de escrita:", options: ["outline, draft, revise, proofread", "proofread, outline, draft"], answer: 0 },
         { type: "fill_blank", skill: "vocabulary", sentence: "I don't have the figure to ___. I'll send it later.", accepted: ["hand"] },
-        { type: "translate", skill: "writing", prompt: "Ensaiei três vezes.", accepted: ["I rehearsed three times.", "I practiced three times.", "I practised three times.", "I rehearsed it three times."] },
+        { type: "translate", skill: "writing", prompt: "Ensaiei três vezes.", accepted: ["I rehearsed three times.", "I practiced three times.", "I practiced three times.", "I rehearsed it three times."] },
         { type: "word_order", skill: "grammar", prompt: "Constância importa mais que intensidade.", answer: "Consistency matters more than intensity." },
         { type: "multiple_choice", skill: "vocabulary", prompt: "\"Peer-reviewed\":", options: ["Revisado por especialistas", "Revisado por amigos"], answer: 0 },
         { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "That's slightly outside the scope of today's talk, but I'm happy to discuss it afterwards.", options: ["Foge do tema, mas pode conversar depois.", "Não vai responder nunca.", "É o tema principal."], answer: 0 },

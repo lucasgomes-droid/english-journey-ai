@@ -96,7 +96,7 @@ export const c2Module6: Module = {
       ],
       conversation: {
         goal: "Diga a mesma mensagem em cinco registros: contrato, e-mail formal, neutro, informal e gíria.",
-        starter: "Message: 'The event is cancelled because of the storm.' Give me five versions, from legal document to text to your best friend.",
+        starter: "Message: 'The event is canceled because of the storm.' Give me five versions, from legal document to text to your best friend.",
       },
       review: ["Congelado → formal → neutro → informal → gíria.", "hereby, prior to, in accordance with, vacate.", "bail, sketchy, legit, bounce."],
     }),

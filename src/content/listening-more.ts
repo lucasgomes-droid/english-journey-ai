@@ -25,13 +25,13 @@ export const LISTENING_MORE: ListeningItem[] = [
     dictation: "Call me back, please.",
   },
   {
-    id: "l-a1-hotel-gb", level: "A1", title: "Recepção do hotel em Londres", topic: "Hotel", kind: "dialogue",
+    id: "l-a1-hotel-gb", level: "A1", title: "Recepção do hotel em Nova York", topic: "Hotel", kind: "dialogue",
     lines: [
-      { speaker: "Receptionist", text: "Good evening. Welcome to the Park Hotel.", accent: "gb" },
+      { speaker: "Receptionist", text: "Good evening. Welcome to the Park Hotel." },
       { speaker: "Guest", text: "Hi. I have a room for two nights. My name is Silva." },
-      { speaker: "Receptionist", text: "Yes, Mr Silva. Room 304, on the third floor.", accent: "gb" },
+      { speaker: "Receptionist", text: "Yes, Mr. Silva. Room 304, on the third floor." },
       { speaker: "Guest", text: "What time is breakfast?" },
-      { speaker: "Receptionist", text: "From seven to ten, in the restaurant.", accent: "gb" },
+      { speaker: "Receptionist", text: "From seven to ten, in the restaurant." },
     ],
     questions: [
       Q("Quantas noites o hóspede vai ficar?", ["Uma", "Duas", "Três"], 1),
@@ -58,13 +58,13 @@ export const LISTENING_MORE: ListeningItem[] = [
     dictation: "This is my mother.",
   },
   {
-    id: "l-a1-supermarket-au", level: "A1", title: "No supermercado em Sydney", topic: "Compras", kind: "dialogue",
+    id: "l-a1-supermarket-au", level: "A1", title: "No supermercado em Los Angeles", topic: "Compras", kind: "dialogue",
     lines: [
-      { speaker: "Cashier", text: "G'day! Do you need a bag?", accent: "au" },
+      { speaker: "Cashier", text: "Hi there! Do you need a bag?" },
       { speaker: "Customer", text: "Yes, please. One bag." },
-      { speaker: "Cashier", text: "That's twenty-two dollars and forty cents.", accent: "au" },
+      { speaker: "Cashier", text: "That's twenty-two dollars and forty cents." },
       { speaker: "Customer", text: "Can I pay by card?" },
-      { speaker: "Cashier", text: "No worries. Just tap here.", accent: "au" },
+      { speaker: "Cashier", text: "No worries. Just tap here." },
     ],
     questions: [
       Q("Quanto custam as compras?", ["$12,40", "$22,40", "$24,20"], 1),
@@ -77,16 +77,16 @@ export const LISTENING_MORE: ListeningItem[] = [
   {
     id: "l-a2-train-announcement", level: "A2", title: "Aviso na estação", topic: "Aviso público", kind: "monologue",
     lines: [
-      { speaker: "Announcer", text: "Attention, please. The 10:15 train to Manchester is running about twenty minutes late.", accent: "gb" },
-      { speaker: "Announcer", text: "This train will now leave from platform six, not platform two.", accent: "gb" },
-      { speaker: "Announcer", text: "We apologise for the delay.", accent: "gb" },
+      { speaker: "Announcer", text: "Attention, please. The 10:15 train to Boston is running about twenty minutes late." },
+      { speaker: "Announcer", text: "This train will now leave from track six, not track two." },
+      { speaker: "Announcer", text: "We apologize for the delay." },
     ],
     questions: [
-      Q("Para onde vai o trem?", ["Londres", "Manchester", "Liverpool"], 1),
+      Q("Para onde vai o trem?", ["Nova York", "Boston", "Chicago"], 1),
       Q("Quanto tempo de atraso?", ["10 minutos", "15 minutos", "20 minutos"], 2),
       Q("De qual plataforma o trem vai sair agora?", ["Dois", "Seis", "Dez"], 1),
     ],
-    dictation: "We apologise for the delay.",
+    dictation: "We apologize for the delay.",
   },
   {
     id: "l-a2-weekend-chat", level: "A2", title: "Como foi o fim de semana?", topic: "Conversa natural", kind: "dialogue",
@@ -95,7 +95,7 @@ export const LISTENING_MORE: ListeningItem[] = [
       { speaker: "Ravi", text: "Um, it was OK. On Saturday I just stayed home and, you know, watched some series." },
       { speaker: "Kate", text: "Nice. Anything good?" },
       { speaker: "Ravi", text: "Yeah, a Spanish one about a bank robbery. And on Sunday I went cycling by the river." },
-      { speaker: "Kate", text: "Oh, lucky you. It rained all day here, so I cleaned the whole flat!" },
+      { speaker: "Kate", text: "Oh, lucky you. It rained all day here, so I cleaned the whole apartment!" },
     ],
     questions: [
       Q("O que o Ravi fez no sábado?", ["Saiu com amigos", "Ficou em casa vendo séries", "Andou de bicicleta"], 1),
@@ -107,11 +107,11 @@ export const LISTENING_MORE: ListeningItem[] = [
   {
     id: "l-a2-pharmacy-au", level: "A2", title: "Na farmácia", topic: "Saúde", kind: "dialogue",
     lines: [
-      { speaker: "Pharmacist", text: "Hi there. What can I do for you?", accent: "au" },
+      { speaker: "Pharmacist", text: "Hi there. What can I do for you?" },
       { speaker: "Customer", text: "I've got a sore throat and a bit of a cough." },
-      { speaker: "Pharmacist", text: "How long have you had it?", accent: "au" },
+      { speaker: "Pharmacist", text: "How long have you had it?" },
       { speaker: "Customer", text: "Since Monday." },
-      { speaker: "Pharmacist", text: "OK. Take these lozenges three times a day, and drink lots of water. If you're not better in five days, see a doctor.", accent: "au" },
+      { speaker: "Pharmacist", text: "OK. Take these lozenges three times a day, and drink lots of water. If you're not better in five days, see a doctor." },
     ],
     questions: [
       Q("Qual é o problema?", ["Dor de cabeça", "Dor de garganta e tosse", "Febre alta"], 1),
@@ -153,7 +153,7 @@ export const LISTENING_MORE: ListeningItem[] = [
     id: "l-b1-podcast-habits", level: "B1", title: "Podcast: criar hábitos", topic: "Podcast", kind: "monologue",
     lines: [
       { speaker: "Host", text: "Welcome back to the show. Today we're talking about habits, and why most of us give up after a couple of weeks." },
-      { speaker: "Host", text: "The main problem is that we start too big. Instead of promising to run five kilometres every day, try putting on your trainers and walking for five minutes." },
+      { speaker: "Host", text: "The main problem is that we start too big. Instead of promising to run five kilometers every day, try putting on your sneakers and walking for five minutes." },
       { speaker: "Host", text: "Once that feels automatic, you can add a bit more. And connect the new habit to something you already do, like after your morning coffee." },
     ],
     questions: [
@@ -166,11 +166,11 @@ export const LISTENING_MORE: ListeningItem[] = [
   {
     id: "l-b1-flat-gb", level: "B1", title: "Visitando um apartamento", topic: "Moradia", kind: "dialogue",
     lines: [
-      { speaker: "Agent", text: "So, this is the living room. It gets loads of light in the afternoon.", accent: "gb" },
-      { speaker: "Tenant", text: "It's lovely. Are the bills included in the rent?" },
-      { speaker: "Agent", text: "Water is, but electricity and internet aren't. You'd also need to pay a deposit of five weeks' rent.", accent: "gb" },
+      { speaker: "Agent", text: "So, this is the living room. It gets lots of light in the afternoon." },
+      { speaker: "Tenant", text: "It's really nice. Are the bills included in the rent?" },
+      { speaker: "Agent", text: "Water is, but electricity and internet aren't. You'd also need to pay a deposit of five weeks' rent." },
       { speaker: "Tenant", text: "I see. And is it OK to have a cat?" },
-      { speaker: "Agent", text: "I'm afraid the landlord doesn't allow pets, sorry.", accent: "gb" },
+      { speaker: "Agent", text: "I'm afraid the landlord doesn't allow pets, sorry." },
     ],
     questions: [
       Q("Which bill is included in the rent?", ["Electricity", "Internet", "Water"], 2),
@@ -189,7 +189,7 @@ export const LISTENING_MORE: ListeningItem[] = [
       { speaker: "Agent", text: "Got it. I'll send a new pair today by express delivery, at no extra cost. You should get it by Wednesday." },
     ],
     questions: [
-      Q("What was the problem?", ["The headphones were broken", "The box arrived empty", "The wrong colour arrived"], 1),
+      Q("What was the problem?", ["The headphones were broken", "The box arrived empty", "The wrong color arrived"], 1),
       Q("What is the order number?", ["B7294", "D7294", "B7249"], 0),
       Q("What will the company do?", ["Give a refund", "Send a new pair by express delivery", "Ask the customer to return the box"], 1),
     ],
@@ -199,9 +199,9 @@ export const LISTENING_MORE: ListeningItem[] = [
   {
     id: "l-b2-news-transport", level: "B2", title: "Notícia: transporte público grátis", topic: "Notícias", kind: "monologue",
     lines: [
-      { speaker: "Reporter", text: "From next month, buses in the city will be free for anyone under twenty-five, in a trial that will run until the end of the year.", accent: "gb" },
-      { speaker: "Reporter", text: "The council says the aim is to cut traffic and help young people who are struggling with the cost of living.", accent: "gb" },
-      { speaker: "Reporter", text: "Critics, however, argue that the money would be better spent on more frequent services, since many routes are already overcrowded at peak times.", accent: "gb" },
+      { speaker: "Reporter", text: "From next month, buses in the city will be free for anyone under twenty-five, in a trial that will run until the end of the year." },
+      { speaker: "Reporter", text: "The city says the aim is to cut traffic and help young people who are struggling with the cost of living." },
+      { speaker: "Reporter", text: "Critics, however, argue that the money would be better spent on more frequent services, since many routes are already overcrowded at peak times." },
     ],
     questions: [
       Q("Who will travel for free?", ["Everyone", "People under 25", "Students only"], 1),
@@ -219,7 +219,7 @@ export const LISTENING_MORE: ListeningItem[] = [
       { speaker: "Candidate", text: "We delivered on time, although, to be honest, I'd communicate the risks to the client earlier next time." },
     ],
     questions: [
-      Q("What did the client do?", ["Cancelled the order", "Moved the delivery a week earlier", "Asked for a discount"], 1),
+      Q("What did the client do?", ["Canceled the order", "Moved the delivery a week earlier", "Asked for a discount"], 1),
       Q("How did the candidate solve it?", ["Hired more people", "Reorganised priorities and postponed smaller tasks", "Asked for more time"], 1),
       Q("What would the candidate do differently?", ["Work faster", "Communicate the risks earlier", "Say no to the client"], 1),
     ],
@@ -229,9 +229,9 @@ export const LISTENING_MORE: ListeningItem[] = [
     id: "l-b2-debate-remote", level: "B2", title: "Debate: trabalho remoto", topic: "Debate", kind: "dialogue",
     lines: [
       { speaker: "Laura", text: "I honestly think remote work has made people more productive. No commute, fewer interruptions." },
-      { speaker: "Tom", text: "That's true for some tasks, but I'd argue we've lost a lot of the informal learning that happens in an office.", accent: "au" },
+      { speaker: "Tom", text: "That's true for some tasks, but I'd argue we've lost a lot of the informal learning that happens in an office." },
       { speaker: "Laura", text: "Fair point, but that could be solved with a couple of office days a week." },
-      { speaker: "Tom", text: "Maybe. My worry is that junior staff end up feeling isolated and nobody notices.", accent: "au" },
+      { speaker: "Tom", text: "Maybe. My worry is that junior staff end up feeling isolated and nobody notices." },
     ],
     questions: [
       Q("What advantage of remote work does Laura mention?", ["Higher salaries", "No commute and fewer interruptions", "More meetings"], 1),
@@ -258,9 +258,9 @@ export const LISTENING_MORE: ListeningItem[] = [
   {
     id: "l-c1-lecture-sleep", level: "C1", title: "Palestra: o cérebro e o sono", topic: "Palestra", kind: "monologue",
     lines: [
-      { speaker: "Lecturer", text: "It's tempting to think of sleep as a passive state, a kind of switching off. In reality, the brain is remarkably active during the night.", accent: "gb" },
-      { speaker: "Lecturer", text: "During deep sleep, it consolidates what we've learnt during the day, essentially deciding which memories are worth keeping.", accent: "gb" },
-      { speaker: "Lecturer", text: "Which is why cramming all night before an exam is, ironically, one of the least effective strategies you could adopt.", accent: "gb" },
+      { speaker: "Lecturer", text: "It's tempting to think of sleep as a passive state, a kind of switching off. In reality, the brain is remarkably active during the night." },
+      { speaker: "Lecturer", text: "During deep sleep, it consolidates what we've learned during the day, essentially deciding which memories are worth keeping." },
+      { speaker: "Lecturer", text: "Which is why cramming all night before an exam is, ironically, one of the least effective strategies you could adopt." },
     ],
     questions: [
       Q("What misconception does the lecturer mention?", ["That dreams are meaningless", "That sleep is a passive state", "That we need eight hours"], 1),
@@ -288,9 +288,9 @@ export const LISTENING_MORE: ListeningItem[] = [
     id: "l-c1-radio-interview", level: "C1", title: "Entrevista no rádio: cidades inteligentes", topic: "Entrevista", kind: "dialogue",
     lines: [
       { speaker: "Presenter", text: "Smart cities are often sold as a way of making urban life more efficient. Are you convinced?" },
-      { speaker: "Expert", text: "Partly. Sensors can genuinely reduce congestion and energy waste. But there's a trade-off we rarely discuss: who owns all that data, and what else might it be used for?", accent: "au" },
+      { speaker: "Expert", text: "Partly. Sensors can genuinely reduce congestion and energy waste. But there's a trade-off we rarely discuss: who owns all that data, and what else might it be used for?" },
       { speaker: "Presenter", text: "So, regulation before technology?" },
-      { speaker: "Expert", text: "Ideally alongside it. Waiting for perfect rules means falling behind, but rushing ahead without them is how trust gets lost.", accent: "au" },
+      { speaker: "Expert", text: "Ideally alongside it. Waiting for perfect rules means falling behind, but rushing ahead without them is how trust gets lost." },
     ],
     questions: [
       Q("What benefit does the expert accept?", ["Lower taxes", "Less congestion and energy waste", "More jobs"], 1),
@@ -318,9 +318,9 @@ export const LISTENING_MORE: ListeningItem[] = [
   {
     id: "l-c2-panel-ai", level: "C2", title: "Painel: IA e criatividade", topic: "Debate", kind: "dialogue",
     lines: [
-      { speaker: "Chair", text: "Let's turn to the question everyone's been skirting around: is AI a threat to creative work?", accent: "gb" },
+      { speaker: "Chair", text: "Let's turn to the question everyone's been skirting around: is AI a threat to creative work?" },
       { speaker: "Novelist", text: "I'd resist the word threat. What it does threaten is the bottom end of the market, the formulaic stuff that was arguably never very creative to begin with." },
-      { speaker: "Illustrator", text: "With respect, that's easy to say from the top of the profession. The bottom end is where most of us earn a living, and where newcomers learn their craft.", accent: "au" },
+      { speaker: "Illustrator", text: "With respect, that's easy to say from the top of the profession. The bottom end is where most of us earn a living, and where newcomers learn their craft." },
       { speaker: "Novelist", text: "Point taken. Though I'd still argue the answer lies in how we value human work, not in trying to halt the technology." },
     ],
     questions: [
@@ -333,14 +333,14 @@ export const LISTENING_MORE: ListeningItem[] = [
   {
     id: "l-c2-comedy-ironic", level: "C2", title: "Monólogo irônico", topic: "Humor e ironia", kind: "monologue",
     lines: [
-      { speaker: "Comedian", text: "I've finally achieved work-life balance. I now feel equally guilty at work and at home.", accent: "gb" },
-      { speaker: "Comedian", text: "My manager says my door is always open. Which would be lovely, if I had a door. Or an office. Or, frankly, a chair that doesn't sink every twenty minutes.", accent: "gb" },
-      { speaker: "Comedian", text: "Still, they did give us a wellbeing webinar. At eight p.m. On a Friday.", accent: "gb" },
+      { speaker: "Comedian", text: "I've finally achieved work-life balance. I now feel equally guilty at work and at home." },
+      { speaker: "Comedian", text: "My manager says my door is always open. Which would be great, if I had a door. Or an office. Or, frankly, a chair that doesn't sink every twenty minutes." },
+      { speaker: "Comedian", text: "Still, they did give us a wellbeing webinar. At eight p.m. On a Friday." },
     ],
     questions: [
       Q("What is the joke about work-life balance?", ["He works less now", "He feels equally guilty in both places", "He works from home"], 1),
       Q("Why is 'my door is always open' ironic?", ["He doesn't even have a door or office", "The manager is never there", "The door is broken"], 0),
-      Q("What is ironic about the wellbeing webinar?", ["It was very long", "It was at 8 p.m. on a Friday", "It was cancelled"], 1),
+      Q("What is ironic about the wellbeing webinar?", ["It was very long", "It was at 8 p.m. on a Friday", "It was canceled"], 1),
     ],
     dictation: "My manager says my door is always open.",
   },
@@ -348,8 +348,8 @@ export const LISTENING_MORE: ListeningItem[] = [
     id: "l-c2-academic-q", level: "C2", title: "Pergunta numa conferência", topic: "Acadêmico", kind: "dialogue",
     lines: [
       { speaker: "Audience", text: "Thank you for a fascinating talk. I wonder, though, whether your sample, which was drawn entirely from university students, might limit how far the findings can be generalised?" },
-      { speaker: "Speaker", text: "That's an entirely legitimate concern, and one we flag in the paper. We'd be cautious about extrapolating to older populations.", accent: "gb" },
-      { speaker: "Speaker", text: "That said, the effect held across three countries, which suggests it isn't merely a cultural artefact. A follow-up with a broader sample is already under way.", accent: "gb" },
+      { speaker: "Speaker", text: "That's an entirely legitimate concern, and one we flag in the paper. We'd be cautious about extrapolating to older populations." },
+      { speaker: "Speaker", text: "That said, the effect held across three countries, which suggests it isn't merely a cultural artifact. A follow-up with a broader sample is already under way." },
     ],
     questions: [
       Q("What does the audience member question?", ["The statistics", "Whether results generalise beyond students", "The cost of the study"], 1),

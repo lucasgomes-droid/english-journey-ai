@@ -16,7 +16,7 @@ Reply ONLY with a JSON object:
  "improved": "a natural, fluent version of what the student tried to say, one level above ${input.level}, max 90 words, in English",
  "mistakes": [{"original": "student's phrase", "corrected": "correct English", "pt": "Portuguese translation of the corrected phrase", "explanation_pt": "short reason in Portuguese"}],
  "phrases": [{"en": "useful natural phrase for this topic", "pt": "Portuguese translation"}],
- "next_step_pt": "one concrete thing to practise next time, in Portuguese"
+ "next_step_pt": "one concrete thing to practice next time, in Portuguese"
 }
 Rules: at most 4 mistakes (the most important ones; grammar or word choice that a listener would notice); exactly 3 phrases the student could have used; keep everything appropriate for ${input.level}.`;
   const user = `Prompt: ${input.topic}

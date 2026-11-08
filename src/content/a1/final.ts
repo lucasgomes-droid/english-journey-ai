@@ -46,7 +46,7 @@ export const a1Final: Module = {
         { type: "translate", skill: "writing", prompt: "Quanto custa esta camisa?", accepted: ["How much is this shirt?", "How much does this shirt cost?"] },
         { type: "multiple_choice", skill: "grammar", prompt: "\"Does she ___ English?\"", options: ["speaks", "speak", "speaking"], answer: 1 },
         { type: "listening", skill: "listening", prompt: "Onde fica a farmácia?", audio: "The pharmacy is next to the supermarket.", options: ["Ao lado do supermercado", "Em frente ao supermercado", "Dentro do supermercado"], answer: 0 },
-        { type: "word_order", skill: "grammar", prompt: "Eu vou ao cinema aos sábados.", answer: "I go to the cinema on Saturdays.", distractors: ["went"] },
+        { type: "word_order", skill: "grammar", prompt: "Eu vou ao cinema aos sábados.", answer: "I go to the movies on Saturdays.", distractors: ["went"] },
         { type: "translate", skill: "writing", prompt: "Está ensolarado hoje.", accepted: ["It's sunny today.", "It is sunny today.", "Today it's sunny."] },
       ],
       review: ["Revise os pontos onde errou antes de tentar novamente."],

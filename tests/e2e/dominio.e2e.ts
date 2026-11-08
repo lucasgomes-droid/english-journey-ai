@@ -76,14 +76,14 @@ import { BASE, SHOTS, doLesson, signup, sql, uid } from "./helpers";
   page.on("framenavigated", () => null);
   let sawPassage = false;
   const watcher = setInterval(async () => {
-    if (!sawPassage && (await page.getByText("Leia o texto e responda").count().catch(() => 0))) sawPassage = (await page.getByRole("article", { name: "Texto: A new neighbour" }).count()) > 0;
+    if (!sawPassage && (await page.getByText("Leia o texto e responda").count().catch(() => 0))) sawPassage = (await page.getByRole("article", { name: "Texto: A new neighbor" }).count()) > 0;
   }, 300);
   await doLesson(page, test);
   clearInterval(watcher);
   const readingAnswers = sql(`select count(*) from public.exercise_answers where user_id = ${uid(email)} and exercise_id like 'a1-m1-test-r%' and correct`);
   if (readingAnswers !== "3") throw new Error(`leitura: ${readingAnswers} respostas`);
   if (!sawPassage) throw new Error("o texto da leitura não apareceu");
-  console.log("✓ teste do módulo com leitura: texto 'A new neighbour' + 3 perguntas respondidas e salvas como reading");
+  console.log("✓ teste do módulo com leitura: texto 'A new neighbor' + 3 perguntas respondidas e salvas como reading");
 
   await browser.close();
 })().catch((e) => {

@@ -53,7 +53,7 @@ export const PLACEMENT: PlacementQuestion[] = [
   Q("C1", "Ouça. Qual é a ideia?", ["A reunião foi cancelada.", "Vale a pena adiar a decisão até termos os números.", "Os números já estão prontos."], 1, "I'd hold off on making a decision until we've seen the figures."),
   Q("C1", "Ouça. O que a pessoa sente?", ["Ela está aliviada.", "Ela está irritada com o atraso.", "Ela está surpresa e contente."], 1, "Frankly, I'm fed up with these constant delays."),
   // C2
-  Q("C2", "Little ___ that the decision would change everything.", ["did they realise", "they realised", "they did realise"], 0),
+  Q("C2", "Little ___ that the decision would change everything.", ["did they realize", "they realized", "they did realize"], 0),
   Q("C2", "His argument doesn't hold ___ under close scrutiny.", ["water", "ground", "breath"], 0),
   Q("C2", "Choose the most natural: \"The report ___ to a number of inconsistencies.\"", ["alludes", "eludes", "elides"], 0),
   Q("C2", "\"She was, to all intents and purposes, the manager.\" means she was…", ["officially the manager", "the manager in practice, if not in title", "about to become the manager"], 1),

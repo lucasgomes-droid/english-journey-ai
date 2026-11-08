@@ -16,7 +16,7 @@ export const b1Module8: Module = {
       explanation: [
         {
           title: "O anúncio",
-          body: "**2-bed flat / apartment** (2 quartos) · **furnished / unfurnished** (mobiliado) · **bills included** (contas incluídas) · **deposit** (caução) · **lease / tenancy agreement** (contrato) · **landlord / landlady** (proprietário) · **tenant** (inquilino).",
+          body: "**2-bed apartment / apartment** (2 quartos) · **furnished / unfurnished** (mobiliado) · **bills included** (contas incluídas) · **deposit** (caução) · **lease / tenancy agreement** (contrato) · **landlord / landlady** (proprietário) · **tenant** (inquilino).",
         },
         {
           title: "Perguntas que você precisa fazer",
@@ -40,7 +40,7 @@ export const b1Module8: Module = {
       ],
       examples: [
         { en: "Is the rent negotiable if I sign a one-year lease?", pt: "O aluguel é negociável se eu assinar um contrato de um ano?" },
-        { en: "The flat is furnished and bills are included.", pt: "O apartamento é mobiliado e as contas estão incluídas." },
+        { en: "The apartment is furnished and bills are included.", pt: "O apartamento é mobiliado e as contas estão incluídas." },
         { en: "When would I be able to move in?", pt: "Quando eu poderia me mudar?" },
       ],
       exercises: [

@@ -106,7 +106,7 @@ const consolidation2 = buildLesson("a1-final-l2", C, 2, {
     { en: "right now", pt: "agora mesmo", say: "RÁIT náu" },
     { en: "How much is it?", pt: "Quanto custa?", say: "ráu MÂTCH iz it" },
     { en: "Can I have…?", pt: "Pode me dar…? / Eu queria…", say: "ken ai RÉV" },
-    { en: "opposite", pt: "em frente a", say: "Ó-po-zit", example: { en: "The bank is opposite the school.", pt: "O banco fica em frente à escola." } },
+    { en: "across from", pt: "em frente a", say: "a-CRÓS from", example: { en: "The bank is across from the school.", pt: "O banco fica em frente à escola." } },
     { en: "umbrella", pt: "guarda-chuva", say: "âm-BRÉ-la" },
   ],
   examples: [
@@ -119,7 +119,7 @@ const consolidation2 = buildLesson("a1-final-l2", C, 2, {
     { type: "fill_blank", skill: "grammar", sentence: "There ___ two parks in my city.", accepted: ["are"] },
     { type: "multiple_choice", skill: "grammar", prompt: "Agora mesmo, ele…", options: ["works.", "is working.", "work."], answer: 1 },
     { type: "translate", skill: "writing", prompt: "Quanto custa este bolo?", accepted: ["How much is this cake?", "How much does this cake cost?"] },
-    { type: "listening", skill: "listening", prompt: "Onde fica o banco?", audio: "The bank is opposite the post office.", options: ["Ao lado dos correios", "Em frente aos correios", "Atrás dos correios"], answer: 1 },
+    { type: "listening", skill: "listening", prompt: "Onde fica o banco?", audio: "The bank is across from the post office.", options: ["Ao lado dos correios", "Em frente aos correios", "Atrás dos correios"], answer: 1 },
     { type: "word_order", skill: "grammar", prompt: "Pode me dar uma água, por favor?", answer: "Can I have a water, please?" },
     { type: "multiple_choice", skill: "reading", prompt: "\"Hi Bia! I'm at the café near the station. It's raining, so I'm drinking a hot chocolate.\" Por que ela está tomando chocolate quente?", options: ["Está com fome", "Está chovendo", "O café fechou"], answer: 1 },
     { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "I'm waiting for the bus.", accepted: ["i'm waiting for the bus", "i am waiting for the bus"] },

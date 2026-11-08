@@ -31,6 +31,8 @@ export const sttConfig = {
 export const isAiConfigured = () => Boolean(aiConfig.apiKey);
 export const isSttConfigured = () => Boolean(sttConfig.apiKey);
 
+import { withUsEnglish } from "@/lib/us-english";
+
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -55,8 +57,9 @@ export interface ChatOptions {
   onUsage?: (tokens: number, model: string) => void;
 }
 
-export async function chatCompletion(messages: ChatMessage[], opts: ChatOptions = {}) {
+export async function chatCompletion(rawMessages: ChatMessage[], opts: ChatOptions = {}) {
   if (!isAiConfigured()) throw new AiError("Professor de IA não configurado: defina AI_API_KEY no servidor.", 503);
+  const messages = withUsEnglish(rawMessages);
   const models = modelsFor(opts.purpose ?? "heavy");
   for (let i = 0; i < models.length; i++) {
     try {

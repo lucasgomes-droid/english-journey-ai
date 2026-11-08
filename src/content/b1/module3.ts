@@ -16,7 +16,7 @@ export const b1Module3: Module = {
       explanation: [
         {
           title: "Além do I think",
-          body: "**In my opinion / In my view,...** (formal) · **As far as I'm concerned,...** (no que me diz respeito) · **I reckon...** (informal, britânico) · **Personally, I feel that...** · **If you ask me,...** (se quer saber minha opinião).",
+          body: "**In my opinion / In my view,...** (formal) · **As far as I'm concerned,...** (no que me diz respeito) · **I guess...** (informal) · **Personally, I feel that...** · **If you ask me,...** (se quer saber minha opinião).",
         },
         {
           title: "Justificando",
@@ -30,7 +30,7 @@ export const b1Module3: Module = {
       vocabulary: [
         { en: "in my view", pt: "na minha visão", say: "in mái VIÚ" },
         { en: "as far as I'm concerned", pt: "no que me diz respeito", say: "éz FÁR éz áim con-SÂRND" },
-        { en: "I reckon", pt: "eu acho (informal)", say: "ái RÉ-ken" },
+        { en: "I guess", pt: "eu acho (informal)", say: "ái GUÉS" },
         { en: "if you ask me", pt: "se quer saber", say: "if iu ÉSK mi" },
         { en: "the main reason", pt: "o motivo principal", say: "dhe MÊIN RÍI-zon" },
         { en: "for instance", pt: "por exemplo", say: "for ÍNS-tans" },
@@ -45,7 +45,7 @@ export const b1Module3: Module = {
       ],
       exercises: [
         { type: "multiple_choice", skill: "grammar", prompt: "Escolha a correta.", options: ["I am agree with you.", "I agree with you.", "I'm agreeing you."], answer: 1 },
-        { type: "multiple_choice", skill: "vocabulary", prompt: "Qual expressão é mais formal?", options: ["I reckon", "If you ask me", "In my view"], answer: 2 },
+        { type: "multiple_choice", skill: "vocabulary", prompt: "Qual expressão é mais formal?", options: ["I guess", "If you ask me", "In my view"], answer: 2 },
         { type: "fill_blank", skill: "vocabulary", sentence: "As far as I'm ___, it's a great idea.", accepted: ["concerned"] },
         { type: "fill_blank", skill: "vocabulary", sentence: "The main ___ is that it's cheaper.", accepted: ["reason"] },
         { type: "translate", skill: "writing", prompt: "Na minha opinião, vale a pena.", accepted: ["In my opinion, it's worth it.", "In my opinion, it is worth it.", "In my view, it's worth it.", "In my view, it is worth it."] },

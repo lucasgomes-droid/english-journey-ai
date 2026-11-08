@@ -24,7 +24,7 @@ export const a2Module5: Module = {
         },
         {
           title: "Avisos",
-          body: "**boarding** (embarque), **delayed** (atrasado), **cancelled** (cancelado), **final call** (última chamada), **gate** (portão).",
+          body: "**boarding** (embarque), **delayed** (atrasado), **canceled** (cancelado), **final call** (última chamada), **gate** (portão).",
         },
       ],
       vocabulary: [
@@ -58,7 +58,7 @@ export const a2Module5: Module = {
         goal: "Faça o check-in: entregue o passaporte, despache a mala, escolha o assento e pergunte sobre o portão.",
         starter: "Good morning! Where are you flying to today?",
       },
-      review: ["Frases do check-in: passport, bags, window/aisle.", "Pergunta indireta: Could you tell me where X is?", "delayed, cancelled, boarding, gate."],
+      review: ["Frases do check-in: passport, bags, window/aisle.", "Pergunta indireta: Could you tell me where X is?", "delayed, canceled, boarding, gate."],
     }),
 
     buildLesson("a2-m5-l2", M, 2, {
@@ -219,7 +219,7 @@ export const a2Module5: Module = {
         { type: "multiple_choice", skill: "grammar", prompt: "Escolha a pergunta educada correta.", options: ["Do you know where is the bathroom?", "Do you know where the bathroom is?"], answer: 1 },
         { type: "translate", skill: "writing", prompt: "Eu gostaria de um assento na janela.", accepted: ["I'd like a window seat.", "I would like a window seat.", "I'd like a window seat, please."] },
         { type: "fill_blank", skill: "grammar", sentence: "Is ___ a supermarket near here?", accepted: ["there"] },
-        { type: "multiple_choice", skill: "vocabulary", prompt: "\"Our flight is cancelled.\"", options: ["Nosso voo está atrasado.", "Nosso voo foi cancelado.", "Nosso voo está embarcando."], answer: 1 },
+        { type: "multiple_choice", skill: "vocabulary", prompt: "\"Our flight is canceled.\"", options: ["Nosso voo está atrasado.", "Nosso voo foi cancelado.", "Nosso voo está embarcando."], answer: 1 },
         { type: "word_order", skill: "grammar", prompt: "Vire à direita na segunda esquina.", answer: "Turn right at the second corner." },
         { type: "translate", skill: "writing", prompt: "O ar-condicionado não funciona.", accepted: ["The air conditioning doesn't work.", "The air conditioner doesn't work.", "The AC doesn't work.", "The air conditioning does not work."] },
         { type: "fill_blank", skill: "vocabulary", sentence: "Get ___ at the next stop.", translation: "Desça no próximo ponto.", accepted: ["off"] },

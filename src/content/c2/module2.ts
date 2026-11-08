@@ -62,7 +62,7 @@ export const c2Module2: Module = {
       explanation: [
         {
           title: "Elogio e crítica precisos",
-          body: "Elogio: **a tour de force · deftly handled · beautifully paced · thought-provoking**. Crítica: **falls flat · overlong · heavy-handed** (sem sutileza) · **fails to live up to its promise**. Equilíbrio: **For all its flaws, the film is...** (Apesar de todas as falhas...)",
+          body: "Elogio: **a tour de force · deftly handled · beautifully paced · thought-provoking**. Crítica: **falls flat · overlong · heavy-handed** (sem sutileza) · **fails to live up to its promise**. Equilíbrio: **For all its flaws, the movie is...** (Apesar de todas as falhas...)",
         },
         {
           title: "Estrutura",
@@ -83,13 +83,13 @@ export const c2Module2: Module = {
       examples: [
         { en: "For all its flaws, the novel remains a tour de force.", pt: "Apesar de todas as falhas, o romance continua sendo uma obra notável." },
         { en: "The jokes fall flat and the second half is overlong.", pt: "As piadas não funcionam e a segunda metade é longa demais." },
-        { en: "The film fails to live up to the hype.", pt: "O filme não corresponde ao hype." },
+        { en: "The movie fails to live up to the hype.", pt: "O filme não corresponde ao hype." },
       ],
       exercises: [
         { type: "match_pairs", skill: "vocabulary", prompt: "Ligue.", pairs: [["fall flat", "não funcionar"], ["heavy-handed", "sem sutileza"], ["thought-provoking", "instigante"], ["overlong", "longo demais"]] },
         { type: "fill_blank", skill: "vocabulary", sentence: "The sequel fails to live ___ to the original.", accepted: ["up"] },
         { type: "fill_blank", skill: "vocabulary", sentence: "For all its ___, it's worth reading. (falhas)", accepted: ["flaws", "faults", "shortcomings"] },
-        { type: "multiple_choice", skill: "writing", prompt: "Resenha equilibrada:", options: ["It's the worst thing ever made.", "Despite a heavy-handed ending, the film is beautifully paced and deftly acted.", "I liked it."], answer: 1 },
+        { type: "multiple_choice", skill: "writing", prompt: "Resenha equilibrada:", options: ["It's the worst thing ever made.", "Despite a heavy-handed ending, the movie is beautifully paced and deftly acted.", "I liked it."], answer: 1 },
         { type: "multiple_choice", skill: "writing", prompt: "Numa resenha, evite:", options: ["Resumir a obra inteira sem avaliar.", "Dar um veredito.", "Citar pontos fortes."], answer: 0 },
         { type: "translate", skill: "writing", prompt: "O roteiro foi conduzido com habilidade.", accepted: ["The script was deftly handled.", "The screenplay was deftly handled.", "The script was skillfully handled."] },
         { type: "listening", skill: "listening", prompt: "Ouça e escolha o veredito.", audio: "Overlong and occasionally heavy-handed, but ultimately thought-provoking.", options: ["Positivo com ressalvas.", "Totalmente negativo.", "Totalmente positivo, sem ressalvas."], answer: 0 },
@@ -97,7 +97,7 @@ export const c2Module2: Module = {
       ],
       conversation: {
         goal: "Faça uma resenha oral de 1 minuto de um filme, série ou livro: gancho, contexto, análise e veredito equilibrado.",
-        starter: "You're a critic on a radio show. Review the last film or series you watched in about a minute.",
+        starter: "You're a critic on a radio show. Review the last movie or series you watched in about a minute.",
       },
       review: ["Elogio: tour de force, deftly, thought-provoking.", "Crítica: falls flat, heavy-handed, overlong, fails to live up to.", "For all its flaws... + veredito."],
     }),
@@ -219,7 +219,7 @@ export const c2Module2: Module = {
         { type: "multiple_choice", skill: "vocabulary", prompt: "\"Falls flat\":", options: ["Não funciona", "Fica achatado", "É excelente"], answer: 0 },
         { type: "fill_blank", skill: "writing", sentence: "\"In the event that\" → \"___\"", accepted: ["if", "If"] },
         { type: "multiple_choice", skill: "writing", prompt: "Show, don't tell:", options: ["She was tired.", "She rubbed her eyes and yawned for the third time."], answer: 1 },
-        { type: "translate", skill: "writing", prompt: "O filme não correspondeu às expectativas.", accepted: ["The film didn't live up to expectations.", "The film failed to live up to expectations.", "The movie didn't live up to expectations.", "The movie failed to live up to expectations."] },
+        { type: "translate", skill: "writing", prompt: "O filme não correspondeu às expectativas.", accepted: ["The movie didn't live up to expectations.", "The movie failed to live up to expectations.", "The movie didn't live up to expectations.", "The movie failed to live up to expectations."] },
         { type: "word_order", skill: "writing", prompt: "O argumento se baseia num pressuposto frágil.", answer: "The argument rests on a weak assumption." },
         { type: "multiple_choice", skill: "writing", prompt: "BLUF = ", options: ["Bottom Line Up Front", "Big Letter Under Footnote"], answer: 0 },
         { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "For all its flaws, it's a genuinely thought-provoking book.", options: ["Apesar das falhas, é um livro instigante.", "É um livro sem falhas.", "É um livro chato."], answer: 0 },

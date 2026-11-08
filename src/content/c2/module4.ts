@@ -92,7 +92,7 @@ export const c2Module4: Module = {
         { type: "fill_blank", skill: "vocabulary", sentence: "Every cloud has a silver ___.", accepted: ["lining"] },
         { type: "multiple_choice", skill: "vocabulary", prompt: "Alguém diz só \"Well, when in Rome...\" e pede comida local. Está aludindo a:", options: ["Fazer como os locais.", "Viajar para a Itália.", "Pedir pizza."], answer: 0 },
         { type: "translate", skill: "writing", prompt: "Ações falam mais alto que palavras.", accepted: ["Actions speak louder than words."] },
-        { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "The flight was cancelled, but every cloud... I got an extra day in Lisbon.", options: ["Há males que vêm para o bem.", "Ficou chovendo em Lisboa.", "Perdeu a viagem."], answer: 0 },
+        { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "The flight was canceled, but every cloud... I got an extra day in Lisbon.", options: ["Há males que vêm para o bem.", "Ficou chovendo em Lisboa.", "Perdeu a viagem."], answer: 0 },
         { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "That was the last straw.", accepted: ["that was the last straw"] },
       ],
       conversation: {

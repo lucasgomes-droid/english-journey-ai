@@ -29,7 +29,7 @@ export const c1Final: Module = {
         { type: "multiple_choice", skill: "grammar", prompt: "\"It is essential that every member ___ informed.\"", options: ["is", "be", "will be"], answer: 1 },
         { type: "multiple_choice", skill: "grammar", prompt: "Você comprou ingressos e o show era grátis:", options: ["I needn't have bought tickets.", "I didn't need to buy tickets."], answer: 0 },
         { type: "fill_blank", skill: "grammar", sentence: "Is it going to rain? — I hope ___. (que não)", accepted: ["not"] },
-        { type: "multiple_choice", skill: "writing", prompt: "Mais acadêmico:", options: ["We asked loads of people.", "A large sample of participants was surveyed."], answer: 1 },
+        { type: "multiple_choice", skill: "writing", prompt: "Mais acadêmico:", options: ["We asked lots of people.", "A large sample of participants was surveyed."], answer: 1 },
         { type: "multiple_choice", skill: "vocabulary", prompt: "Verbo de relato com distanciamento:", options: ["claims", "demonstrates"], answer: 0 },
         { type: "fill_blank", skill: "writing", sentence: "It is recommended that the system ___ updated.", accepted: ["be"] },
         { type: "multiple_choice", skill: "vocabulary", prompt: "\"That argument doesn't hold water.\"", options: ["Não se sustenta.", "É muito convincente."], answer: 0 },

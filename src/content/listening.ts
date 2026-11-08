@@ -49,14 +49,14 @@ const BASE: ListeningItem[] = [
   {
     id: "l-a1-family", level: "A1", title: "A família da Emma", topic: "Família", kind: "monologue",
     lines: [
-      { speaker: "Emma", text: "Hi, I'm Emma. I'm twenty-five and I live in London with my sister, Kate. Kate is a nurse. My parents live in a small town near the beach. My father is a teacher and my mother is a cook. I have a cat. His name is Max." },
+      { speaker: "Emma", text: "Hi, I'm Emma. I'm twenty-five and I live in New York with my sister, Kate. Kate is a nurse. My parents live in a small town near the beach. My father is a teacher and my mother is a cook. I have a cat. His name is Max." },
     ],
     questions: [
       Q("Com quem Emma mora?", ["Com os pais", "Com a irmã", "Sozinha"], 1),
       Q("Qual é a profissão da Kate?", ["Professora", "Cozinheira", "Enfermeira"], 2),
       Q("Quem é Max?", ["O irmão", "O gato", "O pai"], 1),
     ],
-    dictation: "I live in London with my sister.",
+    dictation: "I live in New York with my sister.",
   },
   {
     id: "l-a1-day", level: "A1", title: "A rotina do Paul", topic: "Rotina", kind: "monologue",
@@ -146,7 +146,7 @@ const BASE: ListeningItem[] = [
   {
     id: "l-b1-city", level: "B1", title: "Moving to a new city", topic: "Experiências", kind: "monologue",
     lines: [
-      { speaker: "Diego", text: "When I moved to Toronto, the hardest thing wasn't the cold, it was making friends. Everyone was polite, but people were busy. So I joined a running club and started volunteering at a food bank on Saturdays. After a few months, I had a group of friends I could really count on. If I had stayed at home every weekend, I would have felt much more lonely." },
+      { speaker: "Diego", text: "When I moved to Chicago, the hardest thing wasn't the cold, it was making friends. Everyone was polite, but people were busy. So I joined a running club and started volunteering at a food bank on Saturdays. After a few months, I had a group of friends I could really count on. If I had stayed at home every weekend, I would have felt much more lonely." },
     ],
     questions: [
       Q("What was the hardest thing for Diego?", ["The weather", "Making friends", "Finding a job"], 1),
@@ -186,14 +186,14 @@ const BASE: ListeningItem[] = [
   {
     id: "l-b2-story", level: "B2", title: "A travel disaster", topic: "Narrativa", kind: "monologue",
     lines: [
-      { speaker: "Nina", text: "By the time we got to the airport, our flight had already been cancelled. Apparently, there had been a storm the night before and the whole schedule was a mess. We'd been planning that trip for months, so we were gutted. The airline put us on a flight the next morning, but we had to spend the night on the airport floor. Looking back, it's actually one of my favourite travel stories." },
+      { speaker: "Nina", text: "By the time we got to the airport, our flight had already been canceled. Apparently, there had been a storm the night before and the whole schedule was a mess. We'd been planning that trip for months, so we were gutted. The airline put us on a flight the next morning, but we had to spend the night on the airport floor. Looking back, it's actually one of my favorite travel stories." },
     ],
     questions: [
-      Q("Why was the flight cancelled?", ["A strike", "A storm the night before", "A technical problem"], 1),
+      Q("Why was the flight canceled?", ["A strike", "A storm the night before", "A technical problem"], 1),
       Q("How did Nina feel at first?", ["Relieved", "Very disappointed", "Indifferent"], 1),
-      Q("How does she feel about it now?", ["She still regrets it", "It's one of her favourite stories", "She never travels anymore"], 1),
+      Q("How does she feel about it now?", ["She still regrets it", "It's one of her favorite stories", "She never travels anymore"], 1),
     ],
-    dictation: "Our flight had already been cancelled.",
+    dictation: "Our flight had already been canceled.",
   },
   // ---------------------------------------------------------------- C1
   {
@@ -242,7 +242,7 @@ const BASE: ListeningItem[] = [
   {
     id: "l-c2-essay", level: "C2", title: "On the value of boredom", topic: "Ensaio", kind: "monologue",
     lines: [
-      { speaker: "Narrator", text: "We have, it seems, declared war on boredom, and we are winning it decisively. Every queue, every commute, every idle minute is now filled before it has the chance to become empty. Yet one might ask whether this victory is entirely to be celebrated. Boredom, for all its discomfort, has long been the soil in which daydreams, and with them a surprising number of ideas, take root. To eradicate it altogether is not merely to lose a few dull moments; it is, perhaps, to forfeit the very conditions under which the mind wanders somewhere new." },
+      { speaker: "Narrator", text: "We have, it seems, declared war on boredom, and we are winning it decisively. Every line, every commute, every idle minute is now filled before it has the chance to become empty. Yet one might ask whether this victory is entirely to be celebrated. Boredom, for all its discomfort, has long been the soil in which daydreams, and with them a surprising number of ideas, take root. To eradicate it altogether is not merely to lose a few dull moments; it is, perhaps, to forfeit the very conditions under which the mind wanders somewhere new." },
     ],
     questions: [
       Q("What is the speaker's stance on 'winning the war on boredom'?", ["Wholehearted approval", "Sceptical: the victory may come at a cost", "Indifference"], 1),

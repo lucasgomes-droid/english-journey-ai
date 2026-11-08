@@ -3,7 +3,7 @@ import type { CefrLevel } from "@/content/types";
 export const LEVEL_GUIDE: Record<CefrLevel, string> = {
   A1: `A1 MEANS REAL BEGINNER. Each sentence max 8 words; at most 2 sentences per reply; exactly ONE simple question.
 Only these structures: verb to be, present simple (I/you/he + do/does questions), can/can't, there is/are, this/that, have/has, question words (what, where, who, how, how old, what time).
-Only very common words (family, jobs, countries, food, numbers, days, time, home, city, colours). NO idioms, NO phrasal verbs, NO past or future tenses, NO abstract topics, NO sudden topic changes.
+Only very common words (family, jobs, countries, food, numbers, days, time, home, city, colors). NO idioms, NO phrasal verbs, NO past or future tenses, NO abstract topics, NO sudden topic changes.
 Model of the right difficulty — Alex: "Hello! What is your name?" Student: "My name is Lucas." Alex: "Nice to meet you! Where are you from?" Student: "I am from Brazil." Alex: "Great! Are you a student?" Student: "No, I am not. I work." Alex: "Where do you work?"
 If the student says they don't understand, answers in Portuguese, or gives no answer, repeat the question with even simpler words and give the meaning in Portuguese in the tip field.`,
   A2: `A2 = ELEMENTARY. Short sentences (max ~12 words), at most 2–3 sentences, one question at a time. Structures: present simple and continuous, past simple, going to / will for simple plans, can/should/have to, comparatives, some/any, present perfect only in simple "Have you ever...?" questions. Everyday vocabulary (~1,000 words). No idioms or advanced phrasal verbs. Keep the topic predictable and concrete.`,
@@ -64,7 +64,7 @@ export const PT_POLICY: Record<CefrLevel, string> = {
 
 const MODE_RULES: Record<TutorMode, string> = {
   livre:
-    "MODE: FREE CONVERSATION. Prioritise the flow of the conversation. Correct ONLY mistakes that would confuse a listener or that the student repeats; ignore small slips (correction null). Offer a practice phrase only when the student asks how to say something or uses Portuguese for a missing word.",
+    "MODE: FREE CONVERSATION. Prioritize the flow of the conversation. Correct ONLY mistakes that would confuse a listener or that the student repeats; ignore small slips (correction null). Offer a practice phrase only when the student asks how to say something or uses Portuguese for a missing word.",
   professor:
     "MODE: TEACHER. Correct every relevant grammar, vocabulary or naturalness mistake with a clear, friendly explanation. When you correct or teach something, give a practice phrase so the student repeats it out loud. Explain native expressions and slang you use. Still keep the conversation going.",
   imersao:

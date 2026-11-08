@@ -16,7 +16,7 @@ export const b2Module8: Module = {
       explanation: [
         {
           title: "What + frase + is/was",
-          body: "Destaca o que importa: **I need a holiday.** → **What I need is a holiday.** · **What annoys me is the noise.** · **What we did was (to) call the police.**",
+          body: "Destaca o que importa: **I need a vacation.** → **What I need is a vacation.** · **What annoys me is the noise.** · **What we did was (to) call the police.**",
         },
         {
           title: "It is/was + X + that/who",
@@ -50,7 +50,7 @@ export const b2Module8: Module = {
         { type: "translate", skill: "writing", prompt: "Tudo que eu quero é paz.", accepted: ["All I want is peace.", "All I want is some peace."] },
         { type: "word_order", skill: "grammar", prompt: "O que me surpreendeu foi o preço.", answer: "What surprised me was the price.", distractors: ["that"] },
         { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "It's not the money that matters, it's the experience.", options: ["Não é o dinheiro que importa, é a experiência.", "O dinheiro é o que mais importa.", "A experiência custa muito dinheiro."], answer: 0 },
-        { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "What I need is a holiday.", accepted: ["what i need is a holiday"] },
+        { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "What I need is a vacation.", accepted: ["what i need is a vacation"] },
       ],
       conversation: {
         goal: "Fale do que você mais ama e do que mais te irrita no seu trabalho ou cidade usando frases clivadas.",
@@ -203,7 +203,7 @@ export const b2Module8: Module = {
       exercises: [
         { type: "multiple_choice", skill: "writing", prompt: "Versão formal de \"We need more money\":", options: ["We need more cash.", "Additional funding is required.", "We want more money, OK?"], answer: 1 },
         { type: "match_pairs", skill: "vocabulary", prompt: "Ligue informal → formal.", pairs: [["buy", "purchase"], ["help", "assist"], ["get", "obtain"], ["start", "commence"]] },
-        { type: "fill_blank", skill: "writing", sentence: "We ___ for any inconvenience caused. (formal de 'sorry')", accepted: ["apologize", "apologise"] },
+        { type: "fill_blank", skill: "writing", sentence: "We ___ for any inconvenience caused. (formal de 'sorry')", accepted: ["apologize", "apologize"] },
         { type: "multiple_choice", skill: "writing", prompt: "Qual é adequada para uma mensagem a um amigo?", options: ["I am writing to inquire about your availability.", "Hey, are you free on Saturday?"], answer: 1 },
         { type: "translate", skill: "writing", prompt: "São necessárias mais informações. (formal)", accepted: ["Further information is required.", "More information is required.", "Additional information is required."] },
         { type: "word_order", skill: "writing", prompt: "Você poderia me auxiliar?", answer: "Would you be able to assist me?", distractors: ["help"] },
@@ -226,7 +226,7 @@ export const b2Module8: Module = {
       examples: [],
       exercises: [
         { type: "fill_blank", skill: "grammar", sentence: "___ I really need is more time.", accepted: ["What", "All"] },
-        { type: "multiple_choice", skill: "grammar", prompt: "Escolha a correta.", options: ["Rarely we go to the cinema.", "Rarely do we go to the cinema.", "Rarely go we to the cinema."], answer: 1 },
+        { type: "multiple_choice", skill: "grammar", prompt: "Escolha a correta.", options: ["Rarely we go to the movies.", "Rarely do we go to the movies.", "Rarely go we to the movies."], answer: 1 },
         { type: "fill_blank", skill: "grammar", sentence: "It wasn't ___ I left that I realized my mistake.", accepted: ["until"] },
         { type: "fill_blank", skill: "grammar", sentence: "Having ___ (read) the contract, she signed it.", accepted: ["read"] },
         { type: "multiple_choice", skill: "writing", prompt: "Formal de \"buy\":", options: ["purchase", "grab", "get"], answer: 0 },

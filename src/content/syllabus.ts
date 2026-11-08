@@ -165,7 +165,7 @@ export const SYLLABUS: SyllabusLevel[] = [
         L("Unless, in case, as long as", "conjunções condicionais", "segurança e planejamento", "usar condições variadas"),
       ]},
       { title: "Opiniões", lessons: [
-        L("Dando opinião", "I reckon / in my view / as far as I'm concerned", "temas do cotidiano", "defender um ponto de vista"),
+        L("Dando opinião", "I guess / in my view / as far as I'm concerned", "temas do cotidiano", "defender um ponto de vista"),
         L("Concordar e discordar", "I see your point, but...", "debates", "discordar com educação"),
         L("Modais de dedução", "must / might / can't have", "mistérios", "fazer deduções"),
         L("Linguagem vaga e hesitação", "kind of / sort of / I mean", "conversa natural", "soar natural ao falar"),

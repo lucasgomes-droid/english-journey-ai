@@ -26,7 +26,7 @@ export async function buildTutorMemory(supabase: SupabaseClient, uid: string): P
     for (const w of words) missed.set(w.word, (missed.get(w.word) ?? 0) + 1);
   }
   const hard = [...missed.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([w]) => w);
-  if (hard.length) lines.push(`- Words that did not come out right when repeating: ${hard.join(", ")}. Use some of them naturally so the student practises.`);
+  if (hard.length) lines.push(`- Words that did not come out right when repeating: ${hard.join(", ")}. Use some of them naturally so the student practices.`);
   const learned = (phrases.data ?? []).map((p) => p.en as string);
   if (learned.length) lines.push(`- Expressions learned recently (create chances to reuse): ${learned.join(" | ")}`);
   const rep = lastReport.data?.report as { suggestion_pt?: string } | null;

@@ -97,7 +97,7 @@ export const b2Module6: Module = {
         { type: "multiple_choice", skill: "grammar", prompt: "Escolha a correta.", options: ["It is reported that the minister has resigned.", "It reports that the minister has resigned.", "The minister is reported resign."], answer: 0 },
         { type: "translate", skill: "writing", prompt: "Dizem que o hotel é assombrado.", accepted: ["The hotel is said to be haunted.", "It is said that the hotel is haunted.", "It's said that the hotel is haunted."] },
         { type: "word_order", skill: "grammar", prompt: "Estima-se que o projeto custará um bilhão.", answer: "It is estimated that the project will cost a billion.", distractors: ["estimates"] },
-        { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "The singer is reported to have cancelled the rest of the tour.", options: ["Segundo relatos, a cantora cancelou o resto da turnê.", "A cantora confirmou novos shows.", "A turnê começa amanhã."], answer: 0 },
+        { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "The singer is reported to have canceled the rest of the tour.", options: ["Segundo relatos, a cantora cancelou o resto da turnê.", "A cantora confirmou novos shows.", "A turnê começa amanhã."], answer: 0 },
         { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "It is believed to be true.", accepted: ["it is believed to be true"] },
       ],
       conversation: {
@@ -134,7 +134,7 @@ export const b2Module6: Module = {
       examples: [
         { en: "That headline is misleading. The study says something different.", pt: "Essa manchete é enganosa. O estudo diz outra coisa." },
         { en: "It's highly unlikely that a lemon cures cancer.", pt: "É muito improvável que limão cure câncer." },
-        { en: "Before you share it, fact-check it.", pt: "Antes de compartilhar, cheque os fatos." },
+        { en: "Before you share it, fact-check it.", pt: "Antes de compartilhar, check os fatos." },
       ],
       exercises: [
         { type: "multiple_choice", skill: "vocabulary", prompt: "\"Biased\" significa:", options: ["Tendencioso", "Confiável", "Engraçado"], answer: 0 },

@@ -149,7 +149,7 @@ export const b1Module4: Module = {
         { type: "fill_blank", skill: "writing", sentence: "Please do not ___ to contact me if you have any questions.", accepted: ["hesitate"] },
         { type: "fill_blank", skill: "writing", sentence: "I'm writing in ___ to your job advertisement.", accepted: ["regard", "reference", "response"] },
         { type: "multiple_choice", skill: "writing", prompt: "Melhor assunto de e-mail:", options: ["Hello", "Problem!!!", "Request: correction of invoice 4521"], answer: 2 },
-        { type: "translate", skill: "writing", prompt: "Pedimos desculpas pelo transtorno.", accepted: ["We apologize for the inconvenience.", "We apologise for the inconvenience.", "Sorry for the inconvenience.", "We are sorry for the inconvenience."] },
+        { type: "translate", skill: "writing", prompt: "Pedimos desculpas pelo transtorno.", accepted: ["We apologize for the inconvenience.", "We apologize for the inconvenience.", "Sorry for the inconvenience.", "We are sorry for the inconvenience."] },
         { type: "word_order", skill: "writing", prompt: "Aguardo sua resposta.", answer: "I look forward to your reply.", distractors: ["wait"] },
         { type: "listening", skill: "listening", prompt: "Ouça e escolha o tom.", audio: "Further to our phone call, I'm attaching the updated contract.", options: ["Formal: dando sequência à ligação, envia o contrato atualizado.", "Informal: está reclamando do contrato.", "Está cancelando o contrato."], answer: 0 },
         { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "Kind regards.", accepted: ["kind regards"] },

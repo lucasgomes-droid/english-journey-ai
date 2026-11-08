@@ -96,7 +96,7 @@ export const b1Module2: Module = {
         { type: "fill_blank", skill: "grammar", sentence: "I wish I ___ (live) closer to work.", accepted: ["lived"] },
         { type: "fill_blank", skill: "grammar", sentence: "I wish I ___ play the guitar. (soubesse/pudesse)", accepted: ["could"] },
         { type: "multiple_choice", skill: "grammar", prompt: "\"Queria que você parasse de reclamar.\"", options: ["I wish you stop complaining.", "I wish you would stop complaining.", "I wish you will stop complaining."], answer: 1 },
-        { type: "multiple_choice", skill: "grammar", prompt: "Escolha a correta.", options: ["I wish I am on holiday.", "I wish I were on holiday.", "I wish I will be on holiday."], answer: 1 },
+        { type: "multiple_choice", skill: "grammar", prompt: "Escolha a correta.", options: ["I wish I am on vacation.", "I wish I were on vacation.", "I wish I will be on vacation."], answer: 1 },
         { type: "translate", skill: "writing", prompt: "Queria ter mais tempo livre.", accepted: ["I wish I had more spare time.", "I wish I had more free time."] },
         { type: "word_order", skill: "grammar", prompt: "Se ao menos eu soubesse a resposta!", answer: "If only I knew the answer!", distractors: ["know"] },
         { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "I wish it wasn't raining. I wanted to go to the beach.", options: ["Queria que não estivesse chovendo.", "Adoro quando chove.", "Fui à praia na chuva."], answer: 0 },

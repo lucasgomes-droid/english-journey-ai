@@ -153,7 +153,7 @@ export async function POST(req: Request) {
   }
   // Preferência "só inglês": explicações em inglês simples (sem entregar o português).
   if (profile.show_translation === false && tutorMode !== "imersao")
-    system += `\nLANGUAGE PREFERENCE: the student chose to practise in English only. Write "explanation_pt" and "tip_pt" in very simple English (A2-level words) instead of Portuguese, unless the student writes in Portuguese.`;
+    system += `\nLANGUAGE PREFERENCE: the student chose to practice in English only. Write "explanation_pt" and "tip_pt" in very simple English (A2-level words) instead of Portuguese, unless the student writes in Portuguese.`;
   const messages: ChatMessage[] = [{ role: "system", content: system }, ...history, { role: "user", content: message }];
 
   let reply;

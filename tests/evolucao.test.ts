@@ -3,7 +3,11 @@ import { wordStatus, wordPriority } from "@/lib/vocab-status";
 import { weeklyCounts } from "@/lib/week-buckets";
 import { skillLevel } from "@/lib/mastery";
 import { BUILD_SITUATIONS, buildFor } from "@/content/build-situations";
-import { LEVEL_ORDER } from "@/content/curriculum";
+import { LEVEL_ORDER, EVERY_LESSON } from "@/content/curriculum";
+import { LISTENING } from "@/content/listening";
+import { READINGS } from "@/content/readings";
+import { SCENARIOS } from "@/content/scenarios";
+import { withUsEnglish } from "@/lib/us-english";
 
 const NOW = Date.parse("2026-11-08T12:00:00Z");
 const h = (
@@ -122,5 +126,29 @@ describe("construir frases", () => {
   it("A1 usa frases curtas", () => {
     for (const s of buildFor("A1"))
       expect(s.model.split(/\s+/).length).toBeLessThanOrEqual(14);
+  });
+});
+
+describe("só inglês americano", () => {
+  const BRIT = /\b(surname|neighbour|colour|favourite|centre|organis(e|ed|ing)|realis(e|ed)|apologis(e|ed)|travelled|cancelled|learnt|holidays? (?!together)|on holiday|mobile phone|motorway|rubbish|trousers|queue|at the weekend|the cinema)\b/i;
+  it("áudios sem sotaque britânico/australiano e sem grafia britânica", () => {
+    for (const l of LISTENING) for (const line of l.lines) {
+      expect(line.accent ?? "us").toBe("us");
+      expect(line.text).not.toMatch(BRIT);
+    }
+  });
+  it("leituras, cenários e exemplos das aulas em inglês americano (exceto a aula que compara UK × US)", () => {
+    for (const r of READINGS) expect(r.text).not.toMatch(BRIT);
+    for (const s of SCENARIOS) expect(`${s.setting} ${s.opener}`).not.toMatch(BRIT);
+    for (const l of EVERY_LESSON) {
+      if (l.title.includes("britânico") || l.id === "c1-m7-l4") continue;
+      for (const e of l.examples) if (!/\(UK\)/.test(e.en)) expect(e.en).not.toMatch(BRIT);
+    }
+  });
+  it("toda chamada à IA leva a regra do inglês americano", () => {
+    const m = withUsEnglish([{ role: "system", content: "You are a teacher." }, { role: "user", content: "hi" }]);
+    expect(m[0].content).toMatch(/American English/);
+    expect(m).toHaveLength(2);
+    expect(withUsEnglish([{ role: "user", content: "hi" }])[0].role).toBe("system");
   });
 });

@@ -117,7 +117,7 @@ export const a2Module6: Module = {
       explanation: [
         {
           title: "Estrutura",
-          body: "Abertura → motivo → pedido → despedida. Formal: **Dear Mr. Smith,** / **I'm writing to ask about...** / **Could you please...?** / **I look forward to hearing from you.** / **Best regards,** Informal: **Hi Tom,** / **Just a quick note to...** / **Thanks!** / **Cheers,**",
+          body: "Abertura → motivo → pedido → despedida. Formal: **Dear Mr. Smith,** / **I'm writing to ask about...** / **Could you please...?** / **I look forward to hearing from you.** / **Best regards,** Informal: **Hi Tom,** / **Just a quick note to...** / **Thanks!** / **Best,**",
         },
         {
           title: "Frases úteis",

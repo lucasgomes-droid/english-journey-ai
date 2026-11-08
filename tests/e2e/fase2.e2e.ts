@@ -51,7 +51,7 @@ let current: Page | null = null;
     await page.getByRole("radio", { name: "B1" }).click();
     await page.screenshot({ path: `${SHOTS}/f2-cenarios-${vp.name}.png`, fullPage: true });
     await page.getByRole("link", { name: /Em um café/ }).click();
-    await page.getByText("Você entrou numa cafeteria em Londres").waitFor();
+    await page.getByText("Você entrou numa cafeteria em Nova York").waitFor();
     await page.getByText(/Neste nível:/).waitFor();
     await page.getByRole("img", { name: "Ambiente: Cafeteria" }).first().waitFor();
     for (const msg of ["Hi! I want a coffee, please.", "A large latte with oat milk. How much is it?"]) {

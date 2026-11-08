@@ -208,7 +208,7 @@ export const b2Module5: Module = {
         { type: "fill_blank", skill: "vocabulary", sentence: "A good joke can help break the ___ at a meeting.", accepted: ["ice"] },
         { type: "fill_blank", skill: "vocabulary", sentence: "I've made my offer. The ball is in your ___.", accepted: ["court"] },
         { type: "translate", skill: "writing", prompt: "Estou meio doente hoje.", accepted: ["I'm a bit under the weather today.", "I'm feeling under the weather today.", "I'm under the weather today.", "I am a bit under the weather today."] },
-        { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "I only go to the cinema once in a blue moon.", options: ["Vai ao cinema muito raramente.", "Vai toda semana.", "Vai em noites de lua cheia."], answer: 0 },
+        { type: "listening", skill: "listening", prompt: "Ouça e escolha.", audio: "I only go to the movies once in a blue moon.", options: ["Vai ao cinema muito raramente.", "Vai toda semana.", "Vai em noites de lua cheia."], answer: 0 },
         { type: "listening", skill: "listening", prompt: "Escreva o que você ouviu.", audio: "It was a piece of cake.", accepted: ["it was a piece of cake"] },
       ],
       conversation: {

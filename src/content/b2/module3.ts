@@ -104,7 +104,7 @@ export const b2Module3: Module = {
       ],
       exercises: [
         { type: "multiple_choice", skill: "grammar", prompt: "Escolha a correta.", options: ["Despite it was late, we continued.", "Despite the late hour, we continued.", "Despite of the late hour, we continued."], answer: 1 },
-        { type: "fill_blank", skill: "grammar", sentence: "The flight was cancelled ___ to bad weather.", accepted: ["due", "owing"] },
+        { type: "fill_blank", skill: "grammar", sentence: "The flight was canceled ___ to bad weather.", accepted: ["due", "owing"] },
         { type: "fill_blank", skill: "grammar", sentence: "In spite ___ feeling sick, she went to work.", accepted: ["of"] },
         { type: "multiple_choice", skill: "grammar", prompt: "\"He is very talented. ___, he lacks discipline.\"", options: ["Moreover", "Nevertheless", "Therefore"], answer: 1 },
         { type: "multiple_choice", skill: "grammar", prompt: "\"The company invested in training. ___, productivity rose.\"", options: ["As a result", "Whereas", "Despite"], answer: 0 },
