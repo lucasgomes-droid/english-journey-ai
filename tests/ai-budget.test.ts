@@ -80,3 +80,15 @@ describe("conversa da aula", async () => {
     expect(parseTalkReview({ score: "abc" })).toBeNull();
   });
 });
+
+describe("recuperação de 'tool_use_failed' (gpt-oss no Groq)", async () => {
+  const { salvageToolCall } = await import("@/lib/ai");
+  it("aproveita o JSON que veio dentro da chamada de ferramenta", () => {
+    const body = JSON.stringify({ error: { message: "Tool choice is none, but model called a tool", code: "tool_use_failed", failed_generation: '{"name": "assistant", "arguments": {"reply": "Hi! What\'s your name?", "correction": null}}' } });
+    expect(JSON.parse(salvageToolCall(body)!)).toEqual({ reply: "Hi! What's your name?", correction: null });
+  });
+  it("sem resposta aproveitável → null (o servidor tenta de novo / outro modelo)", () => {
+    expect(salvageToolCall(JSON.stringify({ error: { code: "tool_use_failed", failed_generation: '{"name": "search", "arguments": {"q": "x"}}' } }))).toBeNull();
+    expect(salvageToolCall("not json")).toBeNull();
+  });
+});

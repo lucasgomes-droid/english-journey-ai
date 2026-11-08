@@ -270,6 +270,10 @@ export function useVoice() {
           return;
         }
       }
+      // Alguns Android avisam o fim da fala antes de terminar: espera o aparelho ficar em silêncio de verdade,
+      // senão a próxima fala (ex.: o inglês depois do "A forma correta é:") corta o final desta.
+      const until = Date.now() + 8000;
+      while (synth.speaking && my === token.current && Date.now() < until) await new Promise((r) => setTimeout(r, 120));
       setAudioIssue(null);
     },
     [],

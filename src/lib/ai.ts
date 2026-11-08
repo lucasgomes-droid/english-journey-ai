@@ -94,12 +94,29 @@ async function completeWith(model: string, messages: ChatMessage[], opts: ChatOp
     const body = await res.clone().text();
     if (/response_format|json/i.test(body)) res = await call(false);
   }
+  // gpt-oss às vezes "chama uma ferramenta" em vez de responder (Groq devolve 400 tool_use_failed).
+  // O texto gerado vem em failed_generation: aproveitamos se já for o JSON esperado; senão, tentamos de novo.
+  if (res.status === 400) {
+    const body = await res.clone().text().catch(() => "");
+    if (/tool_use_failed|failed_generation/.test(body)) {
+      const salvaged = salvageToolCall(body);
+      if (salvaged) return salvaged;
+      res = await call(false);
+      if (!res.ok) {
+        const again = await res.clone().text().catch(() => "");
+        const second = /tool_use_failed|failed_generation/.test(again) ? salvageToolCall(again) : null;
+        if (second) return second;
+        // 503 faz o chatCompletion tentar o outro modelo.
+        if (/tool_use_failed/.test(again)) throw new AiError("A IA se confundiu ao responder. Tente de novo.", 503);
+      }
+    }
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     if (res.status === 401) throw new AiError("A chave da API de IA foi recusada (401). Confira AI_API_KEY.", 502);
     if (res.status === 429) throw new AiError("Limite de uso da API de IA atingido. Aguarde um pouco e tente de novo.", 429);
     if (res.status === 503) throw new AiError("A IA está sobrecarregada agora. Tente de novo em instantes.", 503);
-    if (res.status === 404 || /model/i.test(body)) throw new AiError(`Modelo de IA indisponível (${model}). Ajuste AI_MODEL/AI_CHAT_MODEL. Detalhe: ${body.slice(0, 160)}`, 502);
+    if (res.status === 404 || /model_not_found|model_decommissioned|does not exist/i.test(body)) throw new AiError(`Modelo de IA indisponível (${model}). Ajuste AI_MODEL/AI_CHAT_MODEL. Detalhe: ${body.slice(0, 160)}`, 502);
     throw new AiError(`A API de IA respondeu com erro ${res.status}. ${body.slice(0, 200)}`, 502);
   }
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[]; usage?: { total_tokens?: number } };
@@ -129,4 +146,24 @@ export async function transcribe(file: Blob, filename: string, prompt?: string) 
   }
   const data = (await res.json()) as { text?: string };
   return (data.text ?? "").trim();
+}
+
+/**
+ * Recupera a resposta quando o modelo a embrulhou numa "chamada de ferramenta":
+ * failed_generation costuma trazer {"name": "...", "arguments": {...nosso JSON...}}.
+ */
+export function salvageToolCall(body: string): string | null {
+  try {
+    const gen = (JSON.parse(body) as { error?: { failed_generation?: string } }).error?.failed_generation;
+    if (!gen) return null;
+    const start = gen.indexOf("{");
+    const end = gen.lastIndexOf("}");
+    if (start < 0 || end <= start) return null;
+    const obj = JSON.parse(gen.slice(start, end + 1)) as Record<string, unknown>;
+    const args = typeof obj.arguments === "string" ? JSON.parse(obj.arguments) : obj.arguments ?? obj.parameters;
+    const out = args && typeof args === "object" ? (args as Record<string, unknown>) : obj;
+    return typeof out.reply === "string" || typeof out.score === "number" ? JSON.stringify(out) : null;
+  } catch {
+    return null;
+  }
 }

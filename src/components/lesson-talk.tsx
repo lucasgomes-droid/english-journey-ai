@@ -102,9 +102,27 @@ export function LessonTalk({ lessonId }: { lessonId: string }) {
     }
   }
 
-  async function afterFix() {
+  /**
+   * Depois da correção: se você repetiu certo, o histórico passa a ter a frase certa e o Alex responde de novo
+   * a partir dela (a conversa anda para a frente, sem repetir a mesma pergunta).
+   */
+  async function afterFix(good = false) {
     const p = pending.current;
     pending.current = null;
+    if (good && fix) {
+      const last = turnsRef.current.length - 1;
+      if (turnsRef.current[last]?.role === "user") {
+        turnsRef.current = [...turnsRef.current.slice(0, last), { role: "user", content: fix.corrected }];
+        setTurns(turnsRef.current);
+      }
+      set("thinking");
+      try {
+        const d = await call();
+        return teacherSays(d.reply, d.done);
+      } catch {
+        /* sem resposta nova: usa a que já veio */
+      }
+    }
     if (p) await teacherSays(p.reply, p.done);
   }
 
@@ -126,6 +144,7 @@ export function LessonTalk({ lessonId }: { lessonId: string }) {
           await voice.speak("Mais um exemplo:", { lang: "pt" });
           await voice.speak(f.example);
         }
+        return afterFix(true);
       } else if (tries.current < 2) {
         await voice.speak("Quase! Escuta de novo:", { lang: "pt" });
         await voice.speak(f.corrected);

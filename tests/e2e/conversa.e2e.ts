@@ -20,6 +20,16 @@ let current: Page | null = null;
     args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", "--use-file-for-fake-audio-capture=/var/tmp/sb/fake-mic.wav", "--autoplay-policy=no-user-gesture-required"],
   });
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ["microphone"] });
+  // Conta quantos áudios o app tocou (inclusive os que vêm do cache do aparelho).
+  await ctx.addInitScript(() => {
+    const w = window as unknown as { __plays: string[] };
+    w.__plays = [];
+    const orig = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      w.__plays.push(this.src);
+      return orig.call(this);
+    };
+  });
   const page = await ctx.newPage();
   current = page;
   page.on("pageerror", (e) => console.error("ERRO NA PÁGINA:", e.message));
@@ -79,12 +89,28 @@ let current: Page | null = null;
   if (await page.getByText("That sounds interesting!").count()) throw new Error("o professor seguiu a conversa antes da nova tentativa");
   await page.screenshot({ path: `${SHOTS}/conversa-corrigir-na-hora.png` });
   writeFileSync(STT, "I'm 30 years old");
+  const ttsCalls: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().endsWith("/api/tts")) ttsCalls.push(r.postData() ?? "");
+  });
   await answer("Repetir a frase", "Enviar a repetição");
   await page.getByText("✓ Você repetiu certo.").waitFor({ timeout: 40000 });
   await page.getByText("Outro exemplo:").first().waitFor();
   await page.getByText("My sister is 25 years old.").first().waitFor();
   await page.getByText("That sounds interesting!").first().waitFor({ timeout: 40000 });
+  await page.waitForTimeout(2500);
+  const spoken = ttsCalls.filter((b) => b.includes("That sounds interesting")).length;
+  if (spoken < 1) throw new Error(`a resposta do professor não foi falada sozinha (${spoken} trechos de voz)`);
   console.log("✓ correção na hora: 'a forma correta é…', tenta de novo, confere e só então o professor continua");
+
+  // Resposta comum (sem correção nem abertura em português): o professor fala sozinho, sem precisar tocar na mensagem.
+  writeFileSync(STT, "I like my job a lot");
+  const before = await page.evaluate(() => (window as unknown as { __plays: string[] }).__plays.length);
+  await answer("Responder falando", "Enviar minha resposta");
+  await page.getByText("Sua vez · toque para responder").waitFor({ timeout: 40000 });
+  const after = await page.evaluate(() => (window as unknown as { __plays: string[] }).__plays.length);
+  if (after <= before) throw new Error("a resposta do professor não foi falada automaticamente");
+  console.log("✓ resposta comum do professor é falada automaticamente");
   rmSync(STT, { force: true });
   await page.getByRole("button", { name: "Encerrar e ver relatório" }).click();
   const sheet = page.getByRole("dialog", { name: "Relatório da conversa" });

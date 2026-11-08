@@ -4,13 +4,18 @@
  * o resultado conta para o domínio. Depois do teste do módulo, aparece a missão do módulo.
  * Uso (ambiente local com IA simulada): npx tsx tests/e2e/conversa-aula.e2e.ts
  */
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 import { ALL_LESSONS } from "../../src/content/curriculum";
 import { BASE, doLesson, signup, sql, uid } from "./helpers";
 
 (async () => {
-  const browser = await chromium.launch({ args: ["--autoplay-policy=no-user-gesture-required"] });
-  const page = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+  const STT = "/var/tmp/sb/stt-text";
+  rmSync(STT, { force: true });
+  const browser = await chromium.launch({
+    args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", "--use-file-for-fake-audio-capture=/var/tmp/sb/fake-mic.wav", "--autoplay-policy=no-user-gesture-required"],
+  });
+  const page = await (await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ["microphone"] })).newPage();
   await page.addInitScript(() => localStorage.setItem("ej-speak-mode", "0"));
   page.on("pageerror", (e) => console.error("ERRO NA PÁGINA:", e.message));
   const email = await signup(page, "talk");
@@ -31,8 +36,18 @@ import { BASE, doLesson, signup, sql, uid } from "./helpers";
   await reply("I has 30 years");
   await card.getByText("Com I usamos have.").waitFor({ timeout: 30000 });
   await card.getByText("Tente de novo · toque no microfone").waitFor({ timeout: 30000 });
-  await card.getByRole("button", { name: "pular" }).click();
-  console.log("✓ conversa da aula: o Alex pergunta sobre o tema e corrige na hora (forma certa + tentar de novo)");
+  // Repete certo → a conversa anda: o histórico enviado ao Alex passa a ter a frase corrigida.
+  writeFileSync(STT, "I have");
+  writeFileSync("/var/tmp/sb/mockai.log", "");
+  await card.getByRole("button", { name: "Tentar de novo" }).click();
+  await page.waitForTimeout(1200);
+  await card.getByRole("button", { name: "Enviar" }).click();
+  await card.getByText("✓ Você repetiu certo.").waitFor({ timeout: 30000 });
+  await card.getByText("Sua vez · toque no microfone para responder").waitFor({ timeout: 30000 });
+  rmSync(STT, { force: true });
+  const lastTalk = readFileSync("/var/tmp/sb/mockai.log", "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((l) => l.kind === "chat").at(-1);
+  if (lastTalk?.last !== "I have") throw new Error(`depois de acertar, o Alex deveria responder à frase corrigida; recebeu: ${lastTalk?.last}`);
+  console.log("✓ conversa da aula: corrige na hora; ao repetir certo, a conversa segue a partir da frase correta (sem repetir a pergunta)");
   await reply("I'm from Brazil.");
   await reply("I live in São Paulo.");
   await card.getByText("Você usou a aula numa conversa!").waitFor({ timeout: 40000 });

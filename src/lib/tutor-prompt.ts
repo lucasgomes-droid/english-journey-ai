@@ -21,6 +21,9 @@ export const INTENSITY_RULE: Record<CorrectionIntensity, string> = {
   intensa: "CORRECTION INTENSITY: INTENSIVE. Correct every mistake in the student's last message, including small ones (articles, prepositions, word order, unnatural phrasing). Still never invent mistakes.",
 };
 
+/** A resposta segue a conversa; a correção vai só no campo "correction" (senão o professor "trava" repetindo). */
+export const FORWARD_RULE = `- "reply" continues the conversation (react to the content, then a new question or comment). Never repeat or rephrase the corrected sentence in "reply" and never ask the same question again: the "correction" field already handles mistakes.`;
+
 const FACTS_RULE = `- MEMORY: if the student's LAST message reveals a NEW personal fact worth remembering for future conversations (their work, interests, goals, family, where they live, routine, preferences), add it to "learner_facts" as a short English phrase in third person (e.g. {"kind":"work","value":"works in a warehouse in logistics"}). Otherwise "learner_facts": []. Never store sensitive data (health, religion, politics, documents, addresses, phone numbers).`;
 const FACTS_JSON = `"learner_facts": [] or [{"kind": "work" | "interest" | "goal" | "family" | "place" | "routine" | "preference", "value": "short fact"}]`;
 export interface TutorContext {
@@ -87,6 +90,7 @@ Student CEFR level: ${ctx.level}. ${LEVEL_GUIDE[ctx.level]}
 ${ctx.learningGoal ? `The student is learning English for: ${ctx.learningGoal}.` : ""}
 ${MODE_RULES[ctx.tutorMode]}
 ${INTENSITY_RULE[ctx.correctionIntensity ?? "normal"]}
+${FORWARD_RULE}
 ${FACTS_RULE}
 ${ctx.tutorMode === "imersao" ? "" : `LANGUAGE: you understand Portuguese and English and the student may mix both, even in the same sentence. ${PT_POLICY[ctx.level]}`}
 
@@ -207,6 +211,7 @@ ${ctx.challenges?.length
 - Correct mistakes ONLY in the student's LAST message (grammar, vocabulary, unnatural phrasing). Ignore capitalization and missing final punctuation. If it is correct and natural, correction must be null. Explanations are in Brazilian Portuguese, short and friendly.
 ${ctx.recentMistakes.length ? `- The student often struggles with: ${ctx.recentMistakes.slice(0, 4).join(" | ")}. Create natural chances to practice these.` : ""}
 - ${INTENSITY_RULE[ctx.correctionIntensity ?? "normal"]}
+${FORWARD_RULE}
 
 Respond ONLY with a JSON object, no markdown:
 {"reply": "what ${ctx.characterName} says, in English",

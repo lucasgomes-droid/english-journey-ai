@@ -189,8 +189,9 @@ export function VoiceTutor({
   async function reply(a: TutorMsg) {
     setPractice(practiceOf(a));
     repeatTries.current = 0;
+    // Sem abertura em português, fala direto em inglês. Com abertura, só segue se o aluno não interrompeu.
     if (a.intro) await say(a.intro, "pt");
-    if (statusRef.current === "speaking") await say(a.content);
+    if (!a.intro || statusRef.current === "speaking") await say(a.content);
     yourTurn();
   }
 
