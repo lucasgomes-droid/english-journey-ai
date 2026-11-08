@@ -27,7 +27,7 @@ export default async function AssessmentsPage() {
       <header>
         <h1 className="font-display text-3xl font-bold">Avaliações</h1>
         <p className="mt-2 max-w-2xl text-muted">
-          Cada módulo termina com uma avaliação (70%) e cada nível com uma prova em três partes: escrita (Reading, Writing e Listening, 75%), Speaking (60%) e
+          Cada unidade termina com uma avaliação (70%) e cada nível com uma prova em três partes: escrita (Reading, Writing e Listening, 75%), Speaking (60%) e
           Conversation (60%). Se não passar, você recebe um plano de recuperação e refaz depois de praticar.
         </p>
       </header>
@@ -58,7 +58,7 @@ export default async function AssessmentsPage() {
               ) : null}
             </div>
 
-            <h3 className="mt-4 text-sm font-bold text-muted">Avaliações dos módulos</h3>
+            <h3 className="mt-4 text-sm font-bold text-muted">Avaliações das unidades</h3>
             <ul className="mt-2 grid gap-2 sm:grid-cols-2">
               {tests.map(({ l, m }) => {
                 const score = best.get(l.id);

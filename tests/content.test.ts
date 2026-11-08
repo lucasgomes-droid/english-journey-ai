@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ALL_LESSONS, ALL_MODULES, EVERY_LESSON, isLessonUnlocked, nextLessonFor } from "@/content/curriculum";
+import { ALL_LESSONS, ALL_MODULES, EVERY_LESSON, LEVELS, isLessonUnlocked, nextLessonFor } from "@/content/curriculum";
 import { SCENARIOS, getScenario } from "@/content/scenarios";
 import { MINI_LESSONS } from "@/content/mini";
 import { gradeExercise, orderTokens } from "@/lib/grading";
@@ -71,11 +71,12 @@ describe("integridade do conteúdo A1", () => {
     expect(isLessonUnlocked(second, new Set([first]))).toBe(true);
     expect(nextLessonFor(new Set([first]))?.id).toBe(second);
     // Quem começa no A2 (nivelamento) tem o A1 aberto e a trilha começa no A2.
-    expect(isLessonUnlocked("a2-m1-l1", new Set(), "A2")).toBe(true);
-    expect(isLessonUnlocked("a2-m1-l2", new Set(), "A2")).toBe(false);
+    // O A2 começa pelo passado simples (antigo "Ontem", que saiu do A1).
+    expect(isLessonUnlocked("a1-m8-l1", new Set(), "A2")).toBe(true);
+    expect(isLessonUnlocked("a1-m8-l2", new Set(), "A2")).toBe(false);
     expect(isLessonUnlocked("a1-m3-l2", new Set(), "A2")).toBe(true);
-    expect(nextLessonFor(new Set(), "A2")?.id).toBe("a2-m1-l1");
-    expect(isLessonUnlocked("a2-m1-l1", new Set(), "A1")).toBe(false);
+    expect(nextLessonFor(new Set(), "A2")?.id).toBe("a1-m8-l1");
+    expect(isLessonUnlocked("a1-m8-l1", new Set(), "A1")).toBe(false);
   });
   it("o nível seguinte só abre com a prova de nível (subir current_level), nunca só pelo teste final", () => {
     const a1 = ALL_LESSONS.filter((l) => l.id.startsWith("a1-")).map((l) => l.id);
@@ -219,3 +220,27 @@ describe("A1 de verdade nas situações", async () => {
     }
   });
 });
+
+describe("A1 em 8 unidades (projeto de evolução)", () => {
+  it("ordem pedagógica: começa pelo alfabeto, sem passado no A1, termina na consolidação", () => {
+    const a1 = LEVELS[0].modules;
+    expect(a1.map((m) => m.title)).toEqual(["Primeiros passos", "Informações pessoais", "Vida cotidiana", "Pessoas e objetos", "Situações reais", "Lugares e deslocamentos", "Experiências básicas", "Consolidação"]);
+    expect(a1[0].lessons[0].title).toBe("Alfabeto e soletrar");
+    const a1Lessons = a1.flatMap((m) => m.lessons);
+    expect(a1Lessons.some((l) => /passado|was e were/i.test(l.title))).toBe(false);
+    expect(LEVELS[1].modules[0].title).toBe("Passado simples: ontem");
+    // Nenhuma aula some: todas as antigas continuam com o mesmo ID.
+    for (const id of ["a1-m1-l1", "a1-m4-l1", "a1-m6-l4", "a1-m7-l2", "a1-m8-l4", "a1-final-test"]) expect(ALL_LESSONS.some((l) => l.id === id), id).toBe(true);
+  });
+  it("avaliação de cada unidade usa exercícios das aulas da própria unidade + leitura", () => {
+    for (const m of LEVELS[0].modules.slice(0, 7)) {
+      const test = m.lessons.find((l) => l.kind === "test")!;
+      const own = new Set(m.lessons.filter((l) => l.kind === "lesson").flatMap((l) => l.exercises.map((e) => JSON.stringify({ ...e, id: "" }))));
+      const unitEx = test.exercises.filter((e) => e.id.includes("-u"));
+      expect(unitEx.length, m.id).toBeGreaterThanOrEqual(8);
+      for (const e of unitEx) expect(own.has(JSON.stringify({ ...e, id: "" })), e.id).toBe(true);
+      expect(test.exercises.filter((e) => e.skill === "reading" && e.id.includes("-r")).length, m.id).toBe(3);
+    }
+  });
+});
+

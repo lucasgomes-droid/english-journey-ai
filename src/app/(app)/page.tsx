@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, TriangleAlert } from "lucide-react";
+import { Flame, RotateCcw, Sparkles, Target, TriangleAlert } from "lucide-react";
 import { getDashboard, getSession } from "@/lib/data";
 import { loadHomeCoach } from "@/lib/teacher";
 import { getCategory } from "@/content/error-patterns";
@@ -46,6 +46,8 @@ export default async function Dashboard() {
   const mod = nextLesson ? getModule(nextLesson.moduleId) : null;
   const courseDone = !nextLesson && profile.current_level === "C2" && d.examPartsPassed.length === 3;
   const firstName = profile.display_name.split(" ")[0];
+  const last = d.activity[0];
+  const goalPct = Math.min(100, Math.round((d.todayXp / Math.max(1, profile.daily_goal_xp)) * 100));
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_20rem] [&>*]:min-w-0">
@@ -82,9 +84,37 @@ export default async function Dashboard() {
               )
             )}
           </div>
+          {last && <p className="mt-3 text-sm text-muted">Última atividade: {last.title}</p>}
           <div className="mt-8 border-t border-line pt-6">
             <ProgressTrail current={profile.current_level} pct={d.levelProgress} />
           </div>
+        </section>
+
+        {/* Hoje em 3 números: meta, sequência e revisões */}
+        <section className="grid grid-cols-3 gap-3" aria-label="Hoje">
+          <Link href="/praticar" className="panel p-4 hover:-translate-y-0.5">
+            <span className="flex items-center gap-1.5 text-xs font-bold text-muted">
+              <Target size={14} aria-hidden /> Meta de hoje
+            </span>
+            <span className="mt-1 block font-display text-2xl font-bold tabular-nums">{goalPct}%</span>
+            <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+              <span className="block h-full rounded-full bg-boarding" style={{ width: `${goalPct}%` }} />
+            </span>
+          </Link>
+          <Link href="/meu-professor" className="panel p-4 hover:-translate-y-0.5">
+            <span className="flex items-center gap-1.5 text-xs font-bold text-muted">
+              <Flame size={14} aria-hidden /> Sequência
+            </span>
+            <span className="mt-1 block font-display text-2xl font-bold tabular-nums">
+              {d.streak} <span className="text-sm font-normal text-muted">{d.streak === 1 ? "dia" : "dias"}</span>
+            </span>
+          </Link>
+          <Link href="/revisao" className="panel p-4 hover:-translate-y-0.5">
+            <span className="flex items-center gap-1.5 text-xs font-bold text-muted">
+              <RotateCcw size={14} aria-hidden /> Revisões
+            </span>
+            <span className="mt-1 block font-display text-2xl font-bold tabular-nums">{d.dueReviews}</span>
+          </Link>
         </section>
 
         {/* Um único foco além da aula: a maior dificuldade, ou a recomendação do professor (quando não é a padrão). */}

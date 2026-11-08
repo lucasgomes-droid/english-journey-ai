@@ -61,7 +61,7 @@ import { BASE, doLesson, signup, sql, uid } from "./helpers";
   for (const l of ALL_LESSONS.filter((x) => x.moduleId === "a1-m1" && x.kind === "lesson"))
     sql(`insert into public.lesson_progress (user_id, lesson_id, status, best_score, last_score, attempts, completed_at) values (${uid(email)}, '${l.id}', 'completed', 100, 100, 1, now()) on conflict do nothing`);
   await doLesson(page, ALL_LESSONS.find((l) => l.id === "a1-m1-test")!);
-  await page.getByText("Missão do módulo: Fazer um novo amigo").waitFor({ timeout: 30000 });
+  await page.getByText("Missão da unidade: Fazer um novo amigo").waitFor({ timeout: 30000 });
   const href = await page.getByRole("link", { name: "Ligar agora" }).getAttribute("href");
   if (href !== "/professor?cenario=new-friend&nivel=A1&ligar=1") throw new Error(`link da missão: ${href}`);
   console.log("✓ teste do módulo aprovado → missão do módulo (situação real) com ligação direta");

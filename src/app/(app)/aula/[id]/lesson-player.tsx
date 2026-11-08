@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { UseItCard } from "@/components/use-it-card";
 import { MODULE_MISSION } from "@/content/module-missions";
+import { wordSoundTips } from "@/lib/sound-tips";
 import { getScenario } from "@/content/scenarios";
 import { X, CheckCircle2, XCircle, MessagesSquare, Trophy, RotateCcw, Mic, Keyboard, Flag, Phone } from "lucide-react";
 import { PronounceCard } from "@/components/pronounce-card";
@@ -20,7 +21,7 @@ import { NotUnderstood } from "@/components/help";
 
 type Phase = "explain" | "vocab" | "examples" | "speak" | "practice" | "result";
 
-export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: { lesson: Lesson; moduleTitle: string; nextLessonId: string | null; lockedHref?: string | null }) {
+export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref, level = "A1" }: { lesson: Lesson; moduleTitle: string; nextLessonId: string | null; lockedHref?: string | null; level?: string }) {
   const isTest = lesson.kind === "test";
   const caps = useVoiceCaps();
   const phases: Phase[] = isTest
@@ -231,6 +232,7 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
                 </li>
               ))}
             </ul>
+            <PronunciationTips words={lesson.vocabulary.map((v) => v.en)} />
           </section>
         )}
 
@@ -291,7 +293,7 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
         )}
 
         {phase === "result" && (
-          <ResultView lesson={lesson} results={results} server={server} pending={pending} nextLessonId={nextLessonId} onRetry={restart} />
+          <ResultView lesson={lesson} results={results} server={server} pending={pending} nextLessonId={nextLessonId} onRetry={restart} level={level} queue={queue} />
         )}
       </div>
 
@@ -361,7 +363,7 @@ export function LessonPlayer({ lesson, moduleTitle, nextLessonId, lockedHref }: 
   );
 }
 
-function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }: { lesson: Lesson; results: boolean[]; server: LessonResult | null; pending: boolean; nextLessonId: string | null; onRetry: () => void }) {
+function ResultView({ lesson, results, server, pending, nextLessonId, onRetry, level, queue }: { lesson: Lesson; results: boolean[]; server: LessonResult | null; pending: boolean; nextLessonId: string | null; onRetry: () => void; level: string; queue: number[] }) {
   const correct = results.filter(Boolean).length;
   const score = server?.ok ? server.score : Math.round((correct / Math.max(1, results.length)) * 100);
   const passed = score >= lesson.passScore;
@@ -374,6 +376,8 @@ function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }:
       <p className="mt-2 text-lg">
         Você acertou <strong>{correct}</strong> de {results.length} ({score}%). {passed ? "" : `Para concluir, são necessários ${lesson.passScore}%.`}
       </p>
+
+      {lesson.kind === "test" && results.length > 0 && <SkillBreakdown lesson={lesson} results={results} queue={queue} />}
 
       <div className="mt-6 min-h-12" aria-live="polite">
         {pending && <p className="text-muted">Salvando seu progresso…</p>}
@@ -434,10 +438,10 @@ function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }:
         <div className="panel mt-4 flex flex-col items-start gap-3 border-2 border-boarding p-6 text-left sm:flex-row sm:items-center">
           <Phone className="shrink-0 text-atlantic" aria-hidden />
           <div className="flex-1">
-            <p className="font-bold">Missão do módulo: {getScenario(MODULE_MISSION[lesson.moduleId])!.title}</p>
-            <p className="text-muted">Use tudo o que estudou neste módulo numa conversa de verdade{["a1", "a2"].includes(lesson.moduleId.slice(0, 2)) ? "." : ", com imprevistos."}</p>
+            <p className="font-bold">Missão da unidade: {getScenario(MODULE_MISSION[lesson.moduleId])!.title}</p>
+            <p className="text-muted">Use tudo o que estudou nesta unidade numa conversa de verdade{["A1", "A2"].includes(level) ? "." : ", com imprevistos."}</p>
           </div>
-          <Link href={`/professor?cenario=${MODULE_MISSION[lesson.moduleId]}&nivel=${lesson.moduleId.slice(0, 2).toUpperCase()}&ligar=1`} className="btn-go">
+          <Link href={`/professor?cenario=${MODULE_MISSION[lesson.moduleId]}&nivel=${level}&ligar=1`} className="btn-go">
             Ligar agora
           </Link>
         </div>
@@ -485,6 +489,74 @@ function ResultView({ lesson, results, server, pending, nextLessonId, onRetry }:
           </Link>
         )}
       </div>
+    </section>
+  );
+}
+
+/** Orientação de pronúncia da aula: os sons difíceis para brasileiros que aparecem nas palavras novas. */
+function PronunciationTips({ words }: { words: string[] }) {
+  const tips = new Map<string, string[]>();
+  for (const phrase of words)
+    for (const w of phrase.split(/\s+/))
+      for (const t of wordSoundTips(w)) if ((tips.get(t)?.length ?? 0) < 3 && !tips.get(t)?.includes(w.replace(/[^A-Za-z']/g, ""))) tips.set(t, [...(tips.get(t) ?? []), w.replace(/[^A-Za-z']/g, "")]);
+  const list = [...tips].slice(0, 3);
+  if (!list.length) return null;
+  return (
+    <section className="mt-5 rounded-2xl bg-surface-2 p-4" aria-labelledby="pronuncia-aula">
+      <h2 id="pronuncia-aula" className="font-bold">
+        Pronúncia desta aula
+      </h2>
+      <ul className="mt-2 space-y-2 text-sm">
+        {list.map(([tip, ws]) => (
+          <li key={tip}>
+            {tip}{" "}
+            <span className="text-muted">
+              Ex.: <span lang="en">{ws.join(", ")}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+const SKILL_PT: Record<string, string> = { grammar: "Gramática", vocabulary: "Vocabulário", listening: "Listening", reading: "Leitura", writing: "Escrita", speaking: "Fala" };
+
+/** Avaliação: resultado por competência (o que já está bom e o que precisa de reforço). */
+function SkillBreakdown({ lesson, results, queue }: { lesson: Lesson; results: boolean[]; queue: number[] }) {
+  const by = new Map<string, { ok: number; n: number }>();
+  results.forEach((r, i) => {
+    const ex = lesson.exercises[queue[i]];
+    if (!ex) return;
+    const s = by.get(ex.skill) ?? { ok: 0, n: 0 };
+    s.n++;
+    if (r) s.ok++;
+    by.set(ex.skill, s);
+  });
+  const rows = [...by].sort((a, b) => a[1].ok / a[1].n - b[1].ok / b[1].n);
+  return (
+    <section className="panel mx-auto mt-6 max-w-xl p-5 text-left" aria-labelledby="por-competencia">
+      <h2 id="por-competencia" className="font-display text-lg font-bold">
+        Resultado por competência
+      </h2>
+      <ul className="mt-3 space-y-2">
+        {rows.map(([skill, s]) => {
+          const pct = Math.round((s.ok / s.n) * 100);
+          return (
+            <li key={skill}>
+              <div className="flex justify-between text-sm">
+                <span className="font-bold">{SKILL_PT[skill] ?? skill}</span>
+                <span className={pct < 70 ? "font-bold text-wrong" : "text-muted"}>
+                  {s.ok}/{s.n} · {pct}%{pct < 70 ? " · reforçar" : ""}
+                </span>
+              </div>
+              <div className="mt-1 h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+                <div className={`h-full rounded-full ${pct < 70 ? "bg-wrong" : "bg-correct"}`} style={{ width: `${pct}%` }} />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

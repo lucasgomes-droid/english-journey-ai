@@ -74,7 +74,7 @@ let current: Page | null = null;
 
   // Avaliações.
   await page.goto(`${BASE}/avaliacoes`);
-  await page.getByText("Avaliações dos módulos").first().waitFor();
+  await page.getByText("Avaliações das unidades").first().waitFor();
   await page.getByRole("link", { name: "Ir para a prova de nível" }).first().waitFor();
   await page.screenshot({ path: `${SHOTS}/f6-avaliacoes.png`, fullPage: true });
   console.log("✓ Avaliações lista testes de módulo e provas de nível");

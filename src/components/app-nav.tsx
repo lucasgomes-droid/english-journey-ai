@@ -43,6 +43,8 @@ export function AppNav({ dueReviews, variant }: { dueReviews: number; variant: "
       </nav>
     );
 
+  // Aula em modo foco no celular: sem a barra de baixo (a aula tem o botão de sair).
+  if (pathname.startsWith("/aula/")) return null;
   return (
     <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden">
       {ITEMS.filter((i) => i.href !== "/perfil").map(({ href, label, short, icon: Icon }) => (

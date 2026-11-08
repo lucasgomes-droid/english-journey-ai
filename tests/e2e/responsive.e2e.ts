@@ -7,7 +7,7 @@
 import { chromium } from "playwright";
 import { BASE, SHOTS, signup } from "./helpers";
 
-const PAGES = ["/", "/trilha", "/praticar", "/conversa", "/conversar", "/professor?cenario=cafe&nivel=B1", "/pronuncia", "/listening", "/meu-professor", "/dificuldades", "/avaliacoes", "/perfil", "/prova/A1", "/aula/a1-m1-l1", "/revisao"];
+const PAGES = ["/", "/trilha", "/praticar", "/conversa", "/conversar", "/professor?cenario=cafe&nivel=B1", "/pronuncia", "/listening", "/meu-professor", "/dificuldades", "/avaliacoes", "/perfil", "/prova/A1", "/aula/a1-m4-l1", "/revisao", "/vocabulario", "/falar/construir"];
 const MENU = ["Início", "Trilha", "Praticar", "Conversa", "Meu progresso", "Perfil"];
 const BOTTOM = ["Início", "Trilha", "Praticar", "Conversa", "Progresso"];
 

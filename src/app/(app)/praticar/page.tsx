@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AudioLines, BookOpenText, CalendarCheck, CheckCircle2, Clock, Headphones, RotateCcw, Settings2, Shuffle, Timer, UserRound } from "lucide-react";
+import { AudioLines, BookA, BookOpenText, Blocks, CalendarCheck, CheckCircle2, Clock, Headphones, RotateCcw, Settings2, Shuffle, Timer, UserRound } from "lucide-react";
 import { getDashboard, getSession } from "@/lib/data";
 import { MINI_LESSONS } from "@/content/mini";
 import { LISTENING } from "@/content/listening";
@@ -49,6 +49,8 @@ export default async function PraticarPage() {
     { href: "/praticar/adaptativo", icon: Shuffle, title: "Treino adaptativo", text: "12 exercícios escolhidos pelos seus erros." },
     { href: "/mini-aulas", icon: BookOpenText, title: "Mini-aulas", text: `${MINI_LESSONS.length} lições de 5 minutos para situações reais.` },
     { href: "/pronuncia", icon: AudioLines, title: "Pronúncia", text: "Pares mínimos, frases e shadowing." },
+    { href: "/vocabulario", icon: BookA, title: "Vocabulário", text: "Suas palavras: áudio, exemplo, histórico e o que está esquecendo." },
+    { href: "/falar/construir", icon: Blocks, title: "Construir frases", text: "Situação → sua resposta → correção → repita a versão certa." },
     { href: "/falar/desafio", icon: Timer, title: "Desafio de 1 minuto", text: "Fale sem parar e veja como dizer melhor." },
     { href: "/falar/vida", icon: UserRound, title: "Fale sobre sua vida", text: "Frases em inglês sobre você." },
     { href: "/falar/semanal", icon: CalendarCheck, title: "Gravação semanal", text: "2 minutos por semana para ouvir sua evolução." },

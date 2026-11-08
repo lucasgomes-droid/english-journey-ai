@@ -33,7 +33,7 @@ Speaking time: ${Math.round(input.seconds)} s · ${input.wpm} words/min · ${inp
 }
 
 /** Salva frases no banco pessoal e agenda a revisão delas. */
-export async function savePhrases(supabase: SupabaseClient, userId: string, topic: string, source: "life" | "speaking" | "conversation", phrases: { en: string; pt: string }[]) {
+export async function savePhrases(supabase: SupabaseClient, userId: string, topic: string, source: "life" | "speaking" | "conversation" | "listening" | "vocab", phrases: { en: string; pt: string }[]) {
   if (!phrases.length) return [];
   const { data, error } = await supabase
     .from("personal_phrases")

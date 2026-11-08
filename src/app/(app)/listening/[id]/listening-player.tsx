@@ -5,7 +5,8 @@ import Link from "next/link";
 import { ArrowLeft, Pause, Play, Rabbit, Snail, CheckCircle2, XCircle } from "lucide-react";
 import type { ListeningItem } from "@/content/listening";
 import { accentAvailable, unlockAudio, useVoice } from "@/lib/voice";
-import { submitListening } from "@/app/actions/practice";
+import { saveWord, submitListening } from "@/app/actions/practice";
+import { TranslateInline } from "@/components/help";
 
 type Result = Awaited<ReturnType<typeof submitListening>>;
 
@@ -70,6 +71,17 @@ export function ListeningPlayer({ item, rate }: { item: ListeningItem; rate: num
       )}
 
       {/* Player */}
+      <section className="mb-4 rounded-2xl bg-surface-2 p-4 text-sm" aria-label="Contexto e objetivo">
+        <p>
+          <span className="font-bold">Contexto:</span> {item.topic} —{" "}
+          {item.kind === "dialogue" ? `conversa entre ${Array.from(new Set(item.lines.map((l) => l.speaker))).join(" e ")}` : `${item.lines[0]?.speaker ?? "uma pessoa"} falando`}.
+        </p>
+        <p className="mt-1">
+          <span className="font-bold">Objetivo:</span> entender a ideia geral e descobrir: {item.questions.map((q) => q.prompt.replace(/[?.]$/, "").toLowerCase()).join("; ")}.
+        </p>
+        <p className="mt-1 text-muted">1ª vez sem ler · depois, se precisar, mais devagar · a transcrição, a tradução e as expressões aparecem depois que você responder.</p>
+      </section>
+
       <section className="mt-6 rounded-3xl bg-hero p-6 text-white">
         {!supported ? (
           <p>Seu navegador não tem síntese de voz. Use Chrome, Edge ou Safari atualizados.</p>
@@ -193,22 +205,94 @@ export function ListeningPlayer({ item, rate }: { item: ListeningItem; rate: num
             </p>
             <span className="chip bg-boarding text-boarding-ink">+{result.xp} XP</span>
           </div>
-          <details className="panel p-5" open>
-            <summary className="cursor-pointer font-bold">Transcrição</summary>
-            <div className="mt-3 space-y-2">
-              {item.lines.map((l, i) => (
-                <p key={i} lang="en">
-                  {item.kind === "dialogue" && <strong className="text-atlantic">{l.speaker}: </strong>}
-                  {l.text}
-                </p>
-              ))}
-            </div>
-          </details>
+          <Transcript item={item} rate={rate} />
           <Link href={`/listening?nivel=${item.level}`} className="btn-go w-full">
             Próximo áudio
           </Link>
         </section>
       )}
     </main>
+  );
+}
+
+
+/**
+ * Transcrição depois de responder: ouvir cada trecho de novo, tocar numa palavra para salvar no
+ * vocabulário e (opcional) ver tradução e explicação das expressões.
+ */
+function Transcript({ item, rate }: { item: ListeningItem; rate: number }) {
+  const { speak } = useVoice();
+  const [picked, setPicked] = useState<{ word: string; line: string } | null>(null);
+  const [saved, setSaved] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const save = async () => {
+    if (!picked) return;
+    setBusy(true);
+    const r = await saveWord({ en: picked.word, context: picked.line, topic: `Listening: ${item.title}`, source: "listening" });
+    setBusy(false);
+    setSaved((s) => ({ ...s, [picked.word.toLowerCase()]: r.ok ? (r.already ? "já estava salva" : `salva${r.pt ? ` · ${r.pt}` : ""}`) : r.error }));
+    setPicked(null);
+  };
+  return (
+    <details className="panel p-5" open>
+      <summary className="cursor-pointer font-bold">Transcrição</summary>
+      <p className="mt-2 text-sm text-muted">Toque em ▶ para ouvir um trecho de novo. Toque numa palavra que não conhece para salvá-la no seu vocabulário (entra na revisão).</p>
+      <div className="mt-3 space-y-3">
+        {item.lines.map((l, i) => (
+          <div key={i} className="flex items-start gap-2">
+            <button
+              type="button"
+              onClick={() => (unlockAudio(), speak(l.text, { rate, accent: l.accent }))}
+              className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-surface-2 text-atlantic"
+              aria-label={`Ouvir de novo: ${l.text}`}
+            >
+              <Play size={14} aria-hidden />
+            </button>
+            <p lang="en" className="leading-relaxed">
+              {item.kind === "dialogue" && <strong className="text-atlantic">{l.speaker}: </strong>}
+              {l.text.split(/(\s+)/).map((tok, k) =>
+                /\s+/.test(tok) || !/[A-Za-z]/.test(tok) ? (
+                  tok
+                ) : (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setPicked({ word: tok.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, ""), line: l.text })}
+                    className={`rounded px-0.5 hover:bg-boarding/30 ${saved[tok.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "").toLowerCase()] ? "bg-correct-bg" : ""}`}
+                  >
+                    {tok}
+                  </button>
+                ),
+              )}
+            </p>
+          </div>
+        ))}
+      </div>
+      {picked && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-boarding/15 p-3" role="dialog" aria-label="Salvar palavra">
+          <span lang="en" className="font-bold">
+            {picked.word}
+          </span>
+          <button type="button" onClick={() => speak(picked.word)} className="btn-ghost px-3 py-1 text-sm">
+            Ouvir
+          </button>
+          <button type="button" onClick={save} disabled={busy} className="btn-go px-3 py-1 text-sm">
+            {busy ? "Salvando…" : "Salvar no meu vocabulário"}
+          </button>
+          <button type="button" onClick={() => setPicked(null)} className="text-sm text-muted underline">
+            cancelar
+          </button>
+        </div>
+      )}
+      {Object.entries(saved).length > 0 && (
+        <p className="mt-2 text-sm text-muted" role="status">
+          {Object.entries(saved).map(([w, m]) => `“${w}”: ${m}`).join(" · ")}
+        </p>
+      )}
+      <div className="mt-4 border-t border-line pt-3">
+        <p className="mb-1 text-sm font-bold">Tradução e expressões (opcional)</p>
+        <TranslateInline text={item.lines.map((l) => l.text).join(" ")} />
+      </div>
+    </details>
   );
 }

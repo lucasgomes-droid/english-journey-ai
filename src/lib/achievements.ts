@@ -8,7 +8,7 @@ export interface AchievementDef {
 export const ACHIEVEMENTS: AchievementDef[] = [
   { code: "first_lesson", title: "Primeiro passo", description: "Concluiu a primeira aula.", icon: "Footprints" },
   { code: "five_lessons", title: "Ganhando ritmo", description: "Concluiu 5 aulas.", icon: "Rocket" },
-  { code: "module_done", title: "Módulo completo", description: "Passou na avaliação de um módulo.", icon: "Flag" },
+  { code: "module_done", title: "Unidade completa", description: "Passou na avaliação de uma unidade.", icon: "Flag" },
   { code: "perfect_lesson", title: "Sem erros", description: "Tirou 100% em uma aula.", icon: "Sparkles" },
   { code: "streak_3", title: "3 dias seguidos", description: "Estudou 3 dias em sequência.", icon: "Flame" },
   { code: "streak_7", title: "Uma semana firme", description: "Estudou 7 dias em sequência.", icon: "CalendarCheck" },

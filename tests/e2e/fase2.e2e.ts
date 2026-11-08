@@ -23,7 +23,7 @@ let current: Page | null = null;
     await signup(page, `f2${vp.name}`);
 
     // Aula: missão primeiro, teoria opcional.
-    const lesson = getLesson("a1-m1-l1")!;
+    const lesson = getLesson("a1-m4-l1")!;
     await page.goto(`${BASE}/aula/${lesson.id}`);
     await page.getByText("Sua missão nesta aula").waitFor();
     await page.getByText("Explicação rápida (opcional)").waitFor();

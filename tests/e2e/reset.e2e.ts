@@ -16,14 +16,14 @@ const count = (email: string) => Object.fromEntries(TABLES.map((t) => [t, Number
   const other = await browser.newPage();
   await other.addInitScript(() => localStorage.setItem("ej-speak-mode", "0"));
   const otherEmail = await signup(other, "outro");
-  await doLesson(other, getLesson("a1-m1-l1")!);
+  await doLesson(other, getLesson("a1-m4-l1")!);
 
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   current = page;
   await page.addInitScript(() => localStorage.setItem("ej-speak-mode", "0"));
   const email = await signup(page, "reset");
   const u = uid(email);
-  await doLesson(page, getLesson("a1-m1-l1")!);
+  await doLesson(page, getLesson("a1-m4-l1")!);
   sql(`update public.profiles set current_level = 'B1', streak_best = 9 where id = ${u};
        insert into public.exam_attempts (user_id, level_code, part, score, passed) values (${u}, 'A1', 'written', 50, false);
        insert into public.recovery_plans (user_id, level_code, part, tasks) values (${u}, 'A1', 'written', '[]');
@@ -56,7 +56,7 @@ const count = (email: string) => Object.fromEntries(TABLES.map((t) => [t, Number
   await page.getByRole("button", { name: "Começar no A1" }).click();
   await page.waitForURL(`${BASE}/`);
   await page.getByText("Continuar de onde parei:").waitFor();
-  await page.getByText(getLesson("a1-m1-l1")!.title).first().waitFor();
+  await page.getByText(getLesson("a1-m4-l1")!.title).first().waitFor();
   console.log("✓ recomeçou do zero na primeira aula");
   await browser.close();
 })().catch(async (e) => {

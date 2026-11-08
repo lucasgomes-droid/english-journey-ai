@@ -6,7 +6,10 @@ import { loadTeacherPanel } from "@/lib/teacher";
 import { loadIndicators } from "@/lib/indicators";
 import { IndicatorsPanel } from "@/components/indicators-panel";
 import { getCategory } from "@/content/error-patterns";
-import { ALL_LESSONS } from "@/content/curriculum";
+import { ALL_LESSONS, nextLevel } from "@/content/curriculum";
+import { ProgressDashboard } from "@/components/progress-dashboard";
+import { loadProgressDashboard } from "@/lib/progress-dashboard";
+import { localDate } from "@/lib/streak";
 
 export const metadata = { title: "Meu progresso" };
 
@@ -53,14 +56,41 @@ export default async function MyTeacherPage() {
   const { supabase, user, profile } = await getSession();
   const [d, t, ind] = await Promise.all([getDashboard(), loadTeacherPanel(supabase, user.id, profile!), loadIndicators(supabase, user.id, profile!.current_level)]);
   const measured = t.diag.areas.filter((a) => a.score !== null);
+  const todayIso = localDate(new Date(), profile!.timezone || "America/Sao_Paulo");
+  const pd = await loadProgressDashboard(supabase, user.id, todayIso);
+  const p = profile!;
+  const nextStep = d.nextLesson
+    ? { title: d.nextLesson.title, href: `/aula/${d.nextLesson.id}`, cta: d.nextLesson.kind === "test" ? "Fazer avaliação" : "Continuar" }
+    : { title: `Prova de nível ${p.current_level}`, href: `/prova/${p.current_level}`, cta: "Ir para a prova" };
+  const DATE_BR = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" });
 
   return (
     <main className="space-y-6">
       <ProgressTabs />
       <header>
         <h1 className="font-display text-3xl font-bold">Meu progresso</h1>
-        <p className="mt-1 max-w-2xl text-muted">O professor IA acompanha sua evolução. Tudo aqui vem dos seus exercícios, conversas e gravações reais; sem dados, sem nota.</p>
+        <p className="mt-1 max-w-2xl text-muted">Onde você está, o que já domina e o próximo passo. Tudo vem dos seus exercícios, conversas e gravações reais.</p>
       </header>
+
+      <ProgressDashboard
+        level={p.current_level}
+        next={nextLevel(p.current_level)}
+        levelPct={d.levelProgress}
+        nextStep={nextStep}
+        week={d.weekXp}
+        streak={d.streak}
+        goals={{
+          todayXp: d.todayXp,
+          goalXp: p.daily_goal_xp,
+          weekLessons: d.weekLessons,
+          weekLessonsGoal: Math.max(1, Math.min(7, p.study_days?.length ?? 5)),
+          target: p.target_level ? `Objetivo: chegar ao ${p.target_level}${p.target_date ? ` até ${DATE_BR.format(new Date(`${p.target_date}T12:00:00Z`))}` : ""}.` : null,
+        }}
+        lessonsPerWeek={pd.lessonsPerWeek}
+        vocab={pd.vocab}
+        skills={ind.skills6}
+        achievements={d.achievements}
+      />
 
       <section className="panel border-2 border-boarding p-6">
         <p className="flex items-center gap-2 text-sm font-bold text-muted">

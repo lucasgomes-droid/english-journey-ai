@@ -18,7 +18,17 @@ export interface Reading {
 }
 
 export const READINGS: Reading[] = [
-  // ---------------------------------------------------------------- A1
+  // ---------------------------------------------------------------- A1 (por unidade)
+  {
+    moduleId: "a1-m2",
+    title: "My new gym card",
+    text: "Name: Lucas Gomes. Age: 30. Country: Brazil. Nationality: Brazilian. Phone: 555 0147. Lucas's birthday is on 12 March. The gym opens at six o'clock in the morning and closes at ten at night. Lucas goes on Mondays, Wednesdays and Fridays at seven thirty in the evening.",
+    questions: [
+      { q: "Quantos anos o Lucas tem?", options: ["13", "30", "33"], answer: 1 },
+      { q: "Quando é o aniversário dele?", options: ["12 de março", "2 de maio", "12 de maio"], answer: 0 },
+      { q: "A que horas ele vai à academia?", options: ["Às 6h", "Às 19h30", "Às 22h"], answer: 1 },
+    ],
+  },
   {
     moduleId: "a1-m1",
     title: "A new neighbour",
@@ -30,7 +40,7 @@ export const READINGS: Reading[] = [
     ],
   },
   {
-    moduleId: "a1-m2",
+    moduleId: "a1-m4",
     title: "My family",
     text: "This is my family. My husband's name is Paulo. He is a mechanic. We have two children: Ana is eight and Leo is five. My mother lives with us. She is 65. We also have a dog. His name is Max and he is black and white. Our house is small, but we are happy.",
     questions: [
@@ -50,7 +60,7 @@ export const READINGS: Reading[] = [
     ],
   },
   {
-    moduleId: "a1-m4",
+    moduleId: "a1-m6",
     title: "Where is the pharmacy?",
     text: "I live on Green Street. There is a big park near my house. There is a bakery next to the bank, and the pharmacy is opposite the bakery. There isn't a supermarket on my street, but there is one on the corner of Green Street and Main Street. The bus stop is in front of the park.",
     questions: [
@@ -60,7 +70,7 @@ export const READINGS: Reading[] = [
     ],
   },
   {
-    moduleId: "a1-m5",
+    moduleId: "a1-final",
     title: "Free time",
     text: "On weekends I love cooking for my friends. I can make good pizza, but I can't make cakes! On Saturday mornings I play football with my brother. I don't like swimming because the water is cold. On Sunday afternoons I usually read a book or listen to music. I never work on Sundays.",
     questions: [
@@ -70,7 +80,7 @@ export const READINGS: Reading[] = [
     ],
   },
   {
-    moduleId: "a1-m6",
+    moduleId: "a1-m5",
     title: "At the market",
     text: "Customer: Excuse me, how much are these apples?\nSeller: They're two dollars a kilo.\nCustomer: OK, I'd like two kilos, please. And do you have bananas?\nSeller: Yes, they're over there. One dollar fifty a kilo.\nCustomer: Great. Can I pay by card?\nSeller: Sorry, only cash today.",
     questions: [

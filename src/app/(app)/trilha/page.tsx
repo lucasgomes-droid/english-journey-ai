@@ -52,7 +52,7 @@ export default async function TrailPage({ searchParams }: { searchParams: Promis
                 Sua trilha · {level.code} {level.name}
               </h2>
               <p className="mt-1 text-sm text-muted">
-                {doneCount} de {all.length} estações · cada aula pede 70%, cada módulo termina com uma avaliação e o nível com uma prova.
+                {doneCount} de {all.length} estações · cada aula pede 70%, cada unidade termina com uma avaliação e o nível com uma prova.
               </p>
               <div className="mt-3 h-2 max-w-sm overflow-hidden rounded-full bg-surface-2">
                 <div className="h-full rounded-full bg-gold" style={{ width: `${Math.round((doneCount / Math.max(1, all.length)) * 100)}%` }} />

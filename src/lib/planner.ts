@@ -119,7 +119,7 @@ export function planDay(input: PlanInput, day: number, forecast = false): Block[
   if (reviews > 0) take({ kind: "review", title: "Revisão", detail: forecast ? "Itens que vencerem no dia" : `${reviews} ${reviews === 1 ? "item" : "itens"}`, minutes: Math.max(3, Math.min(Math.ceil(reviews / 3), Math.round(total * 0.3))), href: "/revisao" });
 
   // 2) Aula nova (ou prova de nível quando as aulas acabaram).
-  if (input.nextLesson) take({ kind: input.nextLesson.kind === "test" ? "test" : "lesson", title: input.nextLesson.kind === "test" ? "Avaliação do módulo" : "Aula nova", detail: input.nextLesson.title, minutes: total >= 20 ? 10 : 8, href: `/aula/${input.nextLesson.id}` });
+  if (input.nextLesson) take({ kind: input.nextLesson.kind === "test" ? "test" : "lesson", title: input.nextLesson.kind === "test" ? "Avaliação da unidade" : "Aula nova", detail: input.nextLesson.title, minutes: total >= 20 ? 10 : 8, href: `/aula/${input.nextLesson.id}` });
   else if (input.examDue) take({ kind: "test", title: "Prova de nível", detail: `Comprovar o ${input.level}`, minutes: 15, href: `/prova/${input.level}` });
 
   // 3) Reforço do objetivo mais fraco (só hoje: depende dos dados atuais).

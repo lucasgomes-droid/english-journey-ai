@@ -174,7 +174,7 @@ export default async function LevelExamPage({ params }: { params: Promise<{ leve
                 </Link>
               )}
               {part === "written" && !finalOpen && !st.passed && !aboveCurrent && (
-                <p className="mt-3 text-sm text-muted">Conclua as aulas e os testes de módulo do {exam.level} para liberar.</p>
+                <p className="mt-3 text-sm text-muted">Conclua as aulas e as avaliações de unidade do {exam.level} para liberar.</p>
               )}
               {st.lock === "prereq" && <p className="mt-3 text-sm text-muted">Abre depois que você passar na parte anterior.</p>}
             </li>

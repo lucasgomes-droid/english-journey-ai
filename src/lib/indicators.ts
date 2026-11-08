@@ -2,7 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ALL_LESSONS, getExercise, getModule } from "@/content/curriculum";
 import type { CefrLevel } from "@/content/types";
-import { confidence, isProduction, MASTERY, objectiveStates, rate, type Evidence, type ObjectiveState } from "@/lib/mastery";
+import { confidence, isProduction, MASTERY, objectiveStates, rate, SIX_SKILLS, SIX_SKILL_PT, skillLevel, type Evidence, type ObjectiveState, type SixSkill } from "@/lib/mastery";
 
 const DAY = 86_400_000;
 const SKILL_PT: Record<string, string> = { grammar: "Gramática", vocabulary: "Vocabulário", listening: "Listening", reading: "Leitura", writing: "Escrita", speaking: "Fala" };
@@ -15,11 +15,14 @@ const SKILL_PT: Record<string, string> = { grammar: "Gramática", vocabulary: "V
 export async function loadIndicators(supabase: SupabaseClient, uid: string, level: CefrLevel) {
   const now = Date.now();
   const since28 = new Date(now - 28 * DAY).toISOString();
-  const [ansRes, actRes, vocabRes, prodRes] = await Promise.all([
+  const since60 = new Date(now - 60 * DAY).toISOString();
+  const [ansRes, actRes, vocabRes, prodRes, lisRes, proRes] = await Promise.all([
     supabase.from("exercise_answers").select("lesson_id, exercise_id, skill, correct, created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(5000),
     supabase.from("activity_log").select("kind, duration_seconds, local_date, created_at").eq("user_id", uid).gte("created_at", since28).limit(2000),
     supabase.from("review_items").select("repetitions, lapses, interval_days").eq("user_id", uid).eq("item_type", "vocab").not("last_reviewed_at", "is", null).limit(5000),
-    supabase.from("production_attempts").select("lesson_id, score, feedback, created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(1000),
+    supabase.from("production_attempts").select("lesson_id, mode, score, feedback, created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(1000),
+    supabase.from("listening_results").select("score, total").eq("user_id", uid).gte("created_at", since60).limit(1000),
+    supabase.from("pronunciation_attempts").select("overall").eq("user_id", uid).gte("created_at", since60).limit(2000),
   ]);
   const answers = (ansRes.data ?? []) as { lesson_id: string; exercise_id: string; skill: string; correct: boolean; created_at: string }[];
   const acts = (actRes.data ?? []) as { kind: string; duration_seconds: number | null; local_date: string; created_at: string }[];
@@ -111,7 +114,27 @@ export async function loadIndicators(supabase: SupabaseClient, uid: string, leve
     wordsForgotten: vocab.filter((v) => v.lapses > 0 && v.repetitions === 0).length,
   };
 
-  return { activity: { week: activity(7), month: activity(28) }, performance, mastery, retention };
+  // ---- Domínio por competência (últimos 60 dias): cada fonte real conta para a sua competência.
+  const sk = Object.fromEntries(SIX_SKILLS.map((k) => [k, { n: 0, c: 0 }])) as Record<SixSkill, { n: number; c: number }>;
+  const add = (k: string, ok: boolean, w = 1) => {
+    const t = sk[k as SixSkill];
+    if (!t) return;
+    t.n += w;
+    if (ok) t.c += w;
+  };
+  const from60 = now - 60 * DAY;
+  for (const a of answers) if (Date.parse(a.created_at) >= from60) add(a.skill, a.correct);
+  for (const l of (lisRes.data ?? []) as { score: number; total: number }[]) {
+    sk.listening.n += l.total;
+    sk.listening.c += l.score;
+  }
+  for (const p of (proRes.data ?? []) as { overall: number | null }[]) if (p.overall !== null) add("speaking", Number(p.overall) >= 70);
+  for (const p of (prodRes.data ?? []) as { mode: string; score: number | null; created_at: string }[])
+    if (Date.parse(p.created_at) >= from60) add(p.mode === "speak" ? "speaking" : "writing", (p.score ?? 0) >= 70, 2);
+  for (const v of vocab) add("vocabulary", v.lapses === 0 || v.repetitions >= 2);
+  const skills6 = SIX_SKILLS.map((k) => ({ key: k, name: SIX_SKILL_PT[k], value: rate(sk[k].c, sk[k].n), n: sk[k].n, level: skillLevel(sk[k].c, sk[k].n), confidence: confidence(sk[k].n) }));
+
+  return { activity: { week: activity(7), month: activity(28) }, performance, mastery, retention, skills6 };
 }
 
 /** O que falta para um objetivo contar como dominado (em português, para o aluno). */

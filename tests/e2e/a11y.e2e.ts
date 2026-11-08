@@ -7,7 +7,7 @@ import { chromium } from "playwright";
 import AxeBuilder from "@axe-core/playwright";
 import { BASE, signup } from "./helpers";
 
-const PAGES = ["/", "/trilha", "/praticar", "/praticar/adaptativo", "/conversa", "/conversar", "/professor?cenario=cafe&nivel=B1", "/pronuncia", "/listening", "/meu-professor", "/dificuldades", "/dificuldades/questions", "/avaliacoes", "/relatorio", "/perfil", "/prova/A1", "/aula/a1-m1-l1", "/revisao"];
+const PAGES = ["/", "/trilha", "/praticar", "/praticar/adaptativo", "/conversa", "/conversar", "/professor?cenario=cafe&nivel=B1", "/pronuncia", "/listening", "/meu-professor", "/dificuldades", "/dificuldades/questions", "/avaliacoes", "/relatorio", "/perfil", "/prova/A1", "/aula/a1-m4-l1", "/revisao", "/vocabulario", "/falar/construir"];
 
 (async () => {
   const browser = await chromium.launch();

@@ -17,7 +17,7 @@ let current: Page | null = null;
   await page.addInitScript(() => localStorage.setItem("ej-speak-mode", "0"));
   page.on("pageerror", (e) => console.error("ERRO NA PÁGINA:", e.message));
   const email = await signup(page, "f3");
-  const lesson = getLesson("a1-m1-l1")!;
+  const lesson = getLesson("a1-m4-l1")!;
   const firstVocab = lesson.vocabulary[0];
 
   const toVocab = async () => {

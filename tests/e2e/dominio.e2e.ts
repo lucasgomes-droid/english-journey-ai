@@ -7,7 +7,7 @@
  * Uso (ambiente local com IA simulada): npx tsx tests/e2e/dominio.e2e.ts
  */
 import { chromium } from "playwright";
-import { ALL_LESSONS } from "../../src/content/curriculum";
+import { ALL_LESSONS, getModule } from "../../src/content/curriculum";
 import { BASE, SHOTS, doLesson, signup, sql, uid } from "./helpers";
 
 (async () => {
@@ -17,7 +17,7 @@ import { BASE, SHOTS, doLesson, signup, sql, uid } from "./helpers";
   page.on("pageerror", (e) => console.error("ERRO NA PÁGINA:", e.message));
   const email = await signup(page, "dom");
   const lesson = ALL_LESSONS[0];
-  const total = ALL_LESSONS.filter((l) => l.kind === "lesson" && l.moduleId.startsWith("a1")).length;
+  const total = ALL_LESSONS.filter((l) => l.kind === "lesson" && getModule(l.moduleId)?.level === "A1").length;
   const panel = (name: string) => page.getByRole("region", { name, exact: true });
   const open = async () => {
     await page.goto(`${BASE}/meu-professor`);

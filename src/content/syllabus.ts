@@ -39,52 +39,50 @@ export const SYLLABUS: SyllabusLevel[] = [
     words: 700,
     modules: [
       { title: "Primeiros passos", lessons: [
+        L("Alfabeto e soletrar", "how do you spell...?", "alfabeto, e-mail, endereço", "soletrar nomes e e-mails"),
         L("Cumprimentos", "hello / good morning / how are you", "cumprimentos e despedidas", "cumprimentar e se despedir"),
         L("Apresentando-se", "my name is / I'm / what's your name", "apresentações", "dizer e perguntar nomes"),
         L("O verbo to be", "am / is / are, negativa e pergunta", "estados e profissões básicas", "dizer como está e quem é"),
-        L("Números de 0 a 20 e idade", "how old are you / I'm 20", "números 0–20", "dizer e perguntar a idade"),
       ]},
-      { title: "Meu mundo", lessons: [
+      { title: "Informações pessoais", lessons: [
+        L("Números de 0 a 20 e idade", "how old are you / I'm 20", "números 0–20", "dizer e perguntar a idade"),
         L("Países e nacionalidades", "where are you from / I'm from", "países, nacionalidades, idiomas", "dizer de onde você é"),
+        L("Dias, meses e datas", "on/in + datas, números ordinais", "dias, meses, aniversários", "dizer datas"),
+        L("Que horas são?", "what time is it / at + hora", "horas e partes do dia", "dizer e marcar horários"),
+      ]},
+      { title: "Vida cotidiana", lessons: [
+        L("Minha rotina", "presente simples (afirmativa), advérbios de frequência", "rotina diária", "descrever a rotina"),
+        L("Perguntas com do e does", "do/does, respostas curtas", "verbos comuns", "fazer perguntas no presente"),
+        L("Hobbies", "like / love / hate + -ing", "hobbies e esportes", "falar do que gosta de fazer"),
+      ]},
+      { title: "Pessoas e objetos", lessons: [
         L("Família", "possessivos my/your/his/her + 's", "família", "falar da família"),
         L("Profissões", "a / an, what do you do", "profissões e locais de trabalho", "dizer o que faz"),
         L("Objetos: this, that e plural", "this/that/these/those, plurais", "objetos do dia a dia", "nomear e apontar objetos"),
-      ]},
-      { title: "Dia a dia", lessons: [
-        L("Minha rotina", "presente simples (afirmativa), advérbios de frequência", "rotina diária", "descrever a rotina"),
-        L("Que horas são?", "what time is it / at + hora", "horas e partes do dia", "dizer e marcar horários"),
-        L("Comida e bebida", "like/don't like, I'd like, some/any", "comida e bebida", "dizer preferências e pedir"),
-        L("Perguntas com do e does", "do/does, respostas curtas", "verbos comuns", "fazer perguntas no presente"),
-      ]},
-      { title: "Casa e cidade", lessons: [
-        L("Alfabeto e soletrar", "how do you spell...?", "alfabeto, e-mail, endereço", "soletrar nomes e e-mails"),
-        L("Cores e roupas", "adjetivo antes do substantivo", "cores e roupas", "descrever o que alguém veste"),
         L("Minha casa", "there is / there are", "cômodos e móveis", "descrever a casa"),
-        L("Onde fica?", "preposições in/on/under/next to/between", "lugares da cidade", "dizer onde as coisas estão"),
       ]},
-      { title: "Habilidades e tempo livre", lessons: [
-        L("O que você sabe fazer?", "can / can't", "habilidades", "falar de habilidades"),
-        L("Hobbies", "like / love / hate + -ing", "hobbies e esportes", "falar do que gosta de fazer"),
-        L("Dias, meses e datas", "on/in + datas, números ordinais", "dias, meses, aniversários", "dizer datas"),
-        L("O tempo e as estações", "it's sunny / it's raining", "clima e estações", "falar do tempo"),
-      ]},
-      { title: "Compras e serviços", lessons: [
+      { title: "Situações reais", lessons: [
+        L("Comida e bebida", "like/don't like, I'd like, some/any", "comida e bebida", "dizer preferências e pedir"),
+        L("No café", "can I have...? / would you like...?", "cardápio de café", "pedir num café"),
         L("Números grandes e preços", "how much is/are", "números até 1000, dinheiro", "perguntar e dizer preços"),
         L("Quanto e quantos", "how much / how many, contáveis", "mercado e quantidades", "fazer lista de compras"),
-        L("Na loja de roupas", "can I try...? / too big", "tamanhos e compras", "comprar uma roupa"),
-        L("No café", "can I have...? / would you like...?", "cardápio de café", "pedir num café"),
+        L("O que você sabe fazer?", "can / can't", "habilidades", "falar de habilidades"),
       ]},
-      { title: "Agora e em movimento", lessons: [
-        L("O que você está fazendo?", "presente contínuo", "ações do momento", "dizer o que está acontecendo agora"),
-        L("Rotina ou agora?", "presente simples × contínuo", "atividades", "diferenciar hábito e momento"),
+      { title: "Lugares e deslocamentos", lessons: [
+        L("Onde fica?", "preposições in/on/under/next to/between", "lugares da cidade", "dizer onde as coisas estão"),
         L("Transporte", "by bus / on foot, how do you get to...?", "meios de transporte", "falar como se locomove"),
         L("Pedindo direções", "imperativo: turn left, go straight", "direções", "pedir e dar direções simples"),
       ]},
-      { title: "Ontem", lessons: [
-        L("Was e were", "passado do to be", "expressões de tempo passado", "dizer onde estava"),
-        L("Verbos regulares no passado", "-ed e pronúncia /t/ /d/ /ɪd/", "atividades do fim de semana", "contar o que fez"),
-        L("Verbos irregulares", "went, had, saw, ate, got...", "viagens curtas", "contar uma história simples"),
-        L("Perguntas no passado", "did / didn't", "fim de semana", "perguntar sobre o passado"),
+      { title: "Experiências básicas", lessons: [
+        L("O que você está fazendo?", "presente contínuo", "ações do momento", "dizer o que está acontecendo agora"),
+        L("Rotina ou agora?", "presente simples × contínuo", "atividades", "diferenciar hábito e momento"),
+        L("O tempo e as estações", "it's sunny / it's raining", "clima e estações", "falar do tempo"),
+        L("Cores e roupas", "adjetivo antes do substantivo", "cores e roupas", "descrever o que alguém veste"),
+        L("Na loja de roupas", "can I try...? / too big", "tamanhos e compras", "comprar uma roupa"),
+      ]},
+      { title: "Consolidação", lessons: [
+        L("Revisão: falando de você", "to be + present simple + have/has", "apresentação completa", "se apresentar por completo e devolver perguntas"),
+        L("Revisão: sua cidade e o agora", "there is/are, can I have, present continuous", "cidade, pedidos e preços", "falar da cidade, pedir e dizer o que está acontecendo"),
       ]},
     ],
   },
@@ -93,6 +91,12 @@ export const SYLLABUS: SyllabusLevel[] = [
     hours: 180,
     words: 1500,
     modules: [
+      { title: "Passado simples: ontem", lessons: [
+        L("Was e were", "passado do to be", "expressões de tempo passado", "dizer onde estava"),
+        L("Verbos regulares no passado", "-ed e pronúncia /t/ /d/ /ɪd/", "atividades do fim de semana", "contar o que fez"),
+        L("Verbos irregulares", "went, had, saw, ate, got...", "viagens curtas", "contar uma história simples"),
+        L("Perguntas no passado", "did / didn't", "fim de semana", "perguntar sobre o passado"),
+      ]},
       { title: "Experiências", lessons: [
         L("Contando histórias", "passado simples (revisão) + conectivos then/after that", "eventos de vida", "narrar acontecimentos em ordem"),
         L("O que você estava fazendo?", "passado contínuo", "acidentes e interrupções", "descrever cenas no passado"),

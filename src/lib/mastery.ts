@@ -91,3 +91,19 @@ export function confidence(n: number): Confidence {
 
 /** Taxa de acerto (0–100) ou null sem amostra. */
 export const rate = (correct: number, n: number) => (n ? Math.round((correct / n) * 100) : null);
+
+/** As 6 competências medidas separadamente (spec: domínio ≠ conclusão). */
+export const SIX_SKILLS = ["listening", "speaking", "grammar", "vocabulary", "reading", "writing"] as const;
+export type SixSkill = (typeof SIX_SKILLS)[number];
+export const SIX_SKILL_PT: Record<SixSkill, string> = { listening: "Listening", speaking: "Fala", grammar: "Gramática", vocabulary: "Vocabulário", reading: "Leitura", writing: "Escrita" };
+export type SkillLevel = "sem dados" | "começando" | "reforçar" | "em progresso" | "firme";
+
+/** Situação de uma competência a partir de acertos/tentativas (amostra mínima antes de julgar). */
+export function skillLevel(correct: number, n: number): SkillLevel {
+  if (n === 0) return "sem dados";
+  if (n < 8) return "começando";
+  const r = correct / n;
+  if (r < 0.7) return "reforçar";
+  if (r >= 0.85 && n >= 20) return "firme";
+  return "em progresso";
+}

@@ -27,5 +27,5 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
 
   const idx = ALL_LESSONS.findIndex((l) => l.id === id);
   const next = idx >= 0 ? ALL_LESSONS[idx + 1] : undefined; // mini-aulas não têm "próxima"
-  return <LessonPlayer lesson={lesson} moduleTitle={getModule(lesson.moduleId)?.title ?? ""} nextLessonId={next?.id ?? null} lockedHref={lockedHref} />;
+  return <LessonPlayer lesson={lesson} moduleTitle={getModule(lesson.moduleId)?.title ?? ""} level={getModule(lesson.moduleId)?.level ?? "A1"} nextLessonId={next?.id ?? null} lockedHref={lockedHref} />;
 }
