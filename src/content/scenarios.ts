@@ -409,7 +409,7 @@ const OPENER_A1: Record<string, string> = {
   "lost-luggage": "Hello. Is your bag lost? What color is it?",
   coworker: "Hi! Welcome to the team. Do you have a minute?",
   "make-plans": "Hey! Are you free on Saturday?",
-  "bus-metro": "Hi! Can I help you? Where do you want to go?",
+  "bus-metro": "Hi! Where do you want to go?",
   bank: "Good morning. How can I help you?",
   "post-office": "Hello! What do you want to send?",
   gym: "Hi! Welcome to FitLife. Do you want to join?",
