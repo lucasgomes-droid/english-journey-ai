@@ -92,3 +92,17 @@ describe("recuperação de 'tool_use_failed' (gpt-oss no Groq)", async () => {
     expect(salvageToolCall("not json")).toBeNull();
   });
 });
+
+describe("professor no nível certo", async () => {
+  const { LEVEL_GUIDE, taughtRule } = await import("@/lib/tutor-prompt");
+  it("A1 com limite de palavras, estruturas permitidas e diálogo-modelo", () => {
+    expect(LEVEL_GUIDE.A1).toContain("max 8 words");
+    expect(LEVEL_GUIDE.A1).toContain("NO idioms");
+    expect(LEVEL_GUIDE.A1).toContain('"Where do you work?"');
+  });
+  it("A1–A2 preferem o que já foi ensinado; B1+ não limita", () => {
+    expect(taughtRule("A1", ["O verbo to be", "Família"])).toContain("O verbo to be | Família");
+    expect(taughtRule("B1", ["x"])).toBe("");
+    expect(taughtRule("A2", [])).toBe("");
+  });
+});

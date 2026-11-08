@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowLeft, Plus } from "lucide-react";
 import { getSession } from "@/lib/data";
 import { getLesson } from "@/content/curriculum";
-import { CUSTOM_CHARACTER, getScenario, missionFor } from "@/content/scenarios";
+import { CUSTOM_CHARACTER, getScenario, missionFor, openerFor } from "@/content/scenarios";
+import type { CefrLevel } from "@/content/types";
 import { isAiConfigured, isSttConfigured } from "@/lib/ai";
 import { TutorChat, type ChatMsg } from "./tutor-chat";
 
@@ -36,7 +37,7 @@ export default async function TutorPage({ searchParams }: { searchParams: Promis
   const lesson = !conversationId && sp.aula ? getLesson(sp.aula) : undefined;
 
   if (!conversationId) {
-    if (scenario) initial = [{ id: "starter", role: "assistant", content: scenario.opener, correction: null, tip: null }];
+    if (scenario) initial = [{ id: "starter", role: "assistant", content: openerFor(scenario, level as CefrLevel), correction: null, tip: null }];
     else if (lesson?.conversation) initial = [{ id: "starter", role: "assistant", content: lesson.conversation.starter, correction: null, tip: null }];
   }
   const persona = scenario ? scenario.character : customPrompt ? CUSTOM_CHARACTER : null;

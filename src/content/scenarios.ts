@@ -1,3 +1,4 @@
+import type { CefrLevel } from "./types";
 /**
  * Conversa Livre / English in Real Life: situações com personagens.
  * Cada cenário funciona em qualquer nível (A1–C2); o nível ajusta a fala do personagem.
@@ -377,3 +378,51 @@ export const CUSTOM_CHARACTER: Scenario["character"] = {
   voice: "f2",
   look: { skin: "#e0ac69", hair: "#264653", hairStyle: "ponytail", shirt: "#f4a261", bg: "#bde0fe" },
 };
+
+/**
+ * Abertura por nível: no A1 a primeira fala do personagem é curta e previsível (A1 de verdade).
+ * Do A2 em diante usa a abertura natural da cena. A conversa em si se adapta pelo prompt de nível.
+ */
+const OPENER_A1: Record<string, string> = {
+  "new-friend": "Hi! I'm Maya. What's your name?",
+  burger: "Hello! What do you want to eat?",
+  restaurant: "Good evening! A table for one?",
+  cafe: "Good morning! What do you want to drink?",
+  "sneaker-store": "Hello! Do you need help?",
+  taxi: "Hello! Where do you want to go?",
+  airport: "Good morning! Your passport, please.",
+  immigration: "Hello. Passport, please. Where are you from?",
+  hotel: "Hello! Welcome. What is your name?",
+  supermarket: "Hi! Can I help you?",
+  pharmacy: "Hello! How can I help you?",
+  doctor: "Hello. Sit down, please. What is the problem?",
+  "job-interview": "Hello! Nice to meet you. What is your name?",
+  meeting: "Good morning, everyone. How are you today?",
+  apartment: "Hello! This is the apartment. Do you like it?",
+  "phone-call": "Hello, FastNet. How can I help you?",
+  "daily-life": "Hi, neighbor! How are you today?",
+  "job-abroad": "Hello! What is your job?",
+  directions: "Hi! Are you lost? Can I help you?",
+  "ask-help": "Sorry, I am busy. What is it?",
+  "tourist-info": "Hello! What do you want to see?",
+  "return-item": "Hello! How can I help you?",
+  "lost-luggage": "Hello. Is your bag lost? What color is it?",
+  coworker: "Hi! Welcome to the team. Do you have a minute?",
+  "make-plans": "Hey! Are you free on Saturday?",
+  "bus-metro": "Hi! Can I help you? Where do you want to go?",
+  bank: "Good morning. How can I help you?",
+  "post-office": "Hello! What do you want to send?",
+  gym: "Hi! Welcome to FitLife. Do you want to join?",
+  hairdresser: "Hi! Sit down, please. Short or long?",
+  neighbour: "Hello! Are you the new neighbour? I'm Mrs. Patel.",
+  party: "Hi! Nice party! Who are you?",
+  "complaint-call": "Hello, NetFast. What is the problem?",
+  "lost-wallet": "Hello. How can I help you?",
+  dentist: "Hello. Sit down, please. Where does it hurt?",
+  delivery: "Hello, Tony's Pizza. How can I help?",
+  "small-talk": "Good morning! It's cold today, right?",
+};
+
+export function openerFor(s: Pick<Scenario, "id" | "opener">, level: CefrLevel): string {
+  return level === "A1" ? (OPENER_A1[s.id] ?? s.opener) : s.opener;
+}

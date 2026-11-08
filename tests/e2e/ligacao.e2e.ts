@@ -48,7 +48,7 @@ const STT = "/var/tmp/sb/stt-text";
   await page.goto(`${BASE}/conversar`);
   for (const t of ["No banco", "Na academia", "Conversa com o vizinho", "Small talk no elevador"]) await page.getByText(t, { exact: true }).first().waitFor();
   await page.goto(`${BASE}/professor?cenario=bank&nivel=A1`);
-  await page.getByText("Good morning. How can I help you today?").first().waitFor();
+  await page.getByText("Good morning. How can I help you?").first().waitFor();
   console.log("✓ situações do dia a dia (banco, academia, vizinho, small talk…) listadas e abrindo com o personagem");
   await browser.close();
 })().catch((e) => {

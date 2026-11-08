@@ -208,3 +208,14 @@ describe("missões de módulo", async () => {
     for (const m of regular) expect(getScenario(MODULE_MISSION[m.id] ?? ""), m.id).toBeTruthy();
   });
 });
+
+describe("A1 de verdade nas situações", async () => {
+  const { openerFor } = await import("@/content/scenarios");
+  it("toda situação tem abertura A1 curta (até 10 palavras) e mantém a natural do A2 em diante", () => {
+    for (const s of SCENARIOS) {
+      const a1 = openerFor(s, "A1");
+      expect(a1.split(/\s+/).length, s.id).toBeLessThanOrEqual(10);
+      expect(openerFor(s, "B1")).toBe(s.opener);
+    }
+  });
+});

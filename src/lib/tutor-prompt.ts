@@ -1,8 +1,12 @@
 import type { CefrLevel } from "@/content/types";
 
 export const LEVEL_GUIDE: Record<CefrLevel, string> = {
-  A1: "Use very short sentences (max 10 words), only present simple and 'to be', the most common 500 words. Speak slowly and simply. Ask one simple question at a time.",
-  A2: "Use short sentences, present and past simple, 'going to', common everyday vocabulary (~1000 words).",
+  A1: `A1 MEANS REAL BEGINNER. Each sentence max 8 words; at most 2 sentences per reply; exactly ONE simple question.
+Only these structures: verb to be, present simple (I/you/he + do/does questions), can/can't, there is/are, this/that, have/has, question words (what, where, who, how, how old, what time).
+Only very common words (family, jobs, countries, food, numbers, days, time, home, city, colours). NO idioms, NO phrasal verbs, NO past or future tenses, NO abstract topics, NO sudden topic changes.
+Model of the right difficulty — Alex: "Hello! What is your name?" Student: "My name is Lucas." Alex: "Nice to meet you! Where are you from?" Student: "I am from Brazil." Alex: "Great! Are you a student?" Student: "No, I am not. I work." Alex: "Where do you work?"
+If the student says they don't understand, answers in Portuguese, or gives no answer, repeat the question with even simpler words and give the meaning in Portuguese in the tip field.`,
+  A2: `A2 = ELEMENTARY. Short sentences (max ~12 words), at most 2–3 sentences, one question at a time. Structures: present simple and continuous, past simple, going to / will for simple plans, can/should/have to, comparatives, some/any, present perfect only in simple "Have you ever...?" questions. Everyday vocabulary (~1,000 words). No idioms or advanced phrasal verbs. Keep the topic predictable and concrete.`,
   B1: "Use natural everyday English with common phrasal verbs, present perfect and conditionals. Moderate sentence length.",
   B2: "Use natural fluent English with idioms occasionally, varied tenses and opinions. Challenge the student a bit.",
   C1: "Use rich, nuanced English, idioms, advanced structures and abstract topics. Push for precision.",
@@ -21,6 +25,12 @@ export const INTENSITY_RULE: Record<CorrectionIntensity, string> = {
   intensa: "CORRECTION INTENSITY: INTENSIVE. Correct every mistake in the student's last message, including small ones (articles, prepositions, word order, unnatural phrasing). Still never invent mistakes.",
 };
 
+/** A1–A2: usar de preferência o que o aluno já estudou na trilha. */
+export function taughtRule(level: CefrLevel, taught?: string[]) {
+  if (!taught?.length || !["A1", "A2"].includes(level)) return "";
+  return `- ALREADY TAUGHT to this student (prefer these structures and topics; do not require anything beyond them): ${taught.slice(0, 14).join(" | ")}.`;
+}
+
 /** A resposta segue a conversa; a correção vai só no campo "correction" (senão o professor "trava" repetindo). */
 export const FORWARD_RULE = `- "reply" continues the conversation (react to the content, then a new question or comment). Never repeat or rephrase the corrected sentence in "reply" and never ask the same question again: the "correction" field already handles mistakes.`;
 
@@ -38,6 +48,8 @@ export interface TutorContext {
   correctionIntensity?: CorrectionIntensity;
   /** Fatos que o aluno contou em conversas anteriores (memória persistente). */
   facts?: string[];
+  /** Aulas que o aluno já concluiu (A1–A2: o professor prefere essas estruturas). */
+  taught?: string[];
 }
 
 /** Quanto português o professor usa, conforme o nível (o aluno pode sempre pedir explicação em português). */
@@ -92,6 +104,7 @@ ${MODE_RULES[ctx.tutorMode]}
 ${INTENSITY_RULE[ctx.correctionIntensity ?? "normal"]}
 ${FORWARD_RULE}
 ${FACTS_RULE}
+${taughtRule(ctx.level, ctx.taught)}
 ${ctx.tutorMode === "imersao" ? "" : `LANGUAGE: you understand Portuguese and English and the student may mix both, even in the same sentence. ${PT_POLICY[ctx.level]}`}
 
 How to behave:
@@ -190,6 +203,7 @@ export interface ScenarioContext {
   /** Complicações reais (só a partir do B1). */
   challenges?: string[];
   correctionIntensity?: CorrectionIntensity;
+  taught?: string[];
 }
 
 /** Role-play: a IA assume um personagem numa situação real, no nível escolhido. */
@@ -212,6 +226,7 @@ ${ctx.challenges?.length
 ${ctx.recentMistakes.length ? `- The student often struggles with: ${ctx.recentMistakes.slice(0, 4).join(" | ")}. Create natural chances to practice these.` : ""}
 - ${INTENSITY_RULE[ctx.correctionIntensity ?? "normal"]}
 ${FORWARD_RULE}
+${taughtRule(ctx.level, ctx.level === "A1" || ctx.level === "A2" ? ctx.taught : undefined)}
 
 Respond ONLY with a JSON object, no markdown:
 {"reply": "what ${ctx.characterName} says, in English",

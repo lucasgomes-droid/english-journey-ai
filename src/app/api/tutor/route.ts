@@ -7,7 +7,7 @@ import { customSetting, parseTutorReply, scenarioSystemPrompt, tutorSystemPrompt
 import { buildTutorMemory } from "@/lib/tutor-memory";
 import { getRecentMistakes, type Profile } from "@/lib/data";
 import { getLesson } from "@/content/curriculum";
-import { getScenario } from "@/content/scenarios";
+import { getScenario, openerFor } from "@/content/scenarios";
 import type { CefrLevel } from "@/content/types";
 import { recordActivity, syncAchievements } from "@/lib/progress";
 import { classifyCorrection } from "@/content/error-patterns";
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   let conversationId = parsed.data.conversationId ?? null;
 
   // Consultas independentes em paralelo (cada ida ao banco custa tempo).
-  const [recentRes, profileRes, convRes, msgsRes, recentMistakes, chatUsed, factsRes] = await Promise.all([
+  const [recentRes, profileRes, convRes, msgsRes, recentMistakes, chatUsed, factsRes, taughtRes] = await Promise.all([
     supabase
       .from("messages")
       .select("id", { count: "exact", head: true })
@@ -61,6 +61,7 @@ export async function POST(req: Request) {
     getRecentMistakes(supabase, user.id, 6),
     usageToday(supabase, user.id, "chat"),
     supabase.from("learner_facts").select("kind, value").eq("user_id", user.id).order("last_seen", { ascending: false }).limit(12),
+    supabase.from("lesson_progress").select("lesson_id").eq("user_id", user.id).eq("status", "completed").order("completed_at", { ascending: false }).limit(14),
   ]);
 
   // Limite simples de uso: 20 mensagens por minuto por aluno.
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
       .single();
     if (error || !conv) return NextResponse.json({ error: `Não foi possível criar a conversa: ${error?.message}` }, { status: 500 });
     conversationId = conv.id as string;
-    const starter = scenario?.opener ?? lesson?.conversation?.starter;
+    const starter = (scenario ? openerFor(scenario, level) : undefined) ?? lesson?.conversation?.starter;
     if (starter) {
       await supabase.from("messages").insert({ conversation_id: conversationId, user_id: user.id, role: "assistant", content: starter });
       history = [{ role: "assistant", content: starter }];
@@ -125,10 +126,15 @@ export async function POST(req: Request) {
   const studentName = profile.display_name.split(" ")[0] || "student";
   const correctionIntensity = profile.correction_intensity ?? "normal";
   const facts = ((factsRes.data ?? []) as { kind: string; value: string }[]).map((f) => `${f.kind}: ${f.value}`);
+  // O que o aluno já estudou na trilha (A1–A2: o professor prefere essas estruturas).
+  const taught = ((taughtRes.data ?? []) as { lesson_id: string }[])
+    .map((r) => getLesson(r.lesson_id))
+    .filter((l) => l && l.kind === "lesson")
+    .map((l) => l!.title);
   let system: string;
   if (mode === "scenario") {
     const sc = scenario ? { setting: scenario.setting, goals: scenario.goals } : customSetting(customPrompt ?? "");
-    system = scenarioSystemPrompt({ studentName, level, characterName: scenario?.character.name ?? "the person in the scene", setting: sc.setting, goals: sc.goals, recentMistakes, challenges: scenario && !["A1", "A2"].includes(level) ? scenario.challenges : undefined, correctionIntensity });
+    system = scenarioSystemPrompt({ studentName, level, characterName: scenario?.character.name ?? "the person in the scene", setting: sc.setting, goals: sc.goals, recentMistakes, challenges: scenario && !["A1", "A2"].includes(level) ? scenario.challenges : undefined, correctionIntensity, taught });
   } else {
     system = tutorSystemPrompt({
       studentName,
@@ -142,6 +148,7 @@ export async function POST(req: Request) {
       memory,
       correctionIntensity,
       facts,
+      taught,
     });
   }
   // Preferência "só inglês": explicações em inglês simples (sem entregar o português).
