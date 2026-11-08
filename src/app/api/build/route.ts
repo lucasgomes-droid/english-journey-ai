@@ -6,6 +6,7 @@ import { canUse, LIMIT_MESSAGE, recordUsage } from "@/lib/ai-budget";
 import { getBuild } from "@/content/build-situations";
 import { parseJsonObject } from "@/lib/speaking-parse";
 import { LEVEL_GUIDE } from "@/lib/tutor-prompt";
+import { isTrivialCorrection, NO_FALSE_CORRECTIONS } from "@/lib/correction-filter";
 
 export const maxDuration = 30;
 
@@ -33,7 +34,8 @@ Reply ONLY with JSON:
  "used_target": true if it uses the target structure,
  "corrected": "the student's answer corrected and natural (same meaning, same level); if already correct, repeat it",
  "explanation_pt": "1–2 frases simples em português: o erro principal e por quê (ou o que ficou bom)",
- "better": "optional: a more natural alternative for this level, or empty"}`,
+ "better": "optional: a more natural alternative for this level, or empty"}
+${NO_FALSE_CORRECTIONS}`,
         },
         { role: "user", content: parsed.data.text },
       ],
@@ -43,7 +45,8 @@ Reply ONLY with JSON:
     const o = parseJsonObject(raw);
     const str = (x: unknown) => (typeof x === "string" ? x.trim() : "");
     if (!o || !str(o.corrected)) return NextResponse.json({ error: "Não consegui corrigir agora. Tente de novo." }, { status: 502 });
-    return NextResponse.json({ ok: o.ok === true, used_target: o.used_target === true, corrected: str(o.corrected).slice(0, 300), explanation_pt: str(o.explanation_pt).slice(0, 400), better: str(o.better).slice(0, 300) });
+    const same = isTrivialCorrection(parsed.data.text, str(o.corrected));
+    return NextResponse.json({ ok: o.ok === true || same, used_target: o.used_target === true, corrected: str(o.corrected).slice(0, 300), explanation_pt: str(o.explanation_pt).slice(0, 400), better: str(o.better).slice(0, 300) });
   } catch (e) {
     const err = e instanceof AiError ? e : new AiError("Falha ao falar com a IA.");
     return NextResponse.json({ error: err.message }, { status: err.status });

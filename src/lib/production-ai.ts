@@ -1,3 +1,4 @@
+import { isTrivialCorrection, NO_FALSE_CORRECTIONS } from "@/lib/correction-filter";
 import "server-only";
 import { chatCompletion } from "@/lib/ai";
 import { parseJsonObject } from "@/lib/speaking-parse";
@@ -25,7 +26,8 @@ Reply ONLY with JSON:
  "used_target": true if the student actually used the lesson's language,
  "feedback_pt": "2 short sentences in Brazilian Portuguese: what was good and the one thing to improve",
  "corrected": "the student's text corrected and natural, same meaning, same level",
- "mistakes": [{"original":"...", "corrected":"...", "explanation_pt":"motivo curto"}] (max 3, only real mistakes; [] if none)}`,
+ "mistakes": [{"original":"...", "corrected":"...", "explanation_pt":"motivo curto"}] (max 3, only real mistakes; [] if none)}
+${NO_FALSE_CORRECTIONS}`,
       },
       { role: "user", content: input.text.slice(0, 1200) },
     ],
@@ -43,7 +45,7 @@ Reply ONLY with JSON:
     corrected: str(o.corrected).slice(0, 1200),
     mistakes: (Array.isArray(o.mistakes) ? o.mistakes : [])
       .map((m) => m as Record<string, unknown>)
-      .filter((m) => str(m.original) && str(m.corrected) && str(m.original) !== str(m.corrected))
+      .filter((m) => str(m.original) && str(m.corrected) && !isTrivialCorrection(str(m.original), str(m.corrected)))
       .slice(0, 3)
       .map((m) => ({ original: str(m.original), corrected: str(m.corrected), explanation_pt: str(m.explanation_pt) })),
   };

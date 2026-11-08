@@ -1,3 +1,4 @@
+import { stripEcho } from "@/lib/correction-filter";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentUser } from "@/lib/supabase/server";
@@ -160,6 +161,8 @@ export async function POST(req: Request) {
   try {
     let tokens = 0;
     reply = parseTutorReply(await chatCompletion(messages, { json: true, purpose: "turn", onUsage: (t) => (tokens = t) }));
+    // A fala do Alex não repete a frase do aluno nem a correção (a correção aparece no cartão).
+    reply = { ...reply, reply: stripEcho(reply.reply, [message, reply.correction?.corrected ?? ""]) };
     void recordUsage(supabase, "chat", { tokens });
   } catch (e) {
     const err = e instanceof AiError ? e : new AiError("Falha ao falar com a IA. Tente de novo.");

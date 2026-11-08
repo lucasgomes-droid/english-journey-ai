@@ -45,7 +45,7 @@ import { BASE, doLesson, signup, sql, uid } from "./helpers";
   await card.getByText("✓ Você repetiu certo.").waitFor({ timeout: 30000 });
   await card.getByText("Sua vez · toque no microfone para responder").waitFor({ timeout: 30000 });
   rmSync(STT, { force: true });
-  const lastTalk = readFileSync("/var/tmp/sb/mockai.log", "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((l) => l.kind === "chat").at(-1);
+  const lastTalk = readFileSync("/var/tmp/sb/mockai.log", "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((l) => l.kind === "chat" && !String(l.last).startsWith("(Teacher note")).at(-1);
   if (lastTalk?.last !== "I have") throw new Error(`depois de acertar, o Alex deveria responder à frase corrigida; recebeu: ${lastTalk?.last}`);
   console.log("✓ conversa da aula: corrige na hora; ao repetir certo, a conversa segue a partir da frase correta (sem repetir a pergunta)");
   await reply("I'm from Brazil.");

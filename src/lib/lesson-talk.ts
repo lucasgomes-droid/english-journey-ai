@@ -5,6 +5,7 @@
  */
 import type { CefrLevel, Lesson } from "@/content/types";
 import { LEVEL_GUIDE, PT_POLICY } from "@/lib/tutor-prompt";
+import { NO_FALSE_CORRECTIONS, normalizeSentence } from "@/lib/correction-filter";
 
 export const TALK_TURNS = 4;
 
@@ -15,7 +16,29 @@ export function lessonTargets(lesson: Lesson): string[] {
   return [...lesson.examples.slice(0, 5).map((e) => e.en), ...lesson.vocabulary.slice(0, 8).map((v) => v.en)];
 }
 
-export function talkSystemPrompt(lesson: Lesson, level: CefrLevel, studentName: string): string {
+/** Perguntas (frases com "?") que o Alex já fez, para não repetir. */
+export function askedQuestions(turns: { role: string; content: string }[]): string[] {
+  return turns
+    .filter((t) => t.role === "assistant")
+    .flatMap((t) => t.content.match(/[^.!?]*\?/g) ?? [])
+    .map((q) => q.trim())
+    .filter(Boolean);
+}
+
+/** A resposta repete uma pergunta que o Alex já fez? */
+export function repeatsQuestion(reply: string, asked: string[]): boolean {
+  const seen = new Set(asked.map(normalizeSentence));
+  return (reply.match(/[^.!?]*\?/g) ?? []).some((q) => seen.has(normalizeSentence(q)));
+}
+
+/** Próxima pergunta da própria aula ainda não feita (plano B quando o modelo insiste em repetir). */
+export function nextLessonQuestion(lesson: Lesson, asked: string[]): string | null {
+  const seen = new Set(asked.map(normalizeSentence));
+  const qs = [...lesson.examples.map((e) => e.en), ...(lesson.conversation ? [lesson.conversation.starter] : [])].flatMap((t) => t.match(/[^.!?]*\?/g) ?? []).map((q) => q.trim());
+  return qs.find((q) => q.split(" ").length <= 12 && !seen.has(normalizeSentence(q))) ?? null;
+}
+
+export function talkSystemPrompt(lesson: Lesson, level: CefrLevel, studentName: string, asked: string[] = []): string {
   const guided = isGuided(level);
   return `You are "Alex", a warm English teacher on a short voice call with ${studentName}, a Brazilian learner (CEFR ${level}), right after a lesson.
 ${LEVEL_GUIDE[level]}
@@ -28,8 +51,11 @@ ${guided
     ? "STYLE: GUIDED. Ask ONE short, personal question per turn that the student can only answer well by using the lesson's language (e.g. after a lesson on daily routine: 'What time do you get up?'). Use the lesson's words in your questions. Very simple English."
     : "STYLE: NATURAL. Have a natural, friendly conversation about the lesson's topic, reacting to what the student says, and create openings for them to use the lesson's structures without making it feel like a quiz. One question per turn."}
 - Keep replies to 1–2 short sentences. The call lasts about ${TALK_TURNS} student turns: after the student's ${TALK_TURNS}th answer, wrap up warmly in one sentence (no new question).
-- "reply" must react to what the student said and MOVE THE CONVERSATION FORWARD with a new question. Never repeat, rephrase or model the corrected sentence in "reply" (the "correction" field already handles it), and never ask the same question again.
-- Correct ONLY mistakes in the student's LAST message, especially in the lesson's target language. Never invent mistakes; ignore capitalization/punctuation and likely speech-recognition slips.
+- If the student asks YOU a question (e.g. "What's your name?", "How are you?"), ANSWER IT FIRST as Alex (you are Alex, an English teacher from Chicago; you are doing well), then ask a NEW question.
+- "reply" must react to what the student said and MOVE THE CONVERSATION FORWARD with a NEW question about a different detail. Never repeat, rephrase or model the corrected sentence in "reply" (the "correction" field already handles it).
+${asked.length ? `- Questions you ALREADY asked (NEVER ask them again, not even reworded): ${asked.map((q) => `"${q}"`).join(", ")}. The student already answered them.` : ""}
+- Correct ONLY real mistakes in the student's LAST message, especially in the lesson's target language. Never invent mistakes; ignore capitalization/punctuation and likely speech-recognition slips.
+${NO_FALSE_CORRECTIONS}
 
 Respond ONLY with JSON:
 {"reply": "what you say",

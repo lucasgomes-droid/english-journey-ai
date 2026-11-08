@@ -1,3 +1,4 @@
+import { stripEcho } from "@/lib/correction-filter";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentUser } from "@/lib/supabase/server";
@@ -6,7 +7,7 @@ import { canUse, LIMIT_MESSAGE, recordUsage } from "@/lib/ai-budget";
 import { getLesson, getModule } from "@/content/curriculum";
 import { parseTutorReply } from "@/lib/tutor-prompt";
 import { parseJsonObject } from "@/lib/speaking-parse";
-import { parseTalkReview, talkPassed, talkReviewPrompt, talkSystemPrompt, TALK_TURNS } from "@/lib/lesson-talk";
+import { askedQuestions, nextLessonQuestion, parseTalkReview, repeatsQuestion, talkPassed, talkReviewPrompt, talkSystemPrompt, TALK_TURNS } from "@/lib/lesson-talk";
 import type { CefrLevel } from "@/content/types";
 
 export const maxDuration = 30;
@@ -51,13 +52,30 @@ export async function POST(req: Request) {
 
     const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", user.id).single();
     const name = String(profile?.display_name ?? "").split(" ")[0] || "student";
-    const messages: ChatMessage[] = [{ role: "system", content: talkSystemPrompt(lesson, level, name) }, ...turns.map((t) => ({ role: t.role, content: t.content }))];
+    const asked = askedQuestions(turns);
+    const messages: ChatMessage[] = [{ role: "system", content: talkSystemPrompt(lesson, level, name, asked) }, ...turns.map((t) => ({ role: t.role, content: t.content }))];
     // Primeira fala: o Alex abre com a pergunta da aula.
     if (!turns.length) messages.push({ role: "user", content: "(The call starts. Greet the student in one short sentence and ask your first question.)" });
-    const reply = parseTutorReply(await chatCompletion(messages, { json: true, purpose: "turn", temperature: 0.6, maxTokens: 700 }));
-    void recordUsage(supabase, "chat");
     const userTurns = turns.filter((t) => t.role === "user").length;
-    return NextResponse.json({ reply: reply.reply, correction: reply.correction, done: userTurns >= TALK_TURNS });
+    let reply = parseTutorReply(await chatCompletion(messages, { json: true, purpose: "turn", temperature: 0.6, maxTokens: 700 }));
+    void recordUsage(supabase, "chat");
+    // Não deixar a conversa andar em círculo: se repetiu uma pergunta já feita, tenta de novo uma vez;
+    // se insistir, troca a pergunta pela próxima pergunta da própria aula.
+    if (userTurns < TALK_TURNS && repeatsQuestion(reply.reply, asked)) {
+      const retry = parseTutorReply(
+        await chatCompletion([...messages, { role: "assistant", content: JSON.stringify({ reply: reply.reply }) }, { role: "user", content: "(Teacher note: you repeated a question the student already answered. Write a different reply: react to the student's last message, answer their question if they asked one, and ask a NEW question. Same JSON format.)" }], { json: true, purpose: "turn", temperature: 0.7, maxTokens: 700 }),
+      );
+      void recordUsage(supabase, "chat");
+      if (!repeatsQuestion(retry.reply, asked)) reply = { ...retry, correction: reply.correction };
+      else {
+        const next = nextLessonQuestion(lesson, asked);
+        const kept = reply.reply.replace(/[^.!?]*\?/g, "").trim();
+        reply = { ...reply, reply: `${kept || "Great!"} ${next ?? "Tell me more about you!"}`.trim() };
+      }
+    }
+    const lastStudent = [...turns].reverse().find((t) => t.role === "user")?.content ?? "";
+    const clean = stripEcho(reply.reply, [lastStudent, reply.correction?.corrected ?? ""]);
+    return NextResponse.json({ reply: clean, correction: reply.correction, done: userTurns >= TALK_TURNS });
   } catch (e) {
     const err = e instanceof AiError ? e : new AiError("Falha ao falar com a IA. Tente de novo.");
     return NextResponse.json({ error: err.message }, { status: err.status });

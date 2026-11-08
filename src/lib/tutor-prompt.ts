@@ -1,3 +1,4 @@
+import { cleanExplanation, isTrivialCorrection, NO_FALSE_CORRECTIONS, restoreContractions } from "@/lib/correction-filter";
 import type { CefrLevel } from "@/content/types";
 
 export const LEVEL_GUIDE: Record<CefrLevel, string> = {
@@ -83,6 +84,7 @@ How to behave:
 - Keep replies short: 1–3 sentences${ctx.level === "A1" ? " and very simple" : ""}.
 - If the student writes in Portuguese, gently show how to say it in English and invite them to try.
 - Correct mistakes in the student's LAST message only (grammar, word choice, unnatural phrasing, spelling). Do not correct capitalization or missing final punctuation. Do not invent mistakes: if the message is correct and natural, correction must be null.
+${NO_FALSE_CORRECTIONS}
 - Explanations of mistakes are ALWAYS in Brazilian Portuguese, short and friendly${explainInPt ? "" : ", but keep the conversation itself 100% in English"}.
 - Occasionally (not every turn) teach one natural expression related to the topic in "tip_pt".
 - Never mention that you are an AI model unless asked. Never produce inappropriate content.
@@ -154,13 +156,15 @@ export function parseTutorReply(raw: string): TutorReply {
     try {
       const obj = JSON.parse(match[0]) as Partial<TutorReply>;
       if (typeof obj.reply === "string" && obj.reply.trim()) {
-        const c = obj.correction;
+        const c0 = obj.correction;
+        // Mantém as contrações que o aluno usou e descarta "correções" que não corrigem nada.
+        const c = c0 && typeof c0 === "object" && typeof c0.corrected === "string" ? { ...c0, corrected: restoreContractions(String(c0.original ?? ""), c0.corrected) } : null;
         const correction =
-          c && typeof c === "object" && typeof c.corrected === "string" && c.corrected.trim() && c.corrected.trim() !== (c.original ?? "").trim()
+          c && c.corrected.trim() && !isTrivialCorrection(String(c.original ?? ""), c.corrected)
             ? {
                 original: String(c.original ?? ""),
                 corrected: c.corrected,
-                explanation_pt: String(c.explanation_pt ?? ""),
+                explanation_pt: cleanExplanation(String(c.explanation_pt ?? ""), String(c.original ?? "")),
                 example: typeof c.example === "string" && c.example.trim() && c.example.trim().length <= 140 && c.example.trim() !== c.corrected.trim() ? c.example.trim() : null,
               }
             : null;
@@ -222,7 +226,8 @@ ${ctx.challenges?.length
 - If the student says something unexpected or off-topic, react to it naturally as the character would, then bring the conversation back to the scene.
 - If the student writes in Portuguese, stay in character but gently say the English for it in the "tip_pt" field.
 - When the student has completed all goals, wrap up the scene naturally (as the character would) and set "scene_complete" to true.
-- Correct mistakes ONLY in the student's LAST message (grammar, vocabulary, unnatural phrasing). Ignore capitalization and missing final punctuation. If it is correct and natural, correction must be null. Explanations are in Brazilian Portuguese, short and friendly.
+- Correct mistakes ONLY in the student's LAST message (grammar, vocabulary, unnatural phrasing). Ignore capitalization and missing final punctuation. If it is correct and natural, correction must be null.
+${NO_FALSE_CORRECTIONS} Explanations are in Brazilian Portuguese, short and friendly.
 ${ctx.recentMistakes.length ? `- The student often struggles with: ${ctx.recentMistakes.slice(0, 4).join(" | ")}. Create natural chances to practice these.` : ""}
 - ${INTENSITY_RULE[ctx.correctionIntensity ?? "normal"]}
 ${FORWARD_RULE}
